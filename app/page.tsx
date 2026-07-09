@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main>
       <Navbar />
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}>
+      <div style={{ display: "flex", justifyContent: "CENTER", marginTop: "2rem" }}>
         <RoomCard />
       </div>
     </main>

@@ -3,15 +3,25 @@
 export default function Navbar() {
   return (
     <nav className="border-b bg-white px-4 py-3 shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between">
+      <div className="flex items-center px-6">
         <Link href="/" className="text-lg font-semibold">
-          CW Frontend
+          DeskHere
         </Link>
-        <div className="space-x-4 text-sm text-gray-700">
-          <Link href="/login" className="hover:text-blue-600">
+        <div className="hidden md:flex items-center ml-10 gap-6 text-sm font-medium text-gray-700">
+        <Link href="/">Locations</Link>
+        <Link href="/">Who We Serve</Link>
+        <Link href="/">Workspace Solutions</Link>
+        <Link href="/">Resources</Link>
+        </div>
+        <div className="ml-auto flex items-center gap-4">
+          <select className="rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <option value="en"> EN</option>
+          <option value="tr"> TR</option>
+          </select>
+          <Link href="/login" className="rounded-md border border-sky-600 px-4 py-2 text-sky-700 hover:bg-sky-600 hover:text-white transititon">
             Login
           </Link>
-          <Link href="/register" className="hover:text-blue-600">
+          <Link href="/register" className="rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 transition">
             Register
           </Link>
         </div>
