@@ -1,21 +1,24 @@
 // src/components/rooms/RoomCard.tsx
 "use client";
 
-import { Card, CardContent, Typography, Stack, Chip } from "@mui/material";
-export default function RoomCard() {
-  return (
-    <Card sx={{ maxWidth: 345, margin: "1rem" }}>
+import { Card, CardContent, Typography, Chip, Stack, Box } from '@mui/material';
+import type { Room } from '@/src/lib/api/rooms';
 
-      <CardContent> 
-        <Typography variant="h6">Toplantı Odası A</Typography>
-        <Typography color="text.secondary" sx={{ mb: 1 }}>
-          Kapasite: 5 kişi
+export default function RoomCard({ room }: { room: Room }) {
+  return (
+    <Card sx={{ maxWidth: 300 }}>
+      <CardContent>
+        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+          {room.name}
         </Typography>
-        <Stack direction="row" spacing={1}>
-          <Chip label="Wifi" size="small" />
-          <Chip label="TV" size="small" />
-          <Chip label="Beyaz Tahta" size="small" />
-        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Kapasite: {room.capacity} kişi · {room.floor}. Kat
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+          {room.features.map((feature) => (
+            <Chip key={feature} label={feature} size="small" />
+          ))}
+        </Box>
       </CardContent>
     </Card>
   );
