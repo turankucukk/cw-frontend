@@ -1,13 +1,14 @@
 import Navbar from "@/src/components/layout/Navbar";
-import RoomCard from "@/src/components/rooms/RoomCard";
+import RoomsSection from "@/src/components/rooms/RoomSection";
+import Hero from "@/src/components/layout/Hero";
 
 export default function Home() {
   return (
     <main>
       <Navbar />
-      <div style={{ display: "flex", justifyContent: "CENTER", marginTop: "2rem" }}>
-        <RoomCard />
-      </div>
+      <Hero />  
+      <RoomsSection />
+      
     </main>
   );
-}
+} 
