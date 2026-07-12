@@ -1,6 +1,7 @@
 ﻿"use client";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Box, TextField, Button, Typography, Alert } from "@mui/material";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function RegisterForm() {
     event.preventDefault();
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Şifreler eşleşmiyor.");
       return;
     }
 
@@ -24,21 +25,30 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      console.log("Register submitted", { name, nickname, email, password });
+      console.log("Kayıt gönderildi", { name, nickname, email, password });
       await new Promise((resolve) => setTimeout(resolve, 500));
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+      setError(err instanceof Error ? err.message : "Bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* DeskHere Logo - sadece ikon + isim, alt yazı yok */}
-        <div className="w-72 -ml-5">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+        px: 2,
+      }}
+    >
+      <Box sx={{ width: { xs: "100%", sm: 400 } }}>
+        {/* DeskHere Logo */}
+        <Box sx={{ width: 280, ml: -1.5 }}>
           <svg viewBox="0 0 420 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -62,97 +72,84 @@ export default function RegisterForm() {
               <text x="116" fontFamily="Segoe UI, Inter, Arial, sans-serif" fontSize="48" fontWeight="400" fill="url(#brandGradient)" letterSpacing="-0.5">Here</text>
             </g>
           </svg>
-        </div>
+        </Box>
 
-        <h1 className="text-4xl font-bold text-gray-900">Sign up</h1>
+        <Typography variant="h3" sx={{ mb: 3, fontWeight: 700 }}>
+          Kayıt Ol
+        </Typography>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
-            <div className="text-red-700 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
-          )}
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          {error && <Alert severity="error">{error}</Alert>}
 
-          <div>
-            <label htmlFor="name" className="block text-sm text-gray-700 mb-1.5">Full name</label>
-            <input
-              id="name"
-              type="text"
-              placeholder="Çetin Ceviz"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
+          <TextField
+            label="Ad Soyad"
+            placeholder="Çetin Ceviz"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            fullWidth
+            required
+          />
 
-          <div>
-            <label htmlFor="nickname" className="block text-sm text-gray-700 mb-1.5">Nickname</label>
-            <input
-              id="nickname"
-              type="text"
-              placeholder="çetinceviz"
-              value={nickname}
-              onChange={(event) => setNickname(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
+          <TextField
+            label="Kullanıcı Adı"
+            placeholder="çetinceviz"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            fullWidth
+            required
+          />
 
-          <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 mb-1.5">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
+          <TextField
+            label="E-posta"
+            type="email"
+            placeholder="ornek@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            required
+          />
 
-          <div>
-            <label htmlFor="password" className="block text-sm text-gray-700 mb-1.5">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
+          <TextField
+            label="Şifre"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            required
+          />
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1.5">Confirm Password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
+          <TextField
+            label="Şifre Tekrar"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            fullWidth
+            required
+          />
 
-          <button
+          <Button
             type="submit"
+            variant="contained"
             disabled={loading}
-            className="w-full rounded-lg px-4 py-3 text-white font-medium disabled:opacity-50 transition"
-            style={{ background: "linear-gradient(135deg, #0052CC 0%, #00B4D8 100%)" }}
+            fullWidth
+            sx={{
+              py: 1.5,
+              background: "linear-gradient(135deg, #0052CC 0%, #00B4D8 100%)",
+              textTransform: "none",
+              fontSize: "1rem",
+            }}
           >
-            {loading ? "Kayıt oluşturuluyor..." : "Sign up"}
-          </button>
-        </form>
+            {loading ? "Kayıt oluşturuluyor..." : "Kayıt Ol"}
+          </Button>
+        </Box>
 
-        <p className="text-center text-sm text-gray-500">
-          Already have an account?{" "}
-          <a href="/login" className="text-[#0052CC] hover:underline font-medium">
-            Sign in
-          </a>
-        </p>
-      </div>
-    </div>
+        <Typography variant="body2" align="center" sx={{ mt: 3, color: "text.secondary" }}>
+          Zaten bir hesabın var mı?{" "}
+          <Box component="a" href="/login" sx={{ color: "#0052CC", fontWeight: 500, textDecoration: "none" }}>
+            Giriş Yap
+          </Box>
+        </Typography>
+      </Box>
+    </Box>
   );
 }
