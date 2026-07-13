@@ -1,6 +1,7 @@
 ﻿"use client";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Box, TextField, Button, Typography, Alert } from "@mui/material";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -28,17 +29,26 @@ export default function RegisterForm() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+      setError(err instanceof Error ? err.message : "Bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* DeskHere Logo - sadece ikon + isim, alt yazı yok */}
-        <div className="w-72 -ml-5">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+        px: 2,
+      }}
+    >
+      <Box sx={{ width: { xs: "100%", sm: 400 } }}>
+        {/* DeskHere Logo */}
+        <Box sx={{ width: 280, ml: -1.5 }}>
           <svg viewBox="0 0 420 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -62,16 +72,12 @@ export default function RegisterForm() {
               <text x="116" fontFamily="Segoe UI, Inter, Arial, sans-serif" fontSize="48" fontWeight="400" fill="url(#brandGradient)" letterSpacing="-0.5">Here</text>
             </g>
           </svg>
-        </div>
+        </Box>
 
         <h1 className="text-4xl font-bold text-gray-900">Kayıt ol</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
-            <div className="text-red-700 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
-          )}
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          {error && <Alert severity="error">{error}</Alert>}
 
           <div>
             <label htmlFor="name" className="block text-sm text-gray-700 mb-1.5">Tam ad</label>
@@ -136,11 +142,17 @@ export default function RegisterForm() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            variant="contained"
             disabled={loading}
-            className="w-full rounded-lg px-4 py-3 text-white font-medium disabled:opacity-50 transition"
-            style={{ background: "linear-gradient(135deg, #0052CC 0%, #00B4D8 100%)" }}
+            fullWidth
+            sx={{
+              py: 1.5,
+              background: "linear-gradient(135deg, #0052CC 0%, #00B4D8 100%)",
+              textTransform: "none",
+              fontSize: "1rem",
+            }}
           >
             {loading ? "Kayıt oluşturuluyor..." : "Kayıt ol"}
           </button>

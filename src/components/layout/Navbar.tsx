@@ -1,9 +1,15 @@
-﻿import Link from "next/link";
-
+﻿"use client";
+import Link from "next/link";
+import Box from "@mui/material/Box";
+import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 export default function Navbar() {
   return (
-    <nav className="border-b bg-white px-4 py-3 shadow-sm">
-      <div className="flex items-center px-6">
+    <AppBar position="static" color="inherit" elevation={1}>
+      <Box sx={{display: "flex",alignItems: "center",px: 3,}}>
         <Link href="/" className="text-lg font-semibold">
           DeskHere
         </Link>
