@@ -8,8 +8,8 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 export default function Navbar() {
   return (
-    <AppBar position="static" color="inherit" elevation={1}>
-      <Box sx={{display: "flex",alignItems: "center",px: 3,}}>
+    <AppBar position="static" color="inherit" elevation={1} sx={{py: 2}}>
+      <Box sx={{display: "flex",alignItems: "center",px: 3, }}>
         <Link href="/" className="text-lg font-semibold">
           DeskHere
         </Link>
