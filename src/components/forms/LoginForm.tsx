@@ -23,15 +23,7 @@ export default function LoginForm() {
   const router = useRouter();
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true);
-
-setTimeout(() => {
-  console.log("Login submitted", { email, password });
-
-  router.push("/");
-
-  setLoading(false);
-}, 5000);
+    console.log("Giriş gönderildi", { email, password });
   };
     return (
   <Box
@@ -53,16 +45,14 @@ setTimeout(() => {
         DeskHere
       </Typography>
 
-      <Typography
-        align="center"
-        color="text.secondary"
-        sx={{ mb: 4, mt: 1 }}>
-        Sign in to your account
-      </Typography>
-
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Email"
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium">
+          E-posta
+        </label>
+        <input
+          id="email"
           type="email"
           fullWidth
           margin="normal"
@@ -70,59 +60,26 @@ setTimeout(() => {
           onChange={(event) => setEmail(event.target.value)}
           required
         />
-
-        <TextField
-         label="Password"
-         type={showPassword ? "text" : "password"}
-        fullWidth
-        margin="normal"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-       required
-       slotProps={{
-        input: {
-      endAdornment: (
-        <InputAdornment position="end">
-          <IconButton
-            onClick={() => setShowPassword(!showPassword)}
-            edge="end"
-          >
-            {showPassword ? <Visibility /> : <VisibilityOff />}
-          </IconButton>
-        </InputAdornment>
-      ),
-    },
-  }}
-/>
-
-        <FormControlLabel
-          control={<Checkbox />}
-          label="Remember me"
-          sx={{ mt: 1 }}
+      </div>
+      <div>
+        <label htmlFor="password" className="block text-sm font-medium">
+          Şifre
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className="mt-1 block w-full rounded border px-3 py-2"
+          required
         />
-
-        <Button
-          disabled={loading}
-          type="submit"
-          variant="contained"
-          fullWidth
-          size="large"
-          sx={{ mt: 2 , py:1.3, borderRadius: 2,transition: "0.3s","&:hover":{transform: "translateY(-2px)",boxShadow:6,},
-        }}
-        >
-          {loading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            "Login"
-          )}
-        </Button>
-
-        <Typography align="center" sx={{ mt: 3 }}>
-          Don't have an account?{" "}
-          <Link href="/register">Register</Link>
-        </Typography>
-      </form>
-    </Paper>
-  </Box>
+      </div>
+      <button
+        type="submit"
+        className="inline-flex items-center justify-center rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+      >
+        Giriş yap
+      </button>
+    </form>
   );
 }

@@ -13,27 +13,25 @@ export default function Navbar() {
         <Link href="/" className="text-lg font-semibold">
           DeskHere
         </Link>
-        <Box sx={{display: { xs: "none", md: "flex" },alignItems: "center", ml: 5,gap: 3, fontSize: "0.875rem",fontWeight: 500,color: "text.secondary",}}>
-        <Link href="/">Locations</Link>
-        <Link href="/">Who We Serve</Link>
-        <Link href="/">Workspace Solutions</Link>
-        <Link href="/">Resources</Link>
-        </Box>
-        <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2,}}>
-          <FormControl size="small">
-           <Select defaultValue="en">
-           <MenuItem value="en">EN</MenuItem>
-           <MenuItem value="tr">TR</MenuItem>
-           </Select>
-           </FormControl>
-          <Button component={Link} href="/login" variant="outlined">
-            Login
-          </Button>
-          <Button component={Link} href="/register" variant="contained">
-           Register
-          </Button>
-        </Box>
-      </Box>
-    </AppBar>
+        <div className="hidden md:flex items-center ml-10 gap-6 text-sm font-medium text-gray-700">
+        <Link href="/">Konumlar</Link>
+        <Link href="/">Hizmet Verdiğimiz Kişiler</Link>
+        <Link href="/">Çalışma Alanı Çözümleri</Link>
+        <Link href="/">Kaynaklar</Link>
+        </div>
+        <div className="ml-auto flex items-center gap-4">
+          <select className="rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <option value="en"> EN</option>
+          <option value="tr"> TR</option>
+          </select>
+          <Link href="/login" className="rounded-md border border-sky-600 px-4 py-2 text-sky-700 hover:bg-sky-600 hover:text-white transititon">
+            Giriş yap
+          </Link>
+          <Link href="/register" className="rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 transition">
+            Kayıt ol
+          </Link>
+        </div>
+      </div>
+    </nav>
   );
 }

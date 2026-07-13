@@ -1,6 +1,6 @@
 "use client";
 
-// Bu örnek, dışarıdan alınmış bir bina krokisidir
+// Bu örnek dışarıdan alınmış bir bina krokisidir
 
 export default function BuildingFloorPlan() {
   return (
