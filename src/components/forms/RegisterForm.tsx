@@ -20,7 +20,7 @@ export default function RegisterForm() {
       setError("Şifreler eşleşmiyor.");
       return;
     }
-
+    
     setError("");
     setLoading(true);
 
@@ -155,8 +155,8 @@ export default function RegisterForm() {
             }}
           >
             {loading ? "Kayıt oluşturuluyor..." : "Kayıt ol"}
-          </button>
-        </form>
+          </Button>
+        </Box>
 
         <p className="text-center text-sm text-gray-500">
           Zaten bir hesabın var mı?{" "}
@@ -164,7 +164,7 @@ export default function RegisterForm() {
             Giriş yap
           </a>
         </p>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
