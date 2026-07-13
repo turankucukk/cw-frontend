@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { translatePage } from "../../translateService";
+import { translatePage } from "@/services/translateService";
 
 export default function Navbar() {
   return (
