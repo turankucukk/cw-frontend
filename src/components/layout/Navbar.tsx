@@ -31,7 +31,7 @@ export default function Navbar() {
             Kayıt ol
           </Link>
         </div>
-      </div>
-    </nav>
+      </Box>
+    </AppBar>
   );
 }
