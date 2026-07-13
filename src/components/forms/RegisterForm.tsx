@@ -1,7 +1,9 @@
 ﻿"use client";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Box, TextField, Button, Typography, Alert } from "@mui/material";
+import { Box, TextField, Button, Typography, Alert, CircularProgress } from "@mui/material";
+// Supabase client'ı import ediyoruz
+import { createClient } from "@/src/utils/supabase/client";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -12,6 +14,9 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Supabase client'ı başlatıyoruz
+  const supabase = createClient();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,9 +30,27 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      console.log("Kayıt gönderildi", { name, nickname, email, password });
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Supabase Kayıt İşlemi
+      const { data, error: supabaseError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          // `data` alanı, kullanıcı profili tablonuza eklenecek verileri içerir.
+          data: {
+            full_name: name,
+            username: nickname,
+          },
+        },
+      });
+
+      if (supabaseError) {
+        setError("Kayıt başarısız: " + supabaseError.message);
+        return;
+      }
+
+      // Başarılı kayıttan sonra ana sayfaya yönlendir.
       router.push("/");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bir hata oluştu.");
     } finally {
@@ -139,7 +162,7 @@ export default function RegisterForm() {
               fontSize: "1rem",
             }}
           >
-            {loading ? "Kayıt oluşturuluyor..." : "Kayıt Ol"}
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Kayıt Ol"}
           </Button>
         </Box>
 
