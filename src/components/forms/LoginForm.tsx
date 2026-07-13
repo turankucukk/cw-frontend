@@ -1,5 +1,6 @@
 ﻿"use client";
 import { useState, type FormEvent } from "react";
+import { createClient } from "../../../utils/supabase/client";
 import {
   Box,
   Paper,
@@ -16,23 +17,35 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 export default function LoginForm() {
+  const [errorMessage, setErrorMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword , setShowPassword ]=useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-setTimeout(() => {
-  console.log("Login submitted", { email, password });
+  setLoading(true);
+  setErrorMessage("");
+
+  const supabase = createClient();
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    setErrorMessage("Email or password is incorrect.");
+    setLoading(false);
+    return;
+  }
 
   router.push("/");
+  router.refresh();
+};
 
-  setLoading(false);
-}, 5000);
-  };
     return (
   <Box
     sx={{
@@ -116,6 +129,12 @@ setTimeout(() => {
             "Login"
           )}
         </Button>
+
+        {errorMessage && (
+          <Typography color="error" align="center" sx={{ mt: 2 }}>
+            {errorMessage}
+          </Typography>
+        )}
 
         <Typography align="center" sx={{ mt: 3 }}>
           Don't have an account?{" "}
