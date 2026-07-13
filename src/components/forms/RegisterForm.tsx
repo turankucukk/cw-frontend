@@ -74,58 +74,73 @@ export default function RegisterForm() {
           </svg>
         </Box>
 
-        <Typography variant="h3" sx={{ mb: 3, fontWeight: 700 }}>
-          Kayıt Ol
-        </Typography>
+        <h1 className="text-4xl font-bold text-gray-900">Kayıt ol</h1>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
           {error && <Alert severity="error">{error}</Alert>}
 
-          <TextField
-            label="Ad Soyad"
-            placeholder="Çetin Ceviz"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            required
-          />
+          <div>
+            <label htmlFor="name" className="block text-sm text-gray-700 mb-1.5">Tam ad</label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Çetin Ceviz"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
+              required
+            />
+          </div>
 
-          <TextField
-            label="Kullanıcı Adı"
-            placeholder="çetinceviz"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            fullWidth
-            required
-          />
+          <div>
+            <label htmlFor="nickname" className="block text-sm text-gray-700 mb-1.5">Kullanıcı adı</label>
+            <input
+              id="nickname"
+              type="text"
+              placeholder="çetinceviz"
+              value={nickname}
+              onChange={(event) => setNickname(event.target.value)}
+              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
+              required
+            />
+          </div>
 
-          <TextField
-            label="E-posta"
-            type="email"
-            placeholder="ornek@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            fullWidth
-            required
-          />
+          <div>
+            <label htmlFor="email" className="block text-sm text-gray-700 mb-1.5">E-posta</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="ornek@email.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
+              required
+            />
+          </div>
 
-          <TextField
-            label="Şifre"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
-          />
+          <div>
+            <label htmlFor="password" className="block text-sm text-gray-700 mb-1.5">Şifre</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
+              required
+            />
+          </div>
 
-          <TextField
-            label="Şifre Tekrar"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            fullWidth
-            required
-          />
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1.5">Şifreyi onayla</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
+              required
+            />
+          </div>
 
           <Button
             type="submit"
@@ -139,17 +154,17 @@ export default function RegisterForm() {
               fontSize: "1rem",
             }}
           >
-            {loading ? "Kayıt oluşturuluyor..." : "Kayıt Ol"}
-          </Button>
-        </Box>
+            {loading ? "Kayıt oluşturuluyor..." : "Kayıt ol"}
+          </button>
+        </form>
 
-        <Typography variant="body2" align="center" sx={{ mt: 3, color: "text.secondary" }}>
+        <p className="text-center text-sm text-gray-500">
           Zaten bir hesabın var mı?{" "}
-          <Box component="a" href="/login" sx={{ color: "#0052CC", fontWeight: 500, textDecoration: "none" }}>
-            Giriş Yap
-          </Box>
-        </Typography>
-      </Box>
-    </Box>
+          <a href="/login" className="text-[#0052CC] hover:underline font-medium">
+            Giriş yap
+          </a>
+        </p>
+      </div>
+    </div>
   );
 }
