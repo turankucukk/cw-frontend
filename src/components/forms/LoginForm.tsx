@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, type FormEvent } from "react";
+import { createClient } from "../../../utils/supabase/client";
 import {
   Box,
   Paper,
@@ -20,20 +21,36 @@ import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
+  const [errorMessage, setErrorMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
   const router = useRouter();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    console.log("Giriş gönderildi", { email, password, rememberMe });
-    setLoading(false);
+    setErrorMessage("");
+
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setErrorMessage("E-posta veya şifre hatalı.");
+      setLoading(false);
+      return;
+    }
+
     router.push("/");
+    router.refresh();
   };
 
   return (
@@ -47,12 +64,19 @@ export default function LoginForm() {
         px: 2,
       }}
     >
-      <Paper elevation={8} sx={{ width: { xs: "100%", sm: 420 }, p: { xs: 3, sm: 5 }, borderRadius: 4 }}>
+      <Paper
+        elevation={8}
+        sx={{
+          width: { xs: "100%", sm: 420 },
+          p: { xs: 3, sm: 5 },
+          borderRadius: 4,
+        }}
+      >
         <Stack spacing={3}>
-
           <Typography variant="h4" sx={{ fontWeight: 700 }} align="center">
             DeskHere
           </Typography>
+
           <Typography variant="body1" color="text.secondary" align="center">
             Hesabına giriş yap
           </Typography>
@@ -69,30 +93,38 @@ export default function LoginForm() {
               />
 
               <TextField
-  label="Şifre"
-  type={showPassword ? "text" : "password"}
-  value={password}
-  onChange={(event) => setPassword(event.target.value)}
-  fullWidth
-  required
-  slotProps={{
-    input: {
-      endAdornment: (
-        <InputAdornment position="end">
-          <IconButton
-            aria-label="Şifreyi göster/gizle"
-            onClick={() => setShowPassword((prev) => !prev)}
-            edge="end"
-          >
-            {showPassword ? <VisibilityOff /> : <Visibility />}
-          </IconButton>
-        </InputAdornment>
-      ),
-    },
-  }}
-/>
+                label="Şifre"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                fullWidth
+                required
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="Şifreyi göster/gizle"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
 
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -102,20 +134,47 @@ export default function LoginForm() {
                   }
                   label="Beni hatırla"
                 />
-                <MuiLink component={NextLink} href="/forgot-password" underline="hover" color="primary">
+
+                <MuiLink
+                  component={NextLink}
+                  href="/forgot-password"
+                  underline="hover"
+                  color="primary"
+                >
                   Şifremi unuttum?
                 </MuiLink>
               </Box>
 
-              <Button type="submit" variant="contained" size="large" disabled={loading} sx={{ py: 1.5, borderRadius: 2 }}>
-                {loading ? <CircularProgress size={24} color="inherit" /> : "Giriş yap"}
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={loading}
+                sx={{ py: 1.5, borderRadius: 2 }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Giriş yap"
+                )}
               </Button>
+
+              {errorMessage && (
+                <Typography color="error" align="center">
+                  {errorMessage}
+                </Typography>
+              )}
             </Stack>
           </Box>
 
           <Typography variant="body2" align="center" color="text.secondary">
             Hesabın yok mu?{" "}
-            <MuiLink component={NextLink} href="/register" underline="hover" color="primary">
+            <MuiLink
+              component={NextLink}
+              href="/register"
+              underline="hover"
+              color="primary"
+            >
               Kayıt ol
             </MuiLink>
           </Typography>
