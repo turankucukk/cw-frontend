@@ -33,8 +33,8 @@ export default function Navbar() {
   };
 
   return (
-    <AppBar position="static" color="inherit" elevation={1}>
-      <Box sx={{display: "flex",alignItems: "center",px: 3,}}>
+    <nav className="border-b bg-white px-4 py-3 shadow-sm">
+      <div className="flex items-center px-6">
         <Link href="/" className="text-lg font-semibold">
           DeskHere
         </Link>

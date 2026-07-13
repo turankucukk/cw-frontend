@@ -1,5 +1,7 @@
 ﻿"use client";
+
 import { useState, type FormEvent } from "react";
+import { createClient } from "../../../utils/supabase/client";
 import {
   Box,
   Paper,
@@ -10,9 +12,6 @@ import {
   FormControlLabel,
   Alert,
 } from "@mui/material";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import CircularProgress from "@mui/material/CircularProgress";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -20,6 +19,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { createClient } from "@/src/utils/supabase/client";
 
 export default function LoginForm() {
+  const [errorMessage, setErrorMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -32,6 +32,7 @@ export default function LoginForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     setLoading(true);
     setError(""); // Yeni denemede eski hatayı temizle
 
