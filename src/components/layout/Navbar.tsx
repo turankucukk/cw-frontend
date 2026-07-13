@@ -33,16 +33,16 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="border-b bg-white px-4 py-3 shadow-sm">
-      <div className="flex items-center px-6">
+    <AppBar className=" px-4 py-3 shadow-sm " sx={{ background:"gray"}}>
+      <Box className="flex items-center px-6">
         <Link href="/" className="text-lg font-semibold">
           DeskHere
         </Link>
         <Box sx={{display: { xs: "none", md: "flex" },alignItems: "center", ml: 5,gap: 3, fontSize: "0.875rem",fontWeight: 500,color: "text.secondary",}}>
-        <Link href="/">Locations</Link>
-        <Link href="/">Who We Serve</Link>
-        <Link href="/">Workspace Solutions</Link>
-        <Link href="/">Resources</Link>
+        <Link href="/">Konumlar</Link>
+        <Link href="/">Servislerimiz</Link>
+        <Link href="/">Çalışma Alanalarımız</Link>
+        <Link href="/">Kaynaklar</Link>
         </Box>
         <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2,}}>
           <FormControl size="small">
@@ -53,15 +53,15 @@ export default function Navbar() {
            </FormControl>
           {session ? (
             <Button onClick={handleLogout} variant="outlined">
-              Logout
+              Çıkış
             </Button>
           ) : (
             <>
               <Button component={Link} href="/login" variant="outlined">
-                Login
+                Giriş
               </Button>
               <Button component={Link} href="/register" variant="contained">
-                Register
+                Kayıt ol
               </Button>
             </>
           )}
