@@ -10,15 +10,13 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  Stack,
-  Link as MuiLink,
-  CircularProgress,
-  InputAdornment,
-  IconButton,
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import NextLink from "next/link";
-import { useRouter } from "next/navigation";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+// Supabase client'ı import ediyoruz
+import { createClient } from "@/src/utils/supabase/client";
 
 export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("");
@@ -26,31 +24,41 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-
+  const [error, setError] = useState(""); // Hata mesajları için state ekledik
   const router = useRouter();
+
+  // Supabase client'ı başlatıyoruz
+  const supabase = createClient();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setLoading(true);
-    setErrorMessage("");
+    setError(""); // Yeni denemede eski hatayı temizle
 
-    const supabase = createClient();
+    try {
+      // Supabase Giriş İşlemi
+      const { data, error: supabaseError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      if (supabaseError) {
+        setError("Giriş başarısız: " + supabaseError.message);
+        return;
+      }
 
-    if (error) {
-      setErrorMessage("E-posta veya şifre hatalı.");
+      console.log("Login başarılı", data);
+      
+      // Başarılı girişte ana sayfaya yönlendir ve auth durumunu tazele
+      router.push("/");
+      router.refresh();
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/");
-    router.refresh();
   };
 
   return (
@@ -60,125 +68,102 @@ export default function LoginForm() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        bgcolor: "#f5f7fa",
-        px: 2,
+        backgroundColor: "linear-gradient(135deg, #f5f7fa 0%, #e4ecfb 100%)",
       }}
     >
       <Paper
         elevation={8}
         sx={{
-          width: { xs: "100%", sm: 420 },
-          p: { xs: 3, sm: 5 },
+          width: 420,
+          p: 5,
           borderRadius: 4,
         }}
       >
-        <Stack spacing={3}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }} align="center">
-            DeskHere
+        <Typography variant="h4" sx={{ fontWeight: "700" }} align="center">
+          DeskHere
+        </Typography>
+
+        <Typography
+          align="center"
+          color="text.secondary"
+          sx={{ mb: 4, mt: 1 }}
+        >
+          Sign in to your account
+        </Typography>
+
+        <form onSubmit={handleSubmit}>
+          {/* Hata mesajı alanı */}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+
+          <TextField
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+
+          <FormControlLabel
+            control={<Checkbox />}
+            label="Remember me"
+            sx={{ mt: 1 }}
+          />
+
+          <Button
+            disabled={loading}
+            type="submit"
+            variant="contained"
+            fullWidth
+            size="large"
+            sx={{
+              mt: 2,
+              py: 1.3,
+              borderRadius: 2,
+              transition: "0.3s",
+              "&:hover": { transform: "translateY(-2px)", boxShadow: 6 },
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Login"
+            )}
+          </Button>
+
+          <Typography align="center" sx={{ mt: 3 }}>
+            Don't have an account? <Link href="/register">Register</Link>
           </Typography>
-
-          <Typography variant="body1" color="text.secondary" align="center">
-            Hesabına giriş yap
-          </Typography>
-
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-            <Stack spacing={2.5}>
-              <TextField
-                label="E-posta"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                fullWidth
-                required
-              />
-
-              <TextField
-                label="Şifre"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                fullWidth
-                required
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="Şifreyi göster/gizle"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 1,
-                }}
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={rememberMe}
-                      onChange={(event) => setRememberMe(event.target.checked)}
-                    />
-                  }
-                  label="Beni hatırla"
-                />
-
-                <MuiLink
-                  component={NextLink}
-                  href="/forgot-password"
-                  underline="hover"
-                  color="primary"
-                >
-                  Şifremi unuttum?
-                </MuiLink>
-              </Box>
-
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={loading}
-                sx={{ py: 1.5, borderRadius: 2 }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Giriş yap"
-                )}
-              </Button>
-
-              {errorMessage && (
-                <Typography color="error" align="center">
-                  {errorMessage}
-                </Typography>
-              )}
-            </Stack>
-          </Box>
-
-          <Typography variant="body2" align="center" color="text.secondary">
-            Hesabın yok mu?{" "}
-            <MuiLink
-              component={NextLink}
-              href="/register"
-              underline="hover"
-              color="primary"
-            >
-              Kayıt ol
-            </MuiLink>
-          </Typography>
-        </Stack>
+        </form>
       </Paper>
     </Box>
   );
