@@ -38,9 +38,11 @@ export default function Hero() {
         }}
       >
         <Box sx={{ flex: 1 }}>
+          
           <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold' }} gutterBottom>
             Toplantı odalarını keşfet
           </Typography>
+
           <Typography variant="body1" sx={{ mb: 3, maxWidth: 480, opacity: 0.9 }}>
             Öğrenciler ve mühendisler için tasarlanmış uygun toplantı odalarını
             gör, müsait saatleri kontrol et ve hemen rezervasyon yap.

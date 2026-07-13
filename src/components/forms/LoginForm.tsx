@@ -1,4 +1,5 @@
 ﻿"use client";
+
 import { useState, type FormEvent } from "react";
 import {
   Box,
@@ -8,78 +9,118 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  Stack,
+  Link as MuiLink,
+  CircularProgress,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import CircularProgress from "@mui/material/CircularProgress";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
+import NextLink from "next/link";
+import { useRouter } from "next/navigation";
+
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword , setShowPassword ]=useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Giriş gönderildi", { email, password });
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    console.log("Giriş gönderildi", { email, password, rememberMe });
+    setLoading(false);
+    router.push("/");
   };
-    return (
-  <Box
-    sx={{
-      minHeight: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "linear-gradient(135deg, #f5f7fa 0%, #e4ecfb 100%)",
-    }}
-  >
-    <Paper
-      elevation={8}
-      sx={{
-        width: 420,
-        p: 5,
-        borderRadius: 4,}}>
-      <Typography variant="h4" sx={{fontWeight : "700"}} align="center">
-        DeskHere
-      </Typography>
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium">
-          E-posta
-        </label>
-        <input
-          id="email"
-          type="email"
-          fullWidth
-          margin="normal"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium">
-          Şifre
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-1 block w-full rounded border px-3 py-2"
-          required
-        />
-      </div>
-      <button
-        type="submit"
-        className="inline-flex items-center justify-center rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-      >
-        Giriş yap
-      </button>
-    </form>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        bgcolor: "#f5f7fa",
+        px: 2,
+      }}
+    >
+      <Paper elevation={8} sx={{ width: { xs: "100%", sm: 420 }, p: { xs: 3, sm: 5 }, borderRadius: 4 }}>
+        <Stack spacing={3}>
+
+          <Typography variant="h4" sx={{ fontWeight: 700 }} align="center">
+            DeskHere
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center">
+            Hesabına giriş yap
+          </Typography>
+
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Stack spacing={2.5}>
+              <TextField
+                label="E-posta"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                fullWidth
+                required
+              />
+
+              <TextField
+  label="Şifre"
+  type={showPassword ? "text" : "password"}
+  value={password}
+  onChange={(event) => setPassword(event.target.value)}
+  fullWidth
+  required
+  slotProps={{
+    input: {
+      endAdornment: (
+        <InputAdornment position="end">
+          <IconButton
+            aria-label="Şifreyi göster/gizle"
+            onClick={() => setShowPassword((prev) => !prev)}
+            edge="end"
+          >
+            {showPassword ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
+        </InputAdornment>
+      ),
+    },
+  }}
+/>
+
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={rememberMe}
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                    />
+                  }
+                  label="Beni hatırla"
+                />
+                <MuiLink component={NextLink} href="/forgot-password" underline="hover" color="primary">
+                  Şifremi unuttum?
+                </MuiLink>
+              </Box>
+
+              <Button type="submit" variant="contained" size="large" disabled={loading} sx={{ py: 1.5, borderRadius: 2 }}>
+                {loading ? <CircularProgress size={24} color="inherit" /> : "Giriş yap"}
+              </Button>
+            </Stack>
+          </Box>
+
+          <Typography variant="body2" align="center" color="text.secondary">
+            Hesabın yok mu?{" "}
+            <MuiLink component={NextLink} href="/register" underline="hover" color="primary">
+              Kayıt ol
+            </MuiLink>
+          </Typography>
+        </Stack>
+      </Paper>
+    </Box>
   );
 }
