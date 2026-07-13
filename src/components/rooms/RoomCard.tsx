@@ -12,7 +12,7 @@ export default function RoomCard({ room }: { room: Room }) {
           {room.name}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Kapasite: {room.capacity} kişi · {room.floor}. Kat
+          Kapasite: {room.capacity} kişi · {room.floor}. kat
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
           {room.features.map((feature) => (

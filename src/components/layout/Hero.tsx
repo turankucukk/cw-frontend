@@ -39,18 +39,18 @@ export default function Hero() {
       >
         <Box sx={{ flex: 1 }}>
           <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold' }} gutterBottom>
-            Toplantı Odalarını Keşfet
+            Toplantı odalarını keşfet
           </Typography>
           <Typography variant="body1" sx={{ mb: 3, maxWidth: 480, opacity: 0.9 }}>
-            Öğrenciler ve mühendisler için tasarlanmış, uygun toplantı odalarını
-            gör, uygun saatleri kontrol et ve hemen rezerve et.
+            Öğrenciler ve mühendisler için tasarlanmış uygun toplantı odalarını
+            gör, müsait saatleri kontrol et ve hemen rezervasyon yap.
           </Typography>
           <Stack direction="row" spacing={2}>
             <Button variant="contained" size="large">
-              Odaları Gör
+              Odaları gör
             </Button>
             <Button variant="outlined" size="large" sx={{ color: 'white', borderColor: 'white' }}>
-              Nasıl Çalışır?
+              Nasıl çalışır?
             </Button>
           </Stack>
         </Box>

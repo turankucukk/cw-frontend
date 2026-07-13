@@ -16,7 +16,7 @@ export default function RegisterForm() {
     event.preventDefault();
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Şifreler eşleşmiyor.");
       return;
     }
 
@@ -24,7 +24,7 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      console.log("Register submitted", { name, nickname, email, password });
+      console.log("Kayıt gönderildi", { name, nickname, email, password });
       await new Promise((resolve) => setTimeout(resolve, 500));
       router.push("/");
     } catch (err) {
@@ -64,7 +64,7 @@ export default function RegisterForm() {
           </svg>
         </div>
 
-        <h1 className="text-4xl font-bold text-gray-900">Sign up</h1>
+        <h1 className="text-4xl font-bold text-gray-900">Kayıt ol</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
@@ -74,7 +74,7 @@ export default function RegisterForm() {
           )}
 
           <div>
-            <label htmlFor="name" className="block text-sm text-gray-700 mb-1.5">Full name</label>
+            <label htmlFor="name" className="block text-sm text-gray-700 mb-1.5">Tam ad</label>
             <input
               id="name"
               type="text"
@@ -87,7 +87,7 @@ export default function RegisterForm() {
           </div>
 
           <div>
-            <label htmlFor="nickname" className="block text-sm text-gray-700 mb-1.5">Nickname</label>
+            <label htmlFor="nickname" className="block text-sm text-gray-700 mb-1.5">Kullanıcı adı</label>
             <input
               id="nickname"
               type="text"
@@ -100,11 +100,11 @@ export default function RegisterForm() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 mb-1.5">Email</label>
+            <label htmlFor="email" className="block text-sm text-gray-700 mb-1.5">E-posta</label>
             <input
               id="email"
               type="email"
-              placeholder="your@email.com"
+              placeholder="ornek@email.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
@@ -113,7 +113,7 @@ export default function RegisterForm() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm text-gray-700 mb-1.5">Password</label>
+            <label htmlFor="password" className="block text-sm text-gray-700 mb-1.5">Şifre</label>
             <input
               id="password"
               type="password"
@@ -125,7 +125,7 @@ export default function RegisterForm() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1.5">Confirm Password</label>
+            <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1.5">Şifreyi onayla</label>
             <input
               id="confirmPassword"
               type="password"
@@ -142,14 +142,14 @@ export default function RegisterForm() {
             className="w-full rounded-lg px-4 py-3 text-white font-medium disabled:opacity-50 transition"
             style={{ background: "linear-gradient(135deg, #0052CC 0%, #00B4D8 100%)" }}
           >
-            {loading ? "Kayıt oluşturuluyor..." : "Sign up"}
+            {loading ? "Kayıt oluşturuluyor..." : "Kayıt ol"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500">
-          Already have an account?{" "}
+          Zaten bir hesabın var mı?{" "}
           <a href="/login" className="text-[#0052CC] hover:underline font-medium">
-            Sign in
+            Giriş yap
           </a>
         </p>
       </div>

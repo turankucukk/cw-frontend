@@ -8,14 +8,14 @@ export default function LoginForm() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Login submitted", { email, password });
+    console.log("Giriş gönderildi", { email, password });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
       <div>
         <label htmlFor="email" className="block text-sm font-medium">
-          Email
+          E-posta
         </label>
         <input
           id="email"
@@ -28,7 +28,7 @@ export default function LoginForm() {
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium">
-          Password
+          Şifre
         </label>
         <input
           id="password"
@@ -43,7 +43,7 @@ export default function LoginForm() {
         type="submit"
         className="inline-flex items-center justify-center rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
       >
-        Login
+        Giriş yap
       </button>
     </form>
   );
