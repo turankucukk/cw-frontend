@@ -22,6 +22,7 @@ import {
   InputLabel,
   Select
 } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import PeopleIcon from "@mui/icons-material/People";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,8 +30,16 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
+type Room = {
+  id: number;
+  name: string;
+  capacity: number;
+  status: string;
+  image: string;
+};
+
 // Temsili başlangıç odaları
-const initialRooms = [
+const initialRooms: Room[] = [
   {
     id: 1,
     name: "Açık Çalışma Alanı - A",
@@ -66,7 +75,7 @@ export default function RoomsPage() {
   };
 
   // Düzenleme modunda pop-up açma
-  const handleOpenEdit = (room: any) => {
+  const handleOpenEdit = (room: Room) => {
     setMode("edit");
     setSelectedRoomId(room.id);
     setRoomForm({
@@ -83,7 +92,11 @@ export default function RoomsPage() {
     setSelectedRoomId(null);
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent
+  ) => {
     const { name, value } = e.target;
     setRoomForm({ ...roomForm, [name]: value });
   };
@@ -145,7 +158,7 @@ export default function RoomsPage() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Üst Başlık */}
       <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h4" component="h1" fontWeight="bold">
+        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
           Toplantı Odaları ({rooms.length})
         </Typography>
         <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenAdd}>
@@ -166,7 +179,7 @@ export default function RoomsPage() {
       ) : (
         <Grid container spacing={3}>
           {rooms.map((room) => (
-            <Grid item xs={12} sm={6} md={4} key={room.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
                 <CardMedia
                   component="img"
@@ -178,7 +191,7 @@ export default function RoomsPage() {
                 
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                    <Typography variant="h6" fontWeight="600" sx={{ lineHeight: 1.2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
                       {room.name}
                     </Typography>
                     <Chip label={room.status} color={room.status === "Müsait" ? "success" : "error"} size="small" />
@@ -239,7 +252,7 @@ export default function RoomsPage() {
               type="number"
               label="Kapasite (Kişi Sayısı)"
               name="capacity"
-              inputProps={{ min: 1 }}
+              slotProps={{ htmlInput: { min: 1 } }}
               value={roomForm.capacity}
               onChange={handleChange}
             />
