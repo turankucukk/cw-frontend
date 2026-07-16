@@ -1,7 +1,10 @@
-﻿"use client";
+﻿
+"use client";
 
 import { useState, type FormEvent } from "react";
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/src/utils/supabase/client";
 import {
   Box,
   Paper,
@@ -12,15 +15,10 @@ import {
   FormControlLabel,
   Alert,
   CircularProgress,
-  Link,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-
-// Supabase client'ı import ediyoruz
-import { createClient } from "@/src/utils/supabase/client";
-import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("");
@@ -72,7 +70,7 @@ export default function LoginForm() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "linear-gradient(135deg, #f5f7fa 0%, #e4ecfb 100%)",
+        background: "linear-gradient(135deg, #f5f7fa 0%, #e4ecfb 100%)",
       }}
     >
       <Paper
