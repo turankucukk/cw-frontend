@@ -21,10 +21,8 @@ import { usePathname } from "next/navigation";
 const DRAWER_WIDTH = 260;
 
 const NAV_ITEMS = [
-  { label: "Ana Sayfa", href: "/user", icon: <DashboardIcon /> },
   { label: "Oda Ara", href: "/", icon: <SearchIcon /> },
-  { label: "Rezervasyonlarım", href: "/user", icon: <EventNoteIcon /> },
-  { label: "Profil", href: "/user", icon: <AccountCircleIcon /> },
+  { label: "Profil", href: "/user/profile", icon: <AccountCircleIcon /> },
 ];
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {

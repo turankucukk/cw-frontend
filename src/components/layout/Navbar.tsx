@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -223,7 +223,10 @@ export default function Navbar() {
 
                   {/* Profilim Alanı (Yönetim Paneli yerine kendi profiline yönlendirir) */}
                   <MenuItem
-                    onClick={() => router.push("/profile")}
+                    onClick={() => {
+                      handleMenuClose();
+                      router.push("/user/profile");
+                    }}
                     sx={{
                       py: 1.5,
                       borderRadius: "8px",
