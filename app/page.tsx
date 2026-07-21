@@ -1,16 +1,14 @@
 import Navbar from "@/src/components/layout/Navbar";
-import Anasayfa from "@/src/components/home/Home";
-import { Box } from "@mui/material";
+import RoomsSection from "@/src/components/rooms/RoomSection";
+import Hero from "@/src/components/layout/Hero";
 
 export default function Home() {
   return (
     <main>
       <Navbar />
-       <Box sx={{ pt: '64px' }}> {/* navbar'ın yüksekliği kadar */}
-      <Anasayfa />
-  </Box>
+      <Hero />  
+      <RoomsSection />
       
     </main>
   );
 } 
-   

@@ -1,37 +1,63 @@
-// src/lib/api/rooms.ts
-import { createClient } from '../../utils/supabase/client';
 
 export interface Room {
   id: number;
   name: string;
   capacity: number;
-  type: string;
-  price: number;
   features: string[];
-  image: string | null;
+  floor: number;
+  imageUrl?: string;
 }
 
-function mapSpaceToRoom(space: any): Room {
-  return {
-    id: space.id,
-    name: space.name,
-    capacity: space.capacity,
-    type: space.type,
-    price: space.price ?? 0,
-    features: space.features ?? [],
-    image: space.image,
-  };
-}
+const mockRooms: Room[] = [
+  {
+    id: 1,
+    name: 'Toplantı Odası A',
+    capacity: 5,
+    features: ['Wifi', 'TV', 'Beyaz Tahta'],
+    floor: 1,
+  },
+  {
+    id: 2,
+    name: 'Toplantı Odası B',
+    capacity: 3,
+    features: ['Wifi'],
+    floor: 1,
+  },
+  {
+    id: 3,
+    name: 'Konferans Salonu',
+    capacity: 12,
+    features: ['Wifi', 'TV', 'Projeksiyon', 'Ses Sistemi'],
+    floor: 2,
+  },
+  {
+    id: 4,
+    name: 'Sessiz Çalışma Odası',
+    capacity: 2,
+    features: ['Wifi'],
+    floor: 2,
+  },
+];
 
 export async function getRooms(): Promise<Room[]> {
-  const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from('space')
-    .select('*')
-    .eq('isActive', true)
-    .order('id', { ascending: true });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  return mockRooms;
+}
 
-  if (error) throw new Error(error.message);
-  return (data ?? []).map(mapSpaceToRoom);
+export async function getRoomById(id: number): Promise<Room | null> {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const room = mockRooms.find((r) => r.id === id);
+  return room ?? null;
+}
+
+
+export async function getRoomsByMinCapacity(minCapacity: number): Promise<Room[]> {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return mockRooms.filter((r) => r.capacity >= minCapacity);
+}
+
+export async function getRoomsByFeature(feature: string): Promise<Room[]> {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return mockRooms.filter((r) => r.features.includes(feature));
 }
