@@ -22,6 +22,7 @@ export default function Hero() {
         },
       }}
     >
+      {/* //ceren  */}
       <Box
         sx={{
           position: 'relative',
