@@ -3,13 +3,8 @@
 import { useMemo, useState } from "react";
 
 import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/react/timegrid";
-import interactionPlugin from "@fullcalendar/react/interaction";
-import classicThemePlugin from "@fullcalendar/react/themes/classic";
-
-import "@fullcalendar/react/skeleton.css";
-import "@fullcalendar/react/themes/classic/theme.css";
-import "@fullcalendar/react/themes/classic/palette.css";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 
 import {
   Box,
@@ -126,7 +121,6 @@ export default function WeeklyCalendar() {
         >
           <FullCalendar
             plugins={[
-              classicThemePlugin,
               timeGridPlugin,
               interactionPlugin,
             ]}
@@ -145,7 +139,7 @@ export default function WeeklyCalendar() {
               center: "title",
               end: "timeGridWeek,timeGridDay",
             }}
-            slotHeaderFormat={{
+            slotLabelFormat={{
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,

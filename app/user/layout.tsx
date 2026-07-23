@@ -11,9 +11,8 @@ import {
   AppBar,
   Avatar,
 } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
-import EventNoteIcon from "@mui/icons-material/EventNote";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,6 +20,7 @@ import { usePathname } from "next/navigation";
 const DRAWER_WIDTH = 260;
 
 const NAV_ITEMS = [
+  { label: "Anasayfa", href: "/", icon: <HomeIcon /> },
   { label: "Oda Ara", href: "/", icon: <SearchIcon /> },
   { label: "Profil", href: "/user/profile", icon: <AccountCircleIcon /> },
 ];

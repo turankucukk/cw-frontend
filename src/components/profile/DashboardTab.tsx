@@ -1,25 +1,18 @@
 "use client";
-
 import { Box, Card, Grid, Typography, Chip, Stack } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import StarIcon from "@mui/icons-material/Star";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
-const USER_SUMMARY = {
-  nextReservation: "A-102",
-  reservationTime: "14:30",
-  favoriteRoom: "Güneş Salonu",
-  points: 240,
-};
+export default function DashboardTab({ reservations = [], userData }: { reservations?: any[], userData?: any }) {
+  // Yaklaşan rezervasyonu bul (En yakın tarihli olan)
+  const upcomingRes = reservations.find(r => r.status === "approved" || r.status === "pending");
 
-const QUICK_ACTIONS = [
-  { label: "Bugünkü rezervasyon", value: "3 oda" },
-  { label: "Yaklaşan toplantı", value: "09:30" },
-  { label: "Tercih edilen alan", value: "Sessiz çalışma" },
-];
+  const QUICK_ACTIONS = [
+    { label: "Bugünkü rezervasyon", value: upcomingRes ? "1 oda" : "Yok" },
+    { label: "Yaklaşan toplantı", value: upcomingRes ? new Date(upcomingRes.start_time).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) : "-" },
+  ];
 
-export default function DashboardTab() {
   return (
     <Box>
       <Grid container spacing={3}>
@@ -32,23 +25,11 @@ export default function DashboardTab() {
                   <CalendarTodayIcon color="primary" />
                   <Typography>Sonraki rezervasyon</Typography>
                 </Box>
-                <Chip label={`${USER_SUMMARY.nextReservation} · ${USER_SUMMARY.reservationTime}`} color="primary" />
-              </Box>
-
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <MeetingRoomIcon color="action" />
-                  <Typography>Favori oda</Typography>
-                </Box>
-                <Typography sx={{ fontWeight: 600 }}>{USER_SUMMARY.favoriteRoom}</Typography>
-              </Box>
-
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <StarIcon sx={{ color: "#F59E0B" }} />
-                  <Typography>Biriktirdiğin puan</Typography>
-                </Box>
-                <Typography sx={{ fontWeight: 600 }}>{USER_SUMMARY.points} puan</Typography>
+                {upcomingRes ? (
+                  <Chip label={`${upcomingRes.space?.name || "Oda"} · ${new Date(upcomingRes.start_time).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`} color="primary" />
+                ) : (
+                  <Typography sx={{ color: "text.secondary" }}>Rezervasyon Yok</Typography>
+                )}
               </Box>
             </Stack>
           </Card>
@@ -59,17 +40,7 @@ export default function DashboardTab() {
             <Typography sx={{ fontWeight: 700, mb: 2 }}>Hızlı İşlemler</Typography>
             <Stack spacing={1.5}>
               {QUICK_ACTIONS.map((item) => (
-                <Box
-                  key={item.label}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    p: 1.5,
-                    borderRadius: 2,
-                    bgcolor: "#F8FAFC",
-                  }}
-                >
+                <Box key={item.label} sx={{ display: "flex", justifyContent: "space-between", p: 1.5, borderRadius: 2, bgcolor: "#F8FAFC" }}>
                   <Typography sx={{ color: "text.secondary" }}>{item.label}</Typography>
                   <Typography sx={{ fontWeight: 600 }}>{item.value}</Typography>
                 </Box>
@@ -85,7 +56,7 @@ export default function DashboardTab() {
               <Typography sx={{ fontWeight: 700 }}>Rezervasyon geçmişin</Typography>
             </Box>
             <Typography sx={{ color: "text.secondary" }}>
-              Henüz bir rezervasyon geçmişin yok. Yeni bir oda seçerek hemen başlayabilirsin.
+              {reservations.length > 0 ? `Toplam ${reservations.length} rezervasyon geçmişin bulunuyor.` : "Henüz bir rezervasyon geçmişin yok. Yeni bir oda seçerek hemen başlayabilirsin."}
             </Typography>
           </Card>
         </Grid>
