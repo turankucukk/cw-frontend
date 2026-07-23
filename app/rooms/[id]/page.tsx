@@ -1,31 +1,120 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 import {
+  Alert,
   Box,
   Button,
   Chip,
+  CircularProgress,
   Container,
   Typography,
 } from "@mui/material";
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
-import TvRoundedIcon from "@mui/icons-material/TvRounded";
-import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
-import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 
-import WeeklyCalendar from "../../../src/components/rooms/WeeklyCalendar";
+import RoomGallery from "@/src/components/rooms/RoomGallery";
+import WeeklyCalendar from "@/src/components/rooms/WeeklyCalendar";
 
-type RoomPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+import {
+  getRoomById,
+  type RoomDetails,
+} from "@/src/lib/api/rooms";
 
-export default async function RoomPage({ params }: RoomPageProps) {
-  const { id } = await params;
+export default function RoomPage() {
+  const params = useParams<{ id: string }>();
 
-  const imageFolder = `/rooms/room-${id}`;
+  const roomId = Number(params.id);
+
+  const [room, setRoom] = useState<RoomDetails | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchRoom = async () => {
+      if (!Number.isInteger(roomId)) {
+        setError("Geçersiz oda numarası.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const roomData = await getRoomById(roomId);
+
+        if (!roomData) {
+          setError("Oda bulunamadı.");
+          return;
+        }
+
+        setRoom(roomData);
+      } catch (err) {
+        console.error(err);
+        setError("Oda bilgileri yüklenemedi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoom();
+  }, [roomId]);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "70vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !room) {
+    return (
+      <Container sx={{ py: 8 }}>
+        <Alert severity="error">
+          {error || "Oda bulunamadı."}
+        </Alert>
+
+        <Button
+          href="/buildings"
+          startIcon={<ArrowBackRoundedIcon />}
+          sx={{ mt: 3 }}
+        >
+          Binalara dön
+        </Button>
+      </Container>
+    );
+  }
+
+  const floorText =
+    room.floor !== null
+      ? String(room.floor)
+          .toLocaleLowerCase("tr-TR")
+          .includes("kat")
+        ? String(room.floor)
+        : `${room.floor}. Kat`
+      : null;
+
+  const locationText = [
+    room.buildingName,
+    floorText,
+  ]
+    .filter(Boolean)
+    .join(" • ");
+
+  const backUrl = room.buildingId
+    ? `/buildings/${room.buildingId}`
+    : "/buildings";
 
   return (
     <Box
@@ -35,15 +124,9 @@ export default async function RoomPage({ params }: RoomPageProps) {
         pb: 8,
       }}
     >
-      <Container
-        maxWidth="xl"
-        sx={{
-          pt: 3,
-        }}
-      >
-        {/* Geri butonu */}
+      <Container maxWidth="xl" sx={{ pt: 3 }}>
         <Button
-          href="/"
+          href={backUrl}
           startIcon={<ArrowBackRoundedIcon />}
           sx={{
             mb: 3,
@@ -55,104 +138,11 @@ export default async function RoomPage({ params }: RoomPageProps) {
           Geri
         </Button>
 
-        {/* Fotoğraf alanı */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              md: "2fr 1fr",
-            },
-            gridTemplateRows: {
-              xs: "280px 200px 200px",
-              md: "240px 240px",
-            },
-            gap: 1.5,
-            overflow: "hidden",
-            borderRadius: 3,
-          }}
-        >
-          {/* Büyük fotoğraf */}
-          <Box
-            sx={{
-              position: "relative",
-              gridRow: {
-                xs: "auto",
-                md: "1 / 3",
-              },
-              minHeight: 280,
-            }}
-          >
-            <Image
-              src={`${imageFolder}/first.jpg`}
-              alt="Toplantı odası ana fotoğrafı"
-              fill
-              priority
-              sizes="(max-width: 900px) 100vw, 66vw"
-              style={{
-                objectFit: "cover",
-              }}
-            />
-          </Box>
+        <RoomGallery
+          images={room.images}
+          roomName={room.name}
+        />
 
-          {/* Sağ üst fotoğraf */}
-          <Box
-            sx={{
-              position: "relative",
-              minHeight: 200,
-            }}
-          >
-            <Image
-              src={`${imageFolder}/second.jpg`}
-              alt="Toplantı odası ikinci fotoğrafı"
-              fill
-              sizes="(max-width: 900px) 100vw, 34vw"
-              style={{
-                objectFit: "cover",
-              }}
-            />
-          </Box>
-
-          {/* Sağ alt fotoğraf */}
-          <Box
-            sx={{
-              position: "relative",
-              minHeight: 200,
-            }}
-          >
-            <Image
-              src={`${imageFolder}/third.jpg`}
-              alt="Toplantı odası üçüncü fotoğrafı"
-              fill
-              sizes="(max-width: 900px) 100vw, 34vw"
-              style={{
-                objectFit: "cover",
-              }}
-            />
-
-            <Button
-              variant="contained"
-              startIcon={<CameraAltRoundedIcon />}
-              sx={{
-                position: "absolute",
-                right: 20,
-                bottom: 20,
-                backgroundColor: "#ffffff",
-                color: "#171717",
-                textTransform: "none",
-                borderRadius: 2,
-                px: 2,
-                "&:hover": {
-                  backgroundColor: "#f2f2f2",
-                },
-              }}
-            >
-              Tüm 5 fotoğrafı göster
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Oda bilgileri */}
         <Box
           sx={{
             py: {
@@ -173,18 +163,20 @@ export default async function RoomPage({ params }: RoomPageProps) {
               lineHeight: 1.1,
             }}
           >
-            Toplantı Odası {id}
+            {room.name}
           </Typography>
 
-          <Typography
-            sx={{
-              mt: 2,
-              fontSize: 18,
-              color: "#444444",
-            }}
-          >
-            İstanbul Merkez Ofis • 2. Kat
-          </Typography>
+          {locationText && (
+            <Typography
+              sx={{
+                mt: 2,
+                fontSize: 18,
+                color: "#444444",
+              }}
+            >
+              {locationText}
+            </Typography>
+          )}
 
           <Box
             sx={{
@@ -196,24 +188,37 @@ export default async function RoomPage({ params }: RoomPageProps) {
           >
             <Chip
               icon={<GroupsRoundedIcon />}
-              label="8 Kişi"
+              label={`${room.capacity} Kişi`}
               variant="outlined"
             />
 
-            <Chip
-              icon={<TvRoundedIcon />}
-              label="Televizyon"
-              variant="outlined"
-            />
+            {room.type && (
+              <Chip
+                label={room.type}
+                variant="outlined"
+              />
+            )}
 
-            <Chip
-              icon={<AcUnitRoundedIcon />}
-              label="Klima"
-              variant="outlined"
-            />
-
-            <Chip label="Beyaz Tahta" variant="outlined" />
+            {room.features.map((feature) => (
+              <Chip
+                key={feature}
+                label={feature}
+                variant="outlined"
+              />
+            ))}
           </Box>
+
+          {room.price > 0 && (
+            <Typography
+              sx={{
+                mt: 3,
+                fontSize: 19,
+                fontWeight: 600,
+              }}
+            >
+              {room.price} ₺ / saat
+            </Typography>
+          )}
 
           <Typography
             sx={{
@@ -223,37 +228,14 @@ export default async function RoomPage({ params }: RoomPageProps) {
               color: "#333333",
             }}
           >
-            Modern toplantılar, ekip çalışmaları ve sunumlar için hazırlanmış
-            konforlu bir toplantı odasıdır. Odada televizyon, klima, beyaz tahta
-            ve yüksek hızlı internet bulunmaktadır.
+            {room.description ||
+              "Bu oda için henüz açıklama eklenmemiş."}
           </Typography>
-
-          <Button
-            href="#weekly-calendar"
-            variant="contained"
-            size="large"
-            sx={{
-              mt: 4,
-              px: 5,
-              py: 1.5,
-              borderRadius: 2,
-              backgroundColor: "#175bb8",
-              textTransform: "none",
-              fontSize: 16,
-              "&:hover": {
-                backgroundColor: "#104a99",
-              },
-            }}
-          >
-            Rezervasyon Yap
-          </Button>
         </Box>
 
-        {/* Haftalık takvim */}
         <Box
           id="weekly-calendar"
           sx={{
-            scrollMarginTop: 24,
             borderTop: "1px solid #e4e4e4",
             pt: 5,
           }}
@@ -278,10 +260,11 @@ export default async function RoomPage({ params }: RoomPageProps) {
               mb: 4,
             }}
           >
-            Boş bir saate tıklayarak rezervasyon oluşturabilirsin.
+            Boş bir saate tıklayarak rezervasyon
+            oluşturabilirsin.
           </Typography>
 
-          <WeeklyCalendar />
+          <WeeklyCalendar roomId={room.id} />
         </Box>
       </Container>
     </Box>

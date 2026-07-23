@@ -16,9 +16,16 @@ import {
   TextField,
 } from "@mui/material";
 
+type WeeklyCalendarProps = {
+  roomId: number;
+};
+
 function formatDateForInput(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(
+    2,
+    "0",
+  );
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -26,58 +33,95 @@ function formatDateForInput(date: Date) {
 
 function formatTimeForInput(date: Date) {
   const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(
+    2,
+    "0",
+  );
 
   return `${hour}:${minute}`;
 }
 
-function getCurrentWeekDate(dayOffset: number, hour: number) {
+function getCurrentWeekDate(
+  dayOffset: number,
+  hour: number,
+) {
   const today = new Date();
   const currentDay = today.getDay();
 
-  const mondayDifference = currentDay === 0 ? -6 : 1 - currentDay;
+  const mondayDifference =
+    currentDay === 0 ? -6 : 1 - currentDay;
 
   const result = new Date(today);
 
-  result.setDate(today.getDate() + mondayDifference + dayOffset);
+  result.setDate(
+    today.getDate() + mondayDifference + dayOffset,
+  );
+
   result.setHours(hour, 0, 0, 0);
 
   return result;
 }
 
-export default function WeeklyCalendar() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [participantCount, setParticipantCount] = useState("1");
+export default function WeeklyCalendar({
+  roomId,
+}: WeeklyCalendarProps) {
+  const [dialogOpen, setDialogOpen] =
+    useState(false);
 
+  const [selectedDate, setSelectedDate] =
+    useState("");
+
+  const [startTime, setStartTime] =
+    useState("");
+
+  const [endTime, setEndTime] =
+    useState("");
+
+  const [participantCount, setParticipantCount] =
+    useState("1");
+
+  /*
+   * Bunlar şimdilik demo rezervasyonlardır.
+   * Daha sonra Supabase'den roomId kullanılarak alınacak.
+   */
   const exampleReservations = useMemo(
     () => [
       {
-        id: "reservation-1",
+        id: `room-${roomId}-reservation-1`,
         title: "Dolu",
         start: getCurrentWeekDate(1, 10),
         end: getCurrentWeekDate(1, 12),
       },
       {
-        id: "reservation-2",
+        id: `room-${roomId}-reservation-2`,
         title: "Dolu",
         start: getCurrentWeekDate(3, 14),
         end: getCurrentWeekDate(3, 16),
       },
     ],
-    [],
+    [roomId],
   );
 
   const handleDateClick = (clickedDate: Date) => {
     const finishDate = new Date(clickedDate);
 
-    finishDate.setHours(finishDate.getHours() + 1);
+    finishDate.setHours(
+      finishDate.getHours() + 1,
+    );
 
-    setSelectedDate(formatDateForInput(clickedDate));
-    setStartTime(formatTimeForInput(clickedDate));
-    setEndTime(formatTimeForInput(finishDate));
+    setSelectedDate(
+      formatDateForInput(clickedDate),
+    );
+
+    setStartTime(
+      formatTimeForInput(clickedDate),
+    );
+
+    setEndTime(
+      formatTimeForInput(finishDate),
+    );
+
+    setParticipantCount("1");
     setDialogOpen(true);
   };
 
@@ -86,11 +130,50 @@ export default function WeeklyCalendar() {
   };
 
   const handleConfirm = () => {
+    const participantNumber =
+      Number(participantCount);
+
+    if (
+      !selectedDate ||
+      !startTime ||
+      !endTime
+    ) {
+      alert(
+        "Tarih, başlangıç ve bitiş saatini seçmelisin.",
+      );
+
+      return;
+    }
+
+    if (startTime >= endTime) {
+      alert(
+        "Bitiş saati başlangıç saatinden sonra olmalıdır.",
+      );
+
+      return;
+    }
+
+    if (
+      !Number.isInteger(participantNumber) ||
+      participantNumber < 1
+    ) {
+      alert(
+        "Katılımcı sayısı en az 1 olmalıdır.",
+      );
+
+      return;
+    }
+
+    /*
+     * Daha sonra burada Supabase'e kayıt yapılacak.
+     * roomId hangi odaya rezervasyon yapıldığını belirtir.
+     */
     console.log({
+      roomId,
       selectedDate,
       startTime,
       endTime,
-      participantCount,
+      participantCount: participantNumber,
     });
 
     alert("Rezervasyon bilgileri seçildi.");
@@ -163,7 +246,11 @@ export default function WeeklyCalendar() {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+          }}
+        >
           Rezervasyon Oluştur
         </DialogTitle>
 
@@ -179,7 +266,9 @@ export default function WeeklyCalendar() {
               label="Tarih"
               type="date"
               value={selectedDate}
-              onChange={(event) => setSelectedDate(event.target.value)}
+              onChange={(event) =>
+                setSelectedDate(event.target.value)
+              }
               slotProps={{
                 inputLabel: {
                   shrink: true,
@@ -202,7 +291,9 @@ export default function WeeklyCalendar() {
                 label="Başlangıç"
                 type="time"
                 value={startTime}
-                onChange={(event) => setStartTime(event.target.value)}
+                onChange={(event) =>
+                  setStartTime(event.target.value)
+                }
                 slotProps={{
                   inputLabel: {
                     shrink: true,
@@ -215,7 +306,9 @@ export default function WeeklyCalendar() {
                 label="Bitiş"
                 type="time"
                 value={endTime}
-                onChange={(event) => setEndTime(event.target.value)}
+                onChange={(event) =>
+                  setEndTime(event.target.value)
+                }
                 slotProps={{
                   inputLabel: {
                     shrink: true,
@@ -230,7 +323,9 @@ export default function WeeklyCalendar() {
               type="number"
               value={participantCount}
               onChange={(event) =>
-                setParticipantCount(event.target.value)
+                setParticipantCount(
+                  event.target.value,
+                )
               }
               slotProps={{
                 htmlInput: {
@@ -251,7 +346,9 @@ export default function WeeklyCalendar() {
         >
           <Button
             onClick={handleClose}
-            sx={{ textTransform: "none" }}
+            sx={{
+              textTransform: "none",
+            }}
           >
             İptal
           </Button>
@@ -262,6 +359,9 @@ export default function WeeklyCalendar() {
             sx={{
               textTransform: "none",
               backgroundColor: "#175bb8",
+              "&:hover": {
+                backgroundColor: "#104a99",
+              },
             }}
           >
             Rezervasyonu Onayla
