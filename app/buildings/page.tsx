@@ -162,7 +162,7 @@ export default function BuildingsPage() {
                                             {building.name}
                                         </h2>
                                         {building.location_url && (
-                                            <a
+                                            <a>
                                                 href={building.location_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
@@ -172,7 +172,7 @@ export default function BuildingsPage() {
                                                     fontSize: "14px",
                                                     textDecoration: "none",
                                                 }} 
-                                            >
+                                            
                                                 📍 Haritada Gör
                                             </a>
                                         )}
