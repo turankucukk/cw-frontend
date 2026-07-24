@@ -1,63 +1,106 @@
+// src/lib/api/rooms.ts
+import { createClient } from '../../utils/supabase/client';
 
 export interface Room {
   id: number;
   name: string;
   capacity: number;
+  type: string;
+  price: number;
+  buildingId: number;
   features: string[];
-  floor: number;
-  imageUrl?: string;
+  image: string | null;
 }
 
-const mockRooms: Room[] = [
-  {
-    id: 1,
-    name: 'Toplantı Odası A',
-    capacity: 5,
-    features: ['Wifi', 'TV', 'Beyaz Tahta'],
-    floor: 1,
-  },
-  {
-    id: 2,
-    name: 'Toplantı Odası B',
-    capacity: 3,
-    features: ['Wifi'],
-    floor: 1,
-  },
-  {
-    id: 3,
-    name: 'Konferans Salonu',
-    capacity: 12,
-    features: ['Wifi', 'TV', 'Projeksiyon', 'Ses Sistemi'],
-    floor: 2,
-  },
-  {
-    id: 4,
-    name: 'Sessiz Çalışma Odası',
-    capacity: 2,
-    features: ['Wifi'],
-    floor: 2,
-  },
-];
+function mapSpaceToRoom(space: any): Room {
+  return {
+    id: space.id,
+    name: space.name,
+    type: space.type,
+    capacity: space.capacity,
+    buildingId: space.building_id,
+    features: space.features || [],
+    price: space.price,
+    image: space.image || null,
+  };
+}
 
 export async function getRooms(): Promise<Room[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('space')
+    .select('*')
+    .eq('isActive', true)
+    .order('id', { ascending: true });
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-  return mockRooms;
+  if (error) {
+    throw new Error(error.message);
+  }
+  return (data ?? []).map(mapSpaceToRoom);
 }
 
-export async function getRoomById(id: number): Promise<Room | null> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  const room = mockRooms.find((r) => r.id === id);
-  return room ?? null;
+export async function createRoom(input: {
+  name: string;
+  capacity: number;
+  type: string;
+  features: string[];
+  buildingId: number;
+  image: string;
+}): Promise<Room> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('space')
+    .insert({
+      name: input.name,
+      capacity: input.capacity,
+      type: input.type,
+      features: input.features,
+      building_id: input.buildingId,
+      image: input.image,
+      price: 0,
+      parentSpace_id: 0,
+      needsApproval: false,   
+      isActive: true,
+    })
+    
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return mapSpaceToRoom(data);
 }
 
+export async function updateRoom(
+  id: number,
+  input: Partial<{ name: string; capacity: number; type: string; features: string[]; image: string }>
+): Promise<Room> {
+  const supabase = createClient();
 
-export async function getRoomsByMinCapacity(minCapacity: number): Promise<Room[]> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return mockRooms.filter((r) => r.capacity >= minCapacity);
+  const { data, error } = await supabase
+    .from('space')
+    .update(input)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return mapSpaceToRoom(data);
 }
 
-export async function getRoomsByFeature(feature: string): Promise<Room[]> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return mockRooms.filter((r) => r.features.includes(feature));
+export async function deleteRoom(id: number): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('space')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }

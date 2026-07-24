@@ -8,6 +8,7 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import { useUserRole } from "@/src/hooks/useUserRole";
 
+
 const MOCK_STATS = {
   totalUsers: 137,
   activeUsers: 42,
