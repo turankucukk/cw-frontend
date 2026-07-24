@@ -60,7 +60,7 @@ export default function FilterBar() {
   })();
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, flexWrap: 'nowrap', width: '100%', overflowX: 'auto', px: { xs: 2, md: 4 }, py: 1.5 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, flexWrap: 'nowrap', width: '100%', overflowX: 'auto', px: { xs: 2, md: 4 } }}>
       <TextField
         placeholder="Toplantı odası ara..."
         value={search}

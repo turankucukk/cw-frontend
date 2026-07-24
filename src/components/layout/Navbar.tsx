@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -93,6 +93,8 @@ export default function Navbar() {
           {/* DİNAMİK AKTİF LİNKLER */}
           <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
             <Link href="/locations" className={getLinkClass("/locations")}>Konumlar</Link>
+            <Link href="/rooms" className={getLinkClass("/rooms")}>Odalar</Link>
+
             <Link href="/services" className={getLinkClass("/services")}>Servislerimiz</Link>
             <Link href="/workspaces" className={getLinkClass("/workspaces")}>Çalışma Alanlarımız</Link>
             <Link href="/resources" className={getLinkClass("/resources")}>Kaynaklar</Link>

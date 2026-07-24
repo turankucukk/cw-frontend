@@ -1,6 +1,6 @@
 
 "use client";
-import { Box, Typography, Button, Stack } from '@mui/material';
+import { Box, Typography, Button, Stack,Link } from '@mui/material';
 
 export default function Hero() {
   return (
@@ -49,7 +49,7 @@ export default function Hero() {
             gör, müsait saatleri kontrol et ve hemen rezervasyon yap.
           </Typography>
           <Stack direction="row" spacing={2}>
-            <Button variant="contained" size="large">
+            <Button component={Link} href="/rooms" variant="contained" size="large">
               Odaları gör
             </Button>
             <Button variant="outlined" size="large" sx={{ color: 'white', borderColor: 'white' }}>
