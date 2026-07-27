@@ -22,7 +22,7 @@ import WeeklyCalendar from "@/src/components/rooms/WeeklyCalendar";
 import {
   getRoomById,
   type RoomDetails,
-} from "@/src/lib/api/rooms";
+} from "../../../src/lib/api/rooms";
 
 export default function RoomPage() {
   const params = useParams<{ id: string }>();

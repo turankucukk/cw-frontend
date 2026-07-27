@@ -34,6 +34,8 @@ export interface Room {
   room_images?: RoomImage[];
 }
 
+export type RoomDetails = Room;
+
 export async function getRooms(): Promise<Room[]> {
   const supabase = createClient();
   try {
@@ -47,6 +49,23 @@ export async function getRooms(): Promise<Room[]> {
   } catch (error: any) {
     console.error("Odalar çekilirken hata oluştu:", error.message);
     return [];
+  }
+}
+
+export async function getRoomById(id: number | string): Promise<Room | null> {
+  const supabase = createClient();
+  try {
+    const { data, error } = await supabase
+      .from("space")
+      .select("*, room_images(*)")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error: any) {
+    console.error("Oda detayları çekilirken hata oluştu:", error.message);
+    return null;
   }
 }
 
