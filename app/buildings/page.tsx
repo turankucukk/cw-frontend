@@ -19,7 +19,11 @@ export default function BuildingsPage() {
         const fetchBuildings = async () => {
             const supabase = createClient();
 
-            const { data, error } = await supabase.from("building").select("id, name, floor_plan_url, location_url").order("id", { ascending: true });
+            const { data, error } = await supabase
+                .from("building")
+                .select("id, name, floor_plan_url, location_url")
+                .order("id", { ascending: true });
+            
             if (error) {
                 console.error("Error fetching buildings:", error);
             } else {
@@ -131,25 +135,25 @@ export default function BuildingsPage() {
                                                 }}
                                             >
                                                 <span
-                                                style={{
-                                                    fontSize: "48px",
-                                                    marginBottom: "12px",
-                                                }}
-                                        >
-                                            🏢
-                                        </span>
+                                                    style={{
+                                                        fontSize: "48px",
+                                                        marginBottom: "12px",
+                                                    }}
+                                                >
+                                                    🏢
+                                                </span>
 
-                                        <p
-                                            style={{
-                                                margin: 0,
-                                                fontSize: "16px",
-                                            }}
-                                        >
-                                            Kroki henüz eklenmemiş
-                                        </p>
+                                                <p
+                                                    style={{
+                                                        margin: 0,
+                                                        fontSize: "16px",
+                                                    }}
+                                                >
+                                                    Kroki henüz eklenmemiş
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
                                     <div style={{ padding: "20px" }}>
                                         <h2
                                             style={{
@@ -162,7 +166,7 @@ export default function BuildingsPage() {
                                             {building.name}
                                         </h2>
                                         {building.location_url && (
-                                            <a>
+                                            <a
                                                 href={building.location_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
@@ -171,8 +175,9 @@ export default function BuildingsPage() {
                                                     color: "#2563eb",
                                                     fontSize: "14px",
                                                     textDecoration: "none",
-                                                }} 
-                                            
+                                                    display: "inline-block"
+                                                }}
+                                            >
                                                 📍 Haritada Gör
                                             </a>
                                         )}
