@@ -106,14 +106,14 @@ export default function RoomPage() {
       : null;
 
   const locationText = [
-    room.buildingName,
+    room.building_id,
     floorText,
   ]
     .filter(Boolean)
     .join(" • ");
 
-  const backUrl = room.buildingId
-    ? `/buildings/${room.buildingId}`
+  const backUrl = room.building_id
+    ? `/buildings/${room.building_id}`
     : "/buildings";
 
   return (
@@ -139,7 +139,7 @@ export default function RoomPage() {
         </Button>
 
         <RoomGallery
-          images={room.images}
+          images={room.image ? [room.image] : []}
           roomName={room.name}
         />
 
@@ -199,7 +199,7 @@ export default function RoomPage() {
               />
             )}
 
-            {room.features.map((feature) => (
+            {room.features??[].map((feature) => (
               <Chip
                 key={feature}
                 label={feature}
@@ -208,7 +208,7 @@ export default function RoomPage() {
             ))}
           </Box>
 
-          {room.price > 0 && (
+          {room.price! > 0 && (
             <Typography
               sx={{
                 mt: 3,
@@ -264,7 +264,7 @@ export default function RoomPage() {
             oluşturabilirsin.
           </Typography>
 
-          <WeeklyCalendar roomId={room.id} />
+          <WeeklyCalendar roomId={room.id!} />
         </Box>
       </Container>
     </Box>
