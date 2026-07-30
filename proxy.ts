@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { can, type Role } from '@/src/lib/permissions'
-import { decodeJwtPayload } from '@/src/utils/jwt'
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -25,30 +24,25 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // createServerClient ile getUser() arasına başka kod eklenmemeli —
+  // createServerClient ile getClaims() arasına başka kod eklenmemeli —
   // aksi halde yenilenen cookie supabaseResponse'a doğru şekilde yansımayabilir.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data } = await supabase.auth.getClaims()
+  const claims = data?.claims ?? null
 
   const { pathname } = request.nextUrl
   const requiresSession = pathname.startsWith('/admin') || pathname.startsWith('/user')
 
-  if (!user && requiresSession) {
+  if (!claims && requiresSession) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectedFrom', pathname)
     return NextResponse.redirect(url)
   }
 
-  if (user && pathname.startsWith('/admin')) {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    const claims = session
-      ? decodeJwtPayload<{ user_role?: string }>(session.access_token)
-      : null
-    const role = (claims?.user_role?.trim().toLowerCase() as Role) ?? 'user'
+  if (claims && pathname.startsWith('/admin')) {
+    const role = (
+      typeof claims.user_role === 'string' ? claims.user_role.trim().toLowerCase() : 'user'
+    ) as Role
 
     const allowed = pathname.startsWith('/admin/users')
       ? can(role, 'users.view')

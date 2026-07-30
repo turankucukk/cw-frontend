@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/utils/supabase/client";
-import { decodeJwtPayload } from "@/src/utils/jwt";
 
-interface AccessTokenClaims {
-  user_role?: string;
-}
-
-function roleFromAccessToken(accessToken: string): string {
-  const claims = decodeJwtPayload<AccessTokenClaims>(accessToken);
-  return claims?.user_role ? claims.user_role.trim().toLowerCase() : "user";
+function roleFromClaims(claims: unknown): string | null {
+  if (!claims || typeof claims !== "object") return null;
+  const rawRole = (claims as Record<string, unknown>).user_role;
+  return typeof rawRole === "string" ? rawRole.trim().toLowerCase() : "user";
 }
 
 export function useUserRole() {
@@ -17,16 +13,18 @@ export function useUserRole() {
   const supabase = createClient();
 
   useEffect(() => {
-    // 1. Sayfa ilk açıldığında mevcut oturumu kontrol et
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setRole(session ? roleFromAccessToken(session.access_token) : null);
+    async function loadRole() {
+      const { data } = await supabase.auth.getClaims();
+      setRole(roleFromClaims(data?.claims ?? null));
       setLoading(false);
-    });
+    }
+
+    // 1. Sayfa ilk açıldığında mevcut oturumu kontrol et
+    loadRole();
 
     // 2. Oturum değişikliklerini (Giriş/Çıkış yapıldığında) anlık olarak dinle
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setRole(session ? roleFromAccessToken(session.access_token) : null);
-      setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadRole();
     });
 
     return () => {
