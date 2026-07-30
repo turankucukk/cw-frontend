@@ -1,25 +1,57 @@
 "use client";
 
-import Navbarr from "@/src/components/layout/Navbar";
+import Navbar from "@/src/components/layout/Navbar";
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/utils/supabase/client";
 import Link from "next/link";
+import DynamicFloorPlan, {
+    type FloorPlanRoom,
+} from "@/app/buildings/DynamicFloorPlan";
+import {
+    Box,
+    Card,
+    CardMedia,
+    CardContent,
+    Grid,
+    Typography,
+    Container,
+} from "@mui/material";
 
 type Building = {
     id: number;
     name: string;
     floor_plan_url: string | null;
-    location_url: string | null;
 };
 
 export default function BuildingsPage() {
     const [buildings, setBuildings] = useState<Building[]>([]);
 
+    const exampleRooms: FloorPlanRoom[] = [
+        {
+            id: 1,
+            name: "Oda A",
+            x: 5,
+            y: 8,
+            width: 25,
+            height: 30,
+            isOccupied: false,
+        },
+        {
+            id: 2,
+            name: "Oda B",
+            x: 38,
+            y: 8,
+            width: 25,
+            height: 30,
+            isOccupied: true,
+        },
+    ];
+
     useEffect(() => {
         const fetchBuildings = async () => {
             const supabase = createClient();
 
-            const { data, error } = await supabase.from("building").select("id, name, floor_plan_url, location_url").order("id", { ascending: true });
+            const { data, error } = await supabase.from("building").select("id, name, floor_plan_url").order("id", { ascending: true });
             if (error) {
                 console.error("Error fetching buildings:", error);
             } else {
@@ -32,157 +64,113 @@ export default function BuildingsPage() {
 
     return (
         <>
-            <Navbarr />
+            <Navbar />
 
-            <main
-                style={{
-                    padding: "110px 40px 40px",
+            <Box
+                component="main"
+                sx={{
+                    pt: "110px",
+                    px: 5,
+                    pb: 5,
                     minHeight: "100vh",
                     backgroundColor: "#f5f6f8",
                 }}
             >
-                <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-                    <div
-                        style={{
+                <Container maxWidth="lg">
+                    <Box
+                        sx={{
                             textAlign: "center",
-                            marginBottom: "40px",
+                            mb: 5,
                         }}
                     >
-                        <h1
-                            style={{
-                                fontSize: "32px",
-                                marginBottom: "8px",
+                        <Typography
+                            variant="h3"
+                            component="h1"
+                            sx={{
+                                mb: 1,
+                                fontWeight: 600,
                             }}
                         >
                             BİNALAR
-                        </h1>
+                        </Typography>
 
-                        <p
-                            style={{
+                        <Typography
+                            variant="body1"
+                            sx={{
                                 color: "#6b7280",
                             }}
                         >
                             Odalarını görmek istediğiniz binayı seçin.
-                        </p>
-                    </div>
-                    
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(2, 1fr)",
-                            gap: "24px",
-                        }}
-                    >
+                        </Typography>
+                    </Box>
+
+                    <Grid container spacing={3}>
                         {buildings.map((building) => (
-                            <Link
-                                key={building.id}
-                                href={`/buildings/${building.id}`}
-                                style={{
-                                    textDecoration: "none",
-                                    color: "inherit",
-                                }}
-                            >
-                                <article
+                            <Grid size={{ xs: 12, sm: 6 }} key={building.id}>
+                                <Link
+                                    href={`/rooms?building=${building.id}`}
                                     style={{
-                                        backgroundColor: "#ffffff",
-                                        border: "1px solid #e5e7eb",
-                                        borderRadius: "16px",
-                                        overflow: "hidden",
-                                        cursor: "pointer",
-                                        boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-                                        transition: "all 0.3s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = "translateY(-8px)";
-                                        e.currentTarget.style.boxShadow = "0 19px 24px rgba(0,0,0,0.12)";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "translateY(0)";
-                                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
+                                        textDecoration: "none",
+                                        color: "inherit",
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            height: "280px",
-                                            backgroundColor: "#f9fafb",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
+                                    <Card
+                                        sx={{
+                                            height: "100%",
+                                            cursor: "pointer",
+                                            transition: "box-shadow 0.3s ease",
+                                            "&:hover": {
+                                                boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+                                            },
                                         }}
                                     >
-                                        {building.floor_plan_url ? (
-                                            <img
-                                                src={building.floor_plan_url}
-                                                alt={`${building.name} krokisi`}
-                                                style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    objectFit: "contain",
-                                                    padding: "16px",
-                                                }}
-                                            />
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    alignItems: "center",
-                                                    color: "#9ca3af",
+                                        <CardMedia
+                                            component="div"
+                                            sx={{
+                                                height: 280,
+                                                backgroundColor: "#f9fafb",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                p: 2,
+                                            }}
+                                        >
+                                            {building.floor_plan_url ? (
+                                                <DynamicFloorPlan
+                                                    imageUrl={building.floor_plan_url}
+                                                    rooms={exampleRooms}
+                                                    height={280}
+                                                />
+                                            ) : (
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        color: "#9ca3af",
+                                                    }}
+                                                >
+                                                    Kroki henüz eklenmemiş
+                                                </Typography>
+                                            )}
+                                        </CardMedia>
+
+                                        <CardContent>
+                                            <Typography
+                                                variant="h6"
+                                                component="h2"
+                                                sx={{
+                                                    fontWeight: 600,
                                                 }}
                                             >
-                                                <span
-                                                style={{
-                                                    fontSize: "48px",
-                                                    marginBottom: "12px",
-                                                }}
-                                        >
-                                            🏢
-                                        </span>
-
-                                        <p
-                                            style={{
-                                                margin: 0,
-                                                fontSize: "16px",
-                                            }}
-                                        >
-                                            Kroki henüz eklenmemiş
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                                    <div style={{ padding: "20px" }}>
-                                        <h2
-                                            style={{
-                                                margin: 0,
-                                                fontSize: "21px",
-                                                fontWeight: 600,
-                                                marginBottom: "10px",
-                                            }}
-                                        >
-                                            {building.name}
-                                        </h2>
-                                        {building.location_url && (
-                                            <a>
-                                                href={building.location_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                onClick={(e) => e.stopPropagation()}
-                                                style={{
-                                                    color: "#2563eb",
-                                                    fontSize: "14px",
-                                                    textDecoration: "none",
-                                                }} 
-                                            
-                                                📍 Haritada Gör
-                                            </a>
-                                        )}
-                                    </div>
-                                </article>
-                            </Link>
+                                                {building.name}
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            </Grid>
                         ))}
-                    </div>
-                </div>
-            </main>
+                    </Grid>
+                </Container>
+            </Box>
         </>
     );
 }
