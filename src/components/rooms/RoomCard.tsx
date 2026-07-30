@@ -69,16 +69,16 @@ export default function RoomCard({ room }: { room: Room }) {
           <Typography variant="body2">{room.capacity} kişi</Typography>
         </Box>
 
-        {room.price > 0 && (
+        {room.price! > 0 && (
           <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>
             {room.price} ₺ / saat
           </Typography>
         )}
 
         <Box sx={{  }}>
-          {room.features.length > 0 && (
+          {(room.features ?? []) .length > 0 && (
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} useFlexGap>
-              {room.features.map((feature) => (
+              {room.features ?? [].map((feature) => (
                 <Chip key={feature} label={feature} size="small" sx={{ bgcolor: 'grey.100', fontWeight: 500 }} />
               ))}
             </Stack>
