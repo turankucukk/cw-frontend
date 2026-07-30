@@ -5,13 +5,14 @@ import { useRouter, usePathname } from "next/navigation";
 import Navbar from "@/src/components/layout/Navbar"; // Sitenin orijinal Navbar'ı
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import AssessmentIcon from "@mui/icons-material/Assessment";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import PeopleIcon from "@mui/icons-material/People";
 import AparthmentIcon from "@mui/icons-material/Apartment";
 import { Box, Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  
   const router = useRouter();
   const pathname = usePathname();
   
@@ -22,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { text: "Genel Bakış", icon: <DashboardIcon style={{ fontSize: "22px" }} />, path: "/admin" },
     { text: "Odalar", icon: <MeetingRoomIcon style={{ fontSize: "22px" }} />, path: "/admin/rooms" },
     { text: "Binalar" , icon: <AparthmentIcon style={{ fontSize:"22px"}}/>, path: "/admin/building"},
-    { text: "Raporlar", icon: <AssessmentIcon style={{ fontSize: "22px" }} />, path: "/admin/reports" },
+    { text: "Raporlar", icon: <BarChartIcon style={{ fontSize: "22px" }} />, path: "/admin/reports" },
     { text: "Kullanıcılar", icon: <PeopleIcon style={{ fontSize: "22px" }} />, path: "/admin/users" },
   ];
 
