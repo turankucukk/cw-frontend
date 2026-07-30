@@ -6,7 +6,19 @@ import { Grid, CircularProgress, Alert, Box } from '@mui/material';
 import { getRooms, type Room } from '@/src/lib/api/rooms';
 import RoomCard from './RoomCard';
 
-export default function RoomList() {
+interface RoomListProps {
+  search?: string;
+  selectedBuildingId?: number | null;
+  minCapacity?: number;
+  selectedFeatures?: string[];
+}
+
+export default function RoomList({
+  search,
+  selectedBuildingId,
+  minCapacity,
+  selectedFeatures,
+}: RoomListProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,4 +51,4 @@ export default function RoomList() {
       ))}
     </Grid>
   );
-} //deneme commit
+}
