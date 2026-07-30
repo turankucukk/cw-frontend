@@ -104,8 +104,8 @@ export default function Navbar() {
               gap: 4,
             }}
           >
-            <Link href="/locations" className={getLinkClass("/locations")}>
-              Konumlar
+            <Link href="/buildings" className={getLinkClass("/locations")}>
+              Binalar
             </Link>
             <Link href="/rooms" className={getLinkClass("/rooms")}>
               Odalar
