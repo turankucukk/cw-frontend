@@ -4,6 +4,7 @@ import Navbarr from "@/src/components/layout/Navbar";
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/utils/supabase/client";
 import Link from "next/link";
+import { Box, Container, Typography } from "@mui/material";
 
 type Building = {
     id: number;
@@ -35,46 +36,49 @@ export default function BuildingsPage() {
     }, []);
 
     return (
-        <>
+        <Box sx={{ width: "100%", minHeight: "100vh", backgroundColor: "#f5f6f8" }}>
             <Navbarr />
 
-            <main
-                style={{
-                    padding: "110px 40px 40px",
-                    minHeight: "100vh",
-                    backgroundColor: "#f5f6f8",
+            <Box
+                component="main"
+                sx={{
+                    pt: { xs: "96px", sm: "110px" },
+                    pb: { xs: 4, sm: 6 },
+                    px: { xs: 2, sm: 4 },
                 }}
             >
-                <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-                    <div
-                        style={{
-                            textAlign: "center",
-                            marginBottom: "40px",
-                        }}
-                    >
-                        <h1
-                            style={{
-                                fontSize: "32px",
-                                marginBottom: "8px",
+                <Container maxWidth="lg" disableGutters>
+                    {/* BAŞLIK ALANI */}
+                    <Box sx={{ textAlign: "center", mb: { xs: 3, sm: 5 } }}>
+                        <Typography 
+                            variant="h1" 
+                            sx={{ 
+                                fontSize: { xs: "24px", sm: "32px" }, 
+                                fontWeight: 700, 
+                                mb: 1, 
+                                color: "#111827" 
                             }}
                         >
                             BİNALAR
-                        </h1>
+                        </Typography>
 
-                        <p
-                            style={{
-                                color: "#6b7280",
+                        <Typography 
+                            variant="body1" 
+                            sx={{ 
+                                color: "#6b7280", 
+                                fontSize: { xs: "14px", sm: "16px" } 
                             }}
                         >
                             Odalarını görmek istediğiniz binayı seçin.
-                        </p>
-                    </div>
+                        </Typography>
+                    </Box>
                     
-                    <div
-                        style={{
+                    {/* BİNA KARTLARI GRID ALANI */}
+                    <Box
+                        sx={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(2, 1fr)",
-                            gap: "24px",
+                            gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, // Mobilde 1 kolon, PC'de 2 kolon
+                            gap: { xs: 2.5, sm: 3 },
                         }}
                     >
                         {buildings.map((building) => (
@@ -95,19 +99,23 @@ export default function BuildingsPage() {
                                         cursor: "pointer",
                                         boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                                         transition: "all 0.3s ease",
+                                        height: "100%",
+                                        display: "flex",
+                                        flexDirection: "column",
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = "translateY(-8px)";
-                                        e.currentTarget.style.boxShadow = "0 19px 24px rgba(0,0,0,0.12)";
+                                        e.currentTarget.style.transform = "translateY(-6px)";
+                                        e.currentTarget.style.boxShadow = "0 16px 24px rgba(0,0,0,0.12)";
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.transform = "translateY(0)";
                                         e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            height: "280px",
+                                    {/* Kroki / Görsel Alanı */}
+                                    <Box
+                                        sx={{
+                                            height: { xs: "200px", sm: "260px", md: "280px" },
                                             backgroundColor: "#f9fafb",
                                             display: "flex",
                                             alignItems: "center",
@@ -126,8 +134,8 @@ export default function BuildingsPage() {
                                                 }}
                                             />
                                         ) : (
-                                            <div
-                                                style={{
+                                            <Box
+                                                sx={{
                                                     display: "flex",
                                                     flexDirection: "column",
                                                     alignItems: "center",
@@ -136,35 +144,39 @@ export default function BuildingsPage() {
                                             >
                                                 <span
                                                     style={{
-                                                        fontSize: "48px",
-                                                        marginBottom: "12px",
+                                                        fontSize: "40px",
+                                                        marginBottom: "8px",
                                                     }}
                                                 >
                                                     🏢
                                                 </span>
 
-                                                <p
-                                                    style={{
-                                                        margin: 0,
-                                                        fontSize: "16px",
+                                                <Typography
+                                                    sx={{
+                                                        fontSize: { xs: "14px", sm: "16px" },
+                                                        color: "#9ca3af",
                                                     }}
                                                 >
                                                     Kroki henüz eklenmemiş
-                                                </p>
-                                            </div>
+                                                </Typography>
+                                            </Box>
                                         )}
-                                    </div>
-                                    <div style={{ padding: "20px" }}>
-                                        <h2
-                                            style={{
-                                                margin: 0,
-                                                fontSize: "21px",
+                                    </Box>
+
+                                    {/* Kart Bilgi Alanı */}
+                                    <Box sx={{ p: { xs: 2, sm: 2.5 }, flexGrow: 1 }}>
+                                        <Typography
+                                            variant="h2"
+                                            sx={{
+                                                fontSize: { xs: "18px", sm: "21px" },
                                                 fontWeight: 600,
-                                                marginBottom: "10px",
+                                                mb: 1,
+                                                color: "#111827",
                                             }}
                                         >
                                             {building.name}
-                                        </h2>
+                                        </Typography>
+
                                         {building.location_url && (
                                             <a
                                                 href={building.location_url}
@@ -174,20 +186,21 @@ export default function BuildingsPage() {
                                                 style={{
                                                     color: "#2563eb",
                                                     fontSize: "14px",
+                                                    fontWeight: 500,
                                                     textDecoration: "none",
-                                                    display: "inline-block"
+                                                    display: "inline-block",
                                                 }}
                                             >
                                                 📍 Haritada Gör
                                             </a>
                                         )}
-                                    </div>
+                                    </Box>
                                 </article>
                             </Link>
                         ))}
-                    </div>
-                </div>
-            </main>
-        </>
+                    </Box>
+                </Container>
+            </Box>
+        </Box>
     );
 }
