@@ -255,15 +255,15 @@ export default function RoomsPage() {
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
                 
                 {/* Görsel varsa göster, yoksa boş kalır */}
-                {room.image && (
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={room.image}
-                    alt={room.name}
-                    sx={{ objectFit: "cover" }}
-                  />
-                )}
+            {room.room_images && room.room_images.length > 0 && (
+  <CardMedia
+    component="img"
+    height="200"
+    image={room.room_images[0].image_url}
+    alt={room.name}
+    sx={{ objectFit: "cover" }}
+  />
+      )}
                 
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
