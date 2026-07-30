@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+<<<<<<< HEAD
 import {
   Box,
   AppBar,
@@ -12,9 +13,28 @@ import {
   IconButton,
   ListItemIcon,
   Divider,
+=======
+import { 
+  Box, 
+  AppBar, 
+  Button, 
+  Avatar, 
+  Menu, 
+  MenuItem, 
+  IconButton, 
+  ListItemIcon, 
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText
+>>>>>>> AliBranch
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import { createClient } from "@/src/utils/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { translatePage } from "../../services/translateService";
@@ -22,10 +42,13 @@ import { useUserRole } from "@/src/hooks/useUserRole";
 
 export default function Navbar() {
   const router = useRouter();
-  const pathname = usePathname(); // Aktif olan sayfa yolunu almak için
+  const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
   const supabase = createClient();
   const { role, loading } = useUserRole();
+
+  // Mobil Yan Menü (Drawer) State'i
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Profil Menüsü State'i
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -56,16 +79,23 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
+<<<<<<< HEAD
   // Kullanıcının e-posta adresinden ilk harfini alarak geçici bir avatar oluşturmak için:
   const userInitial = session?.user?.email
     ? session.user.email[0].toUpperCase()
     : "U";
+=======
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const userInitial = session?.user?.email ? session.user.email[0].toUpperCase() : "U";
+>>>>>>> AliBranch
   const userAvatarUrl = session?.user?.user_metadata?.avatar_url || "";
 
-  // Menü linklerinin aktiflik durumunu kontrol eden fonksiyon
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    return `transition-colors text-sm font-semibold ${
+    return `transition-colors text-sm font-semibold whitespace-nowrap ${
       isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
     }`;
   };
@@ -85,6 +115,7 @@ export default function Navbar() {
           px: 2,
         }}
       >
+<<<<<<< HEAD
         <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-4">
           {/* LOGO */}
           <Link
@@ -120,6 +151,46 @@ export default function Navbar() {
             <Link href="/resources" className={getLinkClass("/resources")}>
               Kaynaklar
             </Link>
+=======
+        <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-2 sm:px-4 relative">
+          
+          {/* SOL TARAFLI ALAN: MOBİL HAMBURGER + EN SOLA ÇEKİLMİŞ BÜYÜK LOGO */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: { xs: 0, md: -2 } }}>
+            {/* Mobilde Çıkan Hamburger Butonu */}
+            <IconButton
+              onClick={handleDrawerToggle}
+              sx={{ display: { xs: "flex", md: "none" }, color: "#111827", mr: 1 }}
+            >
+              <MenuIcon />
+            </IconButton>
+
+            {/* BÜYÜTÜLMÜŞ LOGO */}
+            <Link 
+              href="/" 
+              style={{ textDecoration: "none", color: "#111827" }} 
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center select-none"
+            >
+              Desk<span style={{ color: "#2563eb" }}>Here</span>
+            </Link>
+          </Box>
+
+          {/* MASAÜSTÜ: EKRANI TAM ORTALAYAN VE ARALARI GENİŞLETİLMİŞ LİNKLER */}
+          <Box 
+            sx={{ 
+              display: { xs: "none", md: "flex" }, 
+              alignItems: "center", 
+              gap: 6, // Linkler arası geniş boşluk
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)"
+            }}
+          >
+            <Link href="/" className={getLinkClass("/")}>Anasayfa</Link>
+            <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
+            <Link href="/workspaces" className={getLinkClass("/workspaces")}>Çalışma Alanlarımız</Link>
+            <Link href="/resources" className={getLinkClass("/resources")}>Kaynaklar</Link>
+>>>>>>> AliBranch
             {!loading && role === "superadmin" && (
               <Link href="/admin" className={getLinkClass("/admin")}>
                 Admin
@@ -127,10 +198,16 @@ export default function Navbar() {
             )}
           </Box>
 
+<<<<<<< HEAD
           {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
           <Box
             sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2.5 }}
           >
+=======
+          {/* EN SAĞ: DİL SEÇİCİ VE PROFİL / GİRİŞ BUTONLARI */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+            
+>>>>>>> AliBranch
             {/* Dil Seçici */}
             <select
               onChange={(e) => translatePage(e.target.value)}
@@ -144,11 +221,18 @@ export default function Navbar() {
             {/* Giriş Durumuna Göre Değişen Alan */}
             {session ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
+<<<<<<< HEAD
                 {/* Profil Resmi Butonu */}
                 <IconButton
                   onClick={handleMenuOpen}
                   size="small"
                   sx={{
+=======
+                <IconButton 
+                  onClick={handleMenuOpen} 
+                  size="small" 
+                  sx={{ 
+>>>>>>> AliBranch
                     padding: 0.5,
                     border: "2px solid #e5e7eb",
                     "&:hover": { borderColor: "#2563eb" },
@@ -169,7 +253,7 @@ export default function Navbar() {
                   </Avatar>
                 </IconButton>
 
-                {/* Profil Menüsü (Açılır Pencere) */}
+                {/* Profil Açılır Menüsü */}
                 <Menu
                   anchorEl={anchorEl}
                   open={isMenuOpen}
@@ -198,7 +282,6 @@ export default function Navbar() {
                     },
                   }}
                 >
-                  {/* Kullanıcı Detayı */}
                   <Box sx={{ px: 2, py: 1.5 }}>
                     <div
                       style={{
@@ -225,7 +308,6 @@ export default function Navbar() {
 
                   <Divider sx={{ my: 1, borderColor: "#f3f4f6" }} />
 
-                  {/* Profilim Alanı (Yönetim Paneli yerine kendi profiline yönlendirir) */}
                   <MenuItem
                     onClick={() => {
                       handleMenuClose();
@@ -244,6 +326,7 @@ export default function Navbar() {
                     Profilim
                   </MenuItem>
 
+<<<<<<< HEAD
                   {/* Çıkış Yap Butonu */}
                   <MenuItem
                     onClick={handleLogout}
@@ -255,6 +338,9 @@ export default function Navbar() {
                       color: "#ef4444",
                     }}
                   >
+=======
+                  <MenuItem onClick={handleLogout} sx={{ py: 1.5, borderRadius: "8px", fontSize: "14px", fontWeight: 500, color: "#ef4444" }}>
+>>>>>>> AliBranch
                     <ListItemIcon>
                       <LogoutIcon fontSize="small" sx={{ color: "#ef4444" }} />
                     </ListItemIcon>
@@ -263,7 +349,6 @@ export default function Navbar() {
                 </Menu>
               </Box>
             ) : (
-              // Oturum Açık Değilse Giriş/Kayıt Butonları
               <Box sx={{ display: "flex", gap: 1.5 }}>
                 <Button
                   component={Link}
@@ -306,6 +391,59 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
+
+      {/* MOBİL İÇİN KANATTAN AÇILAN YAN MENÜ (DRAWER) */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": { boxSizing: "border-box", width: 280, padding: 2 },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Link href="/" onClick={handleDrawerToggle} style={{ textDecoration: "none", color: "#111827" }} className="text-2xl font-extrabold">
+            Desk<span style={{ color: "#2563eb" }}>Here</span>
+          </Link>
+          <IconButton onClick={handleDrawerToggle}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <Divider sx={{ mb: 2 }} />
+        
+        <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} href="/" onClick={handleDrawerToggle} sx={{ borderRadius: "8px" }}>
+              <ListItemText primary="Anasayfa" className={pathname === "/" ? "text-blue-600 font-bold" : ""} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} href="/buildings" onClick={handleDrawerToggle} sx={{ borderRadius: "8px" }}>
+              <ListItemText primary="Binalar" className={pathname === "/buildings" ? "text-blue-600 font-bold" : ""} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} href="/workspaces" onClick={handleDrawerToggle} sx={{ borderRadius: "8px" }}>
+              <ListItemText primary="Çalışma Alanlarımız" className={pathname === "/workspaces" ? "text-blue-600 font-bold" : ""} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} href="/resources" onClick={handleDrawerToggle} sx={{ borderRadius: "8px" }}>
+              <ListItemText primary="Kaynaklar" className={pathname === "/resources" ? "text-blue-600 font-bold" : ""} />
+            </ListItemButton>
+          </ListItem>
+          {!loading && role === "superadmin" && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} href="/admin" onClick={handleDrawerToggle} sx={{ borderRadius: "8px" }}>
+                <ListItemText primary="Admin" className={pathname === "/admin" ? "text-blue-600 font-bold" : ""} />
+              </ListItemButton>
+            </ListItem>
+          )}
+        </List>
+      </Drawer>
     </>
   );
 }

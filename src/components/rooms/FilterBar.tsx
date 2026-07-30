@@ -2,7 +2,11 @@
 "use client";
 
 import { useState } from 'react';
+<<<<<<< HEAD
 import { Box, TextField, InputAdornment, IconButton, Button, Divider } from '@mui/material';
+=======
+import { Box, TextField, InputAdornment, IconButton, Button } from '@mui/material';
+>>>>>>> AliBranch
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -21,6 +25,7 @@ const pillSx = {
   py: 1,
   borderColor: 'divider',
   whiteSpace: 'nowrap',
+  flexShrink: 0, // Mobilde butonların sıkışmasını önler
 };
 
 interface FilterBarProps {
@@ -72,13 +77,36 @@ export default function FilterBar({
   })();
 
   return (
+<<<<<<< HEAD
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 3, flexWrap: 'nowrap', width: '100%', overflowX: 'auto', px: { xs: 2, md: 4 } }}>
+=======
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' }, 
+        alignItems: 'center', 
+        gap: 2, 
+        width: '100%',
+        p: { xs: 1, sm: 2 }
+      }}
+    >
+      {/* Arama Inputu: Mobilde %100 Genişlik */}
+>>>>>>> AliBranch
       <TextField
         placeholder="Toplantı odası ara..."
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         size="small"
+<<<<<<< HEAD
         sx={{ minWidth: 400,alignItems: 'left', justifyContent: 'left', '& .MuiOutlinedInput-root': { borderRadius: '999px' } }}
+=======
+        sx={{ 
+          width: { xs: '100%', md: 'auto' }, 
+          minWidth: { xs: '100%', md: 280 },
+          flexGrow: { md: 1 },
+          '& .MuiOutlinedInput-root': { borderRadius: '999px' } 
+        }}
+>>>>>>> AliBranch
         slotProps={{
           input: {
             startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" color="action" /></InputAdornment>,
@@ -91,6 +119,7 @@ export default function FilterBar({
         }}
       />
 
+<<<<<<< HEAD
       <Divider orientation="vertical" flexItem sx={{  }} />
       <Button
         variant="outlined" disableElevation endIcon={<KeyboardArrowDownIcon />}
@@ -113,22 +142,56 @@ export default function FilterBar({
         anchorEl={capacityAnchor} onClose={() => setCapacityAnchor(null)}
         value={minCapacity} onChange={onCapacityChange} onApply={() => {}}
       />
+=======
+      {/* Filtre Butonları Kapsayıcısı */}
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1.5, 
+          width: { xs: '100%', md: 'auto' },
+          overflowX: 'auto', // Mobilde sağa kaydırılabilir buton akışı
+          pb: { xs: 1, md: 0 },
+          '::-webkit-scrollbar': { display: 'none' }, // Scrollbar gizleme
+          scrollbarWidth: 'none'
+        }}
+      >
+        <Button
+          variant="outlined" 
+          disableElevation 
+          endIcon={<KeyboardArrowDownIcon />}
+          onClick={(e) => setSpaceAnchor(e.currentTarget)}
+          sx={{ ...pillSx, bgcolor: 'primary.50', color: 'primary.main', '&:hover': { bgcolor: 'primary.50' } }}
+        >
+          {spaceTypeLabel[spaceType]}
+        </Button>
+        <SpaceTypePopover anchorEl={spaceAnchor} onClose={() => setSpaceAnchor(null)} value={spaceType} onSelect={setSpaceType} />
 
-      <Button variant="outlined" endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setDateAnchor(e.currentTarget)} sx={pillSx}>
-        {dateTimeLabel}
-      </Button>
-      <DateTimePopover
-        anchorEl={dateAnchor}
-        onClose={() => setDateAnchor(null)}
-        date={moveInDate}
-        onDateChange={setMoveInDate}
-        startTime={startTime}
-        onStartTimeChange={setStartTime}
-        endTime={endTime}
-        onEndTimeChange={setEndTime}
-        onApply={() => {}}
-      />
+        <Button variant="outlined" endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setCapacityAnchor(e.currentTarget)} sx={pillSx}>
+          {capacity > 0 ? `${capacity}+ kişi` : 'Kapasite'}
+        </Button>
+        <CapacityPopover
+          anchorEl={capacityAnchor} onClose={() => setCapacityAnchor(null)}
+          value={capacity} onChange={setCapacity} onApply={() => {}}
+        />
+>>>>>>> AliBranch
 
+        <Button variant="outlined" endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setDateAnchor(e.currentTarget)} sx={pillSx}>
+          {dateTimeLabel}
+        </Button>
+        <DateTimePopover
+          anchorEl={dateAnchor}
+          onClose={() => setDateAnchor(null)}
+          date={moveInDate}
+          onDateChange={setMoveInDate}
+          startTime={startTime}
+          onStartTimeChange={setStartTime}
+          endTime={endTime}
+          onEndTimeChange={setEndTime}
+          onApply={() => {}}
+        />
+
+<<<<<<< HEAD
       <Button variant="outlined" endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setAmenitiesAnchor(e.currentTarget)} sx={pillSx}>
         {selectedFeatures.length > 0 ? `Özellikler (${selectedFeatures.length})` : 'Özellikler'}
       </Button>
@@ -137,6 +200,17 @@ export default function FilterBar({
         selected={selectedFeatures} onToggle={toggleFeature}
         onClear={() => onFeaturesChange([])} onApply={() => {}}
       />
+=======
+        <Button variant="outlined" endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setAmenitiesAnchor(e.currentTarget)} sx={pillSx}>
+          {amenities.length > 0 ? `Özellikler (${amenities.length})` : 'Özellikler'}
+        </Button>
+        <PropertiesPopover
+          anchorEl={amenitiesAnchor} onClose={() => setAmenitiesAnchor(null)}
+          selected={amenities} onToggle={toggleAmenity}
+          onClear={() => setAmenities([])} onApply={() => {}}
+        />
+      </Box>
+>>>>>>> AliBranch
     </Box>
   );
 }

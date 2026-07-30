@@ -1,65 +1,70 @@
-﻿// src/components/rooms/RoomList.tsx
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from 'react';
-import { Grid, CircularProgress, Alert, Box } from '@mui/material';
-import { getRooms, type Room } from '@/src/lib/api/rooms';
-import RoomCard from './RoomCard';
+import { Box, Alert, Grid } from "@mui/material";
+import RoomCard from "./RoomCard";
+import { Room } from "@/src/lib/api/rooms";
 
 interface RoomListProps {
-  search: string;
-  selectedBuildingId: number | null;
-  minCapacity: number;
-  selectedFeatures: string[];
+  rooms?: Room[];
+  search?: string;
+  selectedBuildingId?: string | number | null;
+  minCapacity?: number;
+  selectedFeatures?: string[];
+  error?: string | null;
 }
-  
-export default function RoomList({ search, selectedBuildingId, minCapacity, selectedFeatures }: RoomListProps) {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    getRooms()
-      .then((data) => setRooms(data))
-      .catch(() => setError('Odalar yüklenirken bir hata oluştu.'))
-      .finally(() => setLoading(false));
-  }, []);
+export default function RoomList({
+  rooms = [],
+  search = "",
+  selectedBuildingId = null,
+  minCapacity = 0,
+  selectedFeatures = [],
+  error = null,
+}: RoomListProps) {
 
-  if (loading) {
+  if (error) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
+      <Alert severity="error" sx={{ m: 3 }}>
+        {error}
+      </Alert>
     );
   }
 
-  if (error) {
-    return <Alert severity="error" sx={{ m: 3 }}>{error}</Alert>;
-  }
-
   const filteredRooms = rooms.filter((room) => {
-    const matchesSearch = room.name.toLowerCase().includes(search.toLowerCase());
-    const matchesBuilding = selectedBuildingId === null || room.building_id === selectedBuildingId;
-    const matchesCapacity = room.capacity >= minCapacity;
-    const matchesFeatures = selectedFeatures.every((f) => (room.features ?? []).includes(f));
+    const searchTerm = (search ?? "").toLowerCase();
+    const minCap = minCapacity ?? 0;
+    const features = selectedFeatures ?? [];
+
+    const matchesSearch = room.name ? room.name.toLowerCase().includes(searchTerm) : true;
+    const matchesBuilding =
+      selectedBuildingId === null ||
+      selectedBuildingId === undefined ||
+      room.building_id === selectedBuildingId;
+    const matchesCapacity = (room.capacity ?? 0) >= minCap;
+    const matchesFeatures = features.every((f) =>
+      (room.features ?? []).includes(f)
+    );
+
     return matchesSearch && matchesBuilding && matchesCapacity && matchesFeatures;
   });
 
   if (filteredRooms.length === 0) {
     return (
-      <Box sx={{ textAlign: 'center', p: 4 }}>
+      <Box sx={{ textAlign: "center", p: 4 }}>
         <Alert severity="info">Filtrelere uyan oda bulunamadı.</Alert>
       </Box>
     );
   }
 
   return (
-    <Grid container spacing={2} sx={{ p: 3 }}>
-      {filteredRooms.map((room) => (
-        <Grid size={{ xs: 12, sm: 6, md: 6 }} key={room.id}>
-          <RoomCard room={room} />
-        </Grid>
-      ))}
-    </Grid>
+    <Box sx={{ flexGrow: 1, p: 2 }}>
+      <Grid container spacing={3}>
+        {filteredRooms.map((room) => (
+          <Grid item key={room.id} xs={12} sm={6} md={4}>
+            <RoomCard room={room} />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 }

@@ -140,7 +140,6 @@ export default function BuildingsPage() {
 
     setSubmitLoading(true);
 
-    // manager_id boşsa varsayılan olarak 1 atanır (not-null hatasını engeller)
     const buildingData = {
       name: buildingForm.name,
       location_url: buildingForm.location_url,
@@ -168,13 +167,28 @@ export default function BuildingsPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" disableGutters sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 4 } }}>
       {/* Üst Başlık */}
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
+      <Box 
+        sx={{ 
+          mb: 4, 
+          display: "flex", 
+          flexDirection: { xs: "column", sm: "row" }, 
+          justifyContent: "space-between", 
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2
+        }}
+      >
+        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold", fontSize: { xs: "1.5rem", sm: "2.125rem" } }}>
           Bina Yönetimi ({buildings.length})
         </Typography>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenAdd}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<AddIcon />} 
+          onClick={handleOpenAdd}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+        >
           Bina Ekle
         </Button>
       </Box>
@@ -185,7 +199,7 @@ export default function BuildingsPage() {
           <CircularProgress />
         </Box>
       ) : buildings.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 8, bgcolor: "action.hover", borderRadius: 2, border: "2px dashed #ccc" }}>
+        <Box sx={{ textAlign: "center", py: 8, px: 2, bgcolor: "action.hover", borderRadius: 2, border: "2px dashed #ccc" }}>
           <BusinessIcon sx={{ fontSize: 60, color: "text.secondary", mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Sistemde kayıtlı bina bulunamadı.
@@ -195,7 +209,7 @@ export default function BuildingsPage() {
           </Button>
         </Box>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {buildings.map((building) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={building.id}>
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
@@ -211,8 +225,8 @@ export default function BuildingsPage() {
                   />
                 )}
                 
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5 } }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>
                     {building.name}
                   </Typography>
 
@@ -225,7 +239,7 @@ export default function BuildingsPage() {
                         href={building.location_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        sx={{ textDecoration: "none", color: "inherit", "&:hover": { textDecoration: "underline" } }}
+                        sx={{ textDecoration: "none", color: "inherit", wordBreak: "break-all", "&:hover": { textDecoration: "underline" } }}
                       >
                         Haritada Göster
                       </Typography>
@@ -240,13 +254,22 @@ export default function BuildingsPage() {
                 </CardContent>
 
                 {/* DÜZENLE VE SİL BUTONLARI */}
-                <CardActions sx={{ justifyContent: "flex-end", px: 2, pb: 2, pt: 0, gap: 1 }}>
+                <CardActions sx={{ 
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "flex-end", 
+                  px: 2, 
+                  pb: 2, 
+                  pt: 0, 
+                  gap: 1 
+                }}>
                   <Button 
                     size="small" 
                     variant="outlined" 
                     color="info" 
                     startIcon={<EditIcon />}
                     onClick={() => handleOpenEdit(building)}
+                    fullWidth
                   >
                     Düzenle
                   </Button>
@@ -256,6 +279,7 @@ export default function BuildingsPage() {
                     color="error" 
                     startIcon={<DeleteIcon />}
                     onClick={() => handleDeleteBuilding(building.id)}
+                    fullWidth
                   >
                     Sil
                   </Button>
@@ -268,12 +292,22 @@ export default function BuildingsPage() {
       )}
 
       {/* MODAL FORM (BİNA EKLE / DÜZENLE) */}
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: "bold" }}>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        fullWidth 
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: "auto" } }
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold", fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>
           {mode === "add" ? "Yeni Bina Kaydı" : "Bina Bilgilerini Düzenle"}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
-          <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2, p: { xs: 2, sm: 3 } }}>
             
             <TextField 
               required 
@@ -329,7 +363,7 @@ export default function BuildingsPage() {
             </Box>
 
           </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
+          <DialogActions sx={{ p: { xs: 2, sm: 2.5 } }}>
             <Button onClick={handleClose} color="inherit" disabled={submitLoading}>İptal</Button>
             <Button type="submit" variant="contained" color="primary" disabled={submitLoading}>
               {submitLoading ? "Kaydediliyor..." : mode === "add" ? "Binayı Kaydet" : "Değişiklikleri Kaydet"}
