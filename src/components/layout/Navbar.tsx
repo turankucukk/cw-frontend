@@ -2,18 +2,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-<<<<<<< HEAD
-import {
-  Box,
-  AppBar,
-  Button,
-  Avatar,
-  Menu,
-  MenuItem,
-  IconButton,
-  ListItemIcon,
-  Divider,
-=======
 import { 
   Box, 
   AppBar, 
@@ -29,7 +17,6 @@ import {
   ListItem,
   ListItemButton,
   ListItemText
->>>>>>> AliBranch
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
@@ -58,7 +45,7 @@ export default function Navbar() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => setSession(newSession),
+      (_event, newSession) => setSession(newSession)
     );
 
     return () => subscription.subscription.unsubscribe();
@@ -79,18 +66,11 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
-<<<<<<< HEAD
-  // Kullanıcının e-posta adresinden ilk harfini alarak geçici bir avatar oluşturmak için:
-  const userInitial = session?.user?.email
-    ? session.user.email[0].toUpperCase()
-    : "U";
-=======
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   const userInitial = session?.user?.email ? session.user.email[0].toUpperCase() : "U";
->>>>>>> AliBranch
   const userAvatarUrl = session?.user?.user_metadata?.avatar_url || "";
 
   const getLinkClass = (path: string) => {
@@ -102,56 +82,19 @@ export default function Navbar() {
 
   return (
     <>
-      <AppBar
-        position="fixed"
+      <AppBar 
+        position="fixed" 
         elevation={0}
-        sx={{
-          background: "rgba(255, 255, 255, 0.8)",
+        sx={{ 
+          background: "rgba(255, 255, 255, 0.8)", 
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid #e5e7eb",
           color: "#111827",
           height: "72px",
           justifyContent: "center",
-          px: 2,
+          px: 2
         }}
       >
-<<<<<<< HEAD
-        <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-4">
-          {/* LOGO */}
-          <Link
-            href="/"
-            style={{ textDecoration: "none", color: "#111827" }}
-            className="text-xl font-bold tracking-tight"
-          >
-            Desk<span style={{ color: "#2563eb" }}>Here</span>
-          </Link>
-
-          {/* DİNAMİK AKTİF LİNKLER */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              ml: 6,
-              gap: 4,
-            }}
-          >
-            <Link href="/buildings" className={getLinkClass("/locations")}>
-              Binalar
-            </Link>
-            <Link href="/rooms" className={getLinkClass("/rooms")}>
-              Odalar
-            </Link>
-
-            <Link href="/services" className={getLinkClass("/services")}>
-              Servislerimiz
-            </Link>
-            <Link href="/workspaces" className={getLinkClass("/workspaces")}>
-              Çalışma Alanlarımız
-            </Link>
-            <Link href="/resources" className={getLinkClass("/resources")}>
-              Kaynaklar
-            </Link>
-=======
         <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-2 sm:px-4 relative">
           
           {/* SOL TARAFLI ALAN: MOBİL HAMBURGER + EN SOLA ÇEKİLMİŞ BÜYÜK LOGO */}
@@ -190,28 +133,18 @@ export default function Navbar() {
             <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
             <Link href="/workspaces" className={getLinkClass("/workspaces")}>Çalışma Alanlarımız</Link>
             <Link href="/resources" className={getLinkClass("/resources")}>Kaynaklar</Link>
->>>>>>> AliBranch
             {!loading && role === "superadmin" && (
-              <Link href="/admin" className={getLinkClass("/admin")}>
-                Admin
-              </Link>
+              <Link href="/admin" className={getLinkClass("/admin")}>Admin</Link>
             )}
           </Box>
 
-<<<<<<< HEAD
-          {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
-          <Box
-            sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2.5 }}
-          >
-=======
           {/* EN SAĞ: DİL SEÇİCİ VE PROFİL / GİRİŞ BUTONLARI */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
             
->>>>>>> AliBranch
             {/* Dil Seçici */}
-            <select
-              onChange={(e) => translatePage(e.target.value)}
-              defaultValue="tr"
+            <select 
+              onChange={(e) => translatePage(e.target.value)} 
+              defaultValue="tr" 
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
               <option value="en">EN</option>
@@ -221,32 +154,24 @@ export default function Navbar() {
             {/* Giriş Durumuna Göre Değişen Alan */}
             {session ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
-<<<<<<< HEAD
-                {/* Profil Resmi Butonu */}
-                <IconButton
-                  onClick={handleMenuOpen}
-                  size="small"
-                  sx={{
-=======
                 <IconButton 
                   onClick={handleMenuOpen} 
                   size="small" 
                   sx={{ 
->>>>>>> AliBranch
                     padding: 0.5,
                     border: "2px solid #e5e7eb",
                     "&:hover": { borderColor: "#2563eb" },
-                    transition: "border-color 0.2s",
+                    transition: "border-color 0.2s"
                   }}
                 >
-                  <Avatar
-                    src={userAvatarUrl}
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      bgcolor: "#2563eb",
-                      fontSize: "14px",
-                      fontWeight: 600,
+                  <Avatar 
+                    src={userAvatarUrl} 
+                    sx={{ 
+                      width: 36, 
+                      height: 36, 
+                      bgcolor: "#2563eb", 
+                      fontSize: "14px", 
+                      fontWeight: 600 
                     }}
                   >
                     {userInitial}
@@ -283,25 +208,10 @@ export default function Navbar() {
                   }}
                 >
                   <Box sx={{ px: 2, py: 1.5 }}>
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        color: "#111827",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {session.user.email}
                     </div>
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        color: "#6b7280",
-                        marginTop: "2px",
-                      }}
-                    >
+                    <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "2px" }}>
                       {role === "superadmin" ? "Süper Yönetici" : "Kullanıcı"}
                     </div>
                   </Box>
@@ -326,21 +236,7 @@ export default function Navbar() {
                     Profilim
                   </MenuItem>
 
-<<<<<<< HEAD
-                  {/* Çıkış Yap Butonu */}
-                  <MenuItem
-                    onClick={handleLogout}
-                    sx={{
-                      py: 1.5,
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      color: "#ef4444",
-                    }}
-                  >
-=======
                   <MenuItem onClick={handleLogout} sx={{ py: 1.5, borderRadius: "8px", fontSize: "14px", fontWeight: 500, color: "#ef4444" }}>
->>>>>>> AliBranch
                     <ListItemIcon>
                       <LogoutIcon fontSize="small" sx={{ color: "#ef4444" }} />
                     </ListItemIcon>
@@ -350,44 +246,42 @@ export default function Navbar() {
               </Box>
             ) : (
               <Box sx={{ display: "flex", gap: 1.5 }}>
-                <Button
-                  component={Link}
-                  href="/login"
-                  variant="text"
-                  sx={{
-                    color: "#4b5563",
-                    textTransform: "none",
-                    fontWeight: 600,
+                <Button 
+                  component={Link} 
+                  href="/login" 
+                  variant="text" 
+                  sx={{ 
+                    color: "#4b5563", 
+                    textTransform: "none", 
+                    fontWeight: 600, 
                     fontSize: "14px",
-                    "&:hover": {
-                      color: "#2563eb",
-                      backgroundColor: "transparent",
-                    },
+                    "&:hover": { color: "#2563eb", backgroundColor: "transparent" } 
                   }}
                 >
                   Giriş
                 </Button>
-                <Button
-                  component={Link}
-                  href="/register"
-                  variant="contained"
+                <Button 
+                  component={Link} 
+                  href="/register" 
+                  variant="contained" 
                   disableElevation
-                  sx={{
-                    backgroundColor: "#2563eb",
-                    color: "#ffffff",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    borderRadius: "10px",
+                  sx={{ 
+                    backgroundColor: "#2563eb", 
+                    color: "#ffffff", 
+                    textTransform: "none", 
+                    fontWeight: 600, 
+                    fontSize: "14px", 
+                    borderRadius: "10px", 
                     px: 3,
                     py: 1,
-                    "&:hover": { backgroundColor: "#1d4ed8" },
+                    "&:hover": { backgroundColor: "#1d4ed8" } 
                   }}
                 >
                   Kayıt ol
                 </Button>
               </Box>
             )}
+
           </Box>
         </Box>
       </AppBar>

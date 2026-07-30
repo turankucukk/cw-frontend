@@ -1,8 +1,9 @@
-﻿"use client";
+﻿// src/components/rooms/RoomList.tsx
+"use client";
 
 import { Box, Alert, Grid } from "@mui/material";
 import RoomCard from "./RoomCard";
-import { Room } from "@/src/lib/api/rooms";
+import { type Room } from "@/src/lib/api/rooms";
 
 interface RoomListProps {
   rooms?: Room[];
@@ -21,7 +22,6 @@ export default function RoomList({
   selectedFeatures = [],
   error = null,
 }: RoomListProps) {
-
   if (error) {
     return (
       <Alert severity="error" sx={{ m: 3 }}>
@@ -60,7 +60,7 @@ export default function RoomList({
     <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={3}>
         {filteredRooms.map((room) => (
-          <Grid item key={room.id} xs={12} sm={6} md={4}>
+          <Grid key={room.id} size={{ xs: 12, sm: 6, md: 6 }}>
             <RoomCard room={room} />
           </Grid>
         ))}

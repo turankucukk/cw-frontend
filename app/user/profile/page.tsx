@@ -40,7 +40,7 @@ function CustomTabPanel(props: TabPanelProps) {
 
 export default function ProfilePage() {
   const [value, setValue] = useState(0);
-  const { role, loading: roleLoading } = useUserRole();
+  const { loading: roleLoading } = useUserRole();
   const { userData, reservations, payments, loading: profileLoading, setUserData } = useProfileData();
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -54,8 +54,6 @@ export default function ProfilePage() {
       </Box>
     );
   }
-
-  if (role === "superadmin") return null;
 
   return (
     <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto", px: { xs: 1, sm: 2 } }}>
