@@ -40,11 +40,7 @@ export default function ProfilePage() {
   const { role, loading: roleLoading } = useUserRole();
   const { userData, reservations, payments, loading: profileLoading, setUserData } = useProfileData(); // VERİYİ ÇEKTİK
 
-  useEffect(() => {
-    if (!roleLoading && role === "superadmin") {
-      router.push("/admin");
-    }
-  }, [role, roleLoading, router]);
+  // Admin yönlendirmesi kaldırıldı, böylece adminler de profillerini görebilir.
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -58,7 +54,6 @@ export default function ProfilePage() {
     );
   }
 
-  if (role === "superadmin") return null;
 
   return (
     <Box sx={{ maxWidth: 1000, margin: "0 auto", width: "100%" }}>

@@ -8,7 +8,7 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PeopleIcon from "@mui/icons-material/People";
 import HomeIcon from "@mui/icons-material/Home";
-
+import AparthmentIcon from "@mui/icons-material/Apartment"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const menuItems = [
     { text: "Genel Bakış", icon: <DashboardIcon style={{ fontSize: "22px" }} />, path: "/admin" },
     { text: "Odalar", icon: <MeetingRoomIcon style={{ fontSize: "22px" }} />, path: "/admin/rooms" },
+    { text: "Binalar" , icon: <AparthmentIcon style={{ fontSize:"22px"}}/>, path: "/admin/building"},
     { text: "Raporlar", icon: <AssessmentIcon style={{ fontSize: "22px" }} />, path: "/admin/reports" },
     { text: "Kullanıcılar", icon: <PeopleIcon style={{ fontSize: "22px" }} />, path: "/admin/users" },
   ];

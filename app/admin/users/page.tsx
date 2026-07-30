@@ -37,11 +37,15 @@ import {
   type AdminUser,
   type ReservationRecord,
   type ActivityEvent,
-} from "../../../src/lib/api/user";
+} from "@/src/lib/api/users";
 
 function matchesQuery(u: AdminUser, query: string) {
   const q = query.trim().toLowerCase();
-  return q === "" || u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+  return (
+    q === "" ||
+    u.fullName.toLowerCase().includes(q) ||
+    u.email.toLowerCase().includes(q)
+  );
 }
 
 function UserTable({
@@ -69,9 +73,15 @@ function UserTable({
             <TableRow key={u.id} hover>
               <TableCell>{u.fullName}</TableCell>
               <TableCell>{u.email}</TableCell>
-              <TableCell>{new Date(u.createdAt).toLocaleDateString("tr-TR")}</TableCell>
+              <TableCell>
+                {new Date(u.createdAt).toLocaleDateString("tr-TR")}
+              </TableCell>
               <TableCell align="center">
-                <IconButton size="small" color="error" onClick={() => onDelete(u.id)}>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => onDelete(u.id)}
+                >
                   <DeleteIcon fontSize="small" />
                 </IconButton>
               </TableCell>
@@ -79,7 +89,11 @@ function UserTable({
           ))}
           {users.length === 0 && !loading && (
             <TableRow>
-              <TableCell colSpan={4} align="center" sx={{ py: 3, color: "text.secondary" }}>
+              <TableCell
+                colSpan={4}
+                align="center"
+                sx={{ py: 3, color: "text.secondary" }}
+              >
                 Kriterlere uyan kullanıcı bulunamadı.
               </TableCell>
             </TableRow>
@@ -90,7 +104,10 @@ function UserTable({
   );
 }
 
-const RESERVATION_STATUS_LABELS: Record<ReservationRecord["status"], { label: string; color: "info" | "success" | "error" }> = {
+const RESERVATION_STATUS_LABELS: Record<
+  ReservationRecord["status"],
+  { label: string; color: "info" | "success" | "error" }
+> = {
   upcoming: { label: "Yaklaşan", color: "info" },
   completed: { label: "Tamamlandı", color: "success" },
   cancelled: { label: "İptal", color: "error" },
@@ -121,7 +138,7 @@ export default function AdminUsersPage() {
         setReservations(r);
         setEvents(e);
         setDataLoading(false);
-      }
+      },
     );
   }, []);
 
@@ -130,18 +147,19 @@ export default function AdminUsersPage() {
   };
 
   const superAdminUsers = useMemo(
-    () => users.filter((u) => u.role === "superadmin" && matchesQuery(u, search)),
-    [users, search]
+    () =>
+      users.filter((u) => u.role === "superadmin" && matchesQuery(u, search)),
+    [users, search],
   );
 
   const managerUsers = useMemo(
     () => users.filter((u) => u.role === "manager" && matchesQuery(u, search)),
-    [users, search]
+    [users, search],
   );
 
   const normalUsers = useMemo(
     () => users.filter((u) => u.role === "user" && matchesQuery(u, search)),
-    [users, search]
+    [users, search],
   );
 
   const stats = useMemo(() => {
@@ -151,7 +169,8 @@ export default function AdminUsersPage() {
       managers: users.filter((u) => u.role === "manager").length,
       normalUsers: users.filter((u) => u.role === "user").length,
       totalReservations: reservations.length,
-      upcomingReservations: reservations.filter((r) => r.status === "upcoming").length,
+      upcomingReservations: reservations.filter((r) => r.status === "upcoming")
+        .length,
     };
   }, [users, reservations]);
 
@@ -170,7 +189,11 @@ export default function AdminUsersPage() {
         </Typography>
       </Box>
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3, borderBottom: "1px solid #e5e7eb" }}>
+      <Tabs
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        sx={{ mb: 3, borderBottom: "1px solid #e5e7eb" }}
+      >
         <Tab label="Kullanıcılar" />
         <Tab label="Rezervasyonlar" />
         <Tab label="İstatistikler" />
@@ -202,17 +225,35 @@ export default function AdminUsersPage() {
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
             Süper Yöneticiler ({superAdminUsers.length})
           </Typography>
-          <UserTable users={superAdminUsers} loading={dataLoading} onDelete={handleDeleteUser} />
+          <UserTable
+            users={superAdminUsers}
+            loading={dataLoading}
+            onDelete={handleDeleteUser}
+          />
 
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5, mt: 4 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, mb: 1.5, mt: 4 }}
+          >
             Yöneticiler ({managerUsers.length})
           </Typography>
-          <UserTable users={managerUsers} loading={dataLoading} onDelete={handleDeleteUser} />
+          <UserTable
+            users={managerUsers}
+            loading={dataLoading}
+            onDelete={handleDeleteUser}
+          />
 
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5, mt: 4 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, mb: 1.5, mt: 4 }}
+          >
             Kullanıcılar ({normalUsers.length})
           </Typography>
-          <UserTable users={normalUsers} loading={dataLoading} onDelete={handleDeleteUser} />
+          <UserTable
+            users={normalUsers}
+            loading={dataLoading}
+            onDelete={handleDeleteUser}
+          />
         </Box>
       )}
 
@@ -247,8 +288,13 @@ export default function AdminUsersPage() {
               ))}
               {reservations.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4, color: "text.secondary" }}>
-                    Henüz rezervasyon bulunmuyor. Bu özellik eklendiğinde burada listelenecek.
+                  <TableCell
+                    colSpan={5}
+                    align="center"
+                    sx={{ py: 4, color: "text.secondary" }}
+                  >
+                    Henüz rezervasyon bulunmuyor. Bu özellik eklendiğinde burada
+                    listelenecek.
                   </TableCell>
                 </TableRow>
               )}
@@ -261,19 +307,63 @@ export default function AdminUsersPage() {
       {tab === 2 && (
         <Grid container spacing={3}>
           {[
-            { label: "Toplam Kullanıcı", value: stats.total, icon: <PeopleIcon />, color: "#2563eb" },
-            { label: "Süper Yönetici Sayısı", value: stats.superAdmins, icon: <AdminPanelSettingsIcon />, color: "#f43f5e" },
-            { label: "Yönetici Sayısı", value: stats.managers, icon: <AdminPanelSettingsIcon />, color: "#10b981" },
-            { label: "Normal Kullanıcı", value: stats.normalUsers, icon: <PersonIcon />, color: "#8b5cf6" },
-            { label: "Toplam Rezervasyon", value: stats.totalReservations, icon: <EventAvailableIcon />, color: "#f59e0b" },
-            { label: "Yaklaşan Rezervasyon", value: stats.upcomingReservations, icon: <EventAvailableIcon />, color: "#ef4444" },
+            {
+              label: "Toplam Kullanıcı",
+              value: stats.total,
+              icon: <PeopleIcon />,
+              color: "#2563eb",
+            },
+            {
+              label: "Süper Yönetici Sayısı",
+              value: stats.superAdmins,
+              icon: <AdminPanelSettingsIcon />,
+              color: "#f43f5e",
+            },
+            {
+              label: "Yönetici Sayısı",
+              value: stats.managers,
+              icon: <AdminPanelSettingsIcon />,
+              color: "#10b981",
+            },
+            {
+              label: "Normal Kullanıcı",
+              value: stats.normalUsers,
+              icon: <PersonIcon />,
+              color: "#8b5cf6",
+            },
+            {
+              label: "Toplam Rezervasyon",
+              value: stats.totalReservations,
+              icon: <EventAvailableIcon />,
+              color: "#f59e0b",
+            },
+            {
+              label: "Yaklaşan Rezervasyon",
+              value: stats.upcomingReservations,
+              icon: <EventAvailableIcon />,
+              color: "#ef4444",
+            },
           ].map((card) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={card.label}>
               <Card variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                  }}
+                >
                   <Box>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>{card.value}</Typography>
-                    <Typography sx={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>{card.label}</Typography>
+                    <Typography
+                      sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}
+                    >
+                      {card.value}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}
+                    >
+                      {card.label}
+                    </Typography>
                   </Box>
                   <Box
                     sx={{
@@ -300,16 +390,38 @@ export default function AdminUsersPage() {
       {tab === 3 && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {events.map((ev) => (
-            <Paper key={ev.id} variant="outlined" sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Typography sx={{ fontSize: 14, color: "#111827" }}>{ev.message}</Typography>
-              <Typography sx={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap", ml: 2 }}>
+            <Paper
+              key={ev.id}
+              variant="outlined"
+              sx={{
+                p: 2,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography sx={{ fontSize: 14, color: "#111827" }}>
+                {ev.message}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: "#6b7280",
+                  whiteSpace: "nowrap",
+                  ml: 2,
+                }}
+              >
                 {ev.timestamp}
               </Typography>
             </Paper>
           ))}
           {events.length === 0 && (
-            <Paper variant="outlined" sx={{ p: 4, textAlign: "center", color: "text.secondary" }}>
-              Henüz bir aktivite kaydı yok. Bu özellik eklendiğinde burada listelenecek.
+            <Paper
+              variant="outlined"
+              sx={{ p: 4, textAlign: "center", color: "text.secondary" }}
+            >
+              Henüz bir aktivite kaydı yok. Bu özellik eklendiğinde burada
+              listelenecek.
             </Paper>
           )}
         </Box>

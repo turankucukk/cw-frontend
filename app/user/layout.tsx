@@ -21,7 +21,7 @@ const DRAWER_WIDTH = 260;
 
 const NAV_ITEMS = [
   { label: "Anasayfa", href: "/", icon: <HomeIcon /> },
-  { label: "Oda Ara", href: "/", icon: <SearchIcon /> },
+  { label: "Oda Ara", href: "/buildings", icon: <SearchIcon /> },
   { label: "Profil", href: "/user/profile", icon: <AccountCircleIcon /> },
 ];
 
