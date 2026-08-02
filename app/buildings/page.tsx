@@ -51,7 +51,7 @@ export default function BuildingsPage() {
         }}
       >
         <Box sx={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
-          
+
           <Box
             sx={{
               textAlign: "center",
@@ -80,7 +80,7 @@ export default function BuildingsPage() {
               Odalarını görmek istediğiniz binayı seçin.
             </Typography>
           </Box>
-          
+
           <Box
             sx={{
               display: "grid",
@@ -168,63 +168,25 @@ export default function BuildingsPage() {
                           🏢
                         </Box>
 
-                        <Typography
-                          sx={{
-                            margin: 0,
-                            fontSize: { xs: "14px", md: "15px" },
-                            fontWeight: 500,
-                          }}
-                        >
+                        <Typography sx={{ margin: 0, fontSize: "16px" }}>
                           Kroki henüz eklenmemiş
                         </Typography>
                       </Box>
                     )}
                   </Box>
-                  
-                  <Box 
-                    sx={{ 
-                      padding: { xs: "20px", md: "24px" }, 
-                      display: "flex", 
-                      flexDirection: "column", 
-                      flexGrow: 1,
-                      justifyContent: "space-between",
-                      width: "100%",
-                      boxSizing: "border-box"
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        margin: 0,
-                        fontSize: { xs: "18px", md: "20px" },
-                        fontWeight: 600,
-                        color: "#1f2937",
-                        marginBottom: "12px",
-                      }}
-                    >
+
+                  <Box sx={{ padding: "20px" }}>
+                    <Typography component="h2" sx={{ margin: 0, fontSize: "21px", fontWeight: 600, marginBottom: "10px" }}>
                       {building.name}
                     </Typography>
 
                     {building.location_url && (
-                      <Box
-                        component="a"
+                      <Box component="a"
                         href={building.location_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        sx={{
-                          color: "#2563eb",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          textDecoration: "none",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          width: "fit-content",
-                          "&:hover": {
-                            textDecoration: "underline",
-                          },
-                        }}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        sx={{ color: "#2563eb", fontSize: "14px", textDecoration: "none" }}
                       >
                         📍 Haritada Gör
                       </Box>
