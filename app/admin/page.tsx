@@ -7,7 +7,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import { useUserRole } from "@/src/hooks/useUserRole";
-
+import { Box, Typography, Card, CircularProgress } from "@mui/material";
 
 const MOCK_STATS = {
   totalUsers: 137,
@@ -37,22 +37,9 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-        <div style={{
-          width: "40px",
-          height: "40px",
-          border: "3px solid #f3f3f3",
-          borderTop: "3px solid #2563eb",
-          borderRadius: "50%",
-          animation: "spin 1s linear infinite"
-        }} />
-        <style jsx>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <CircularProgress size={40} sx={{ color: "#2563eb" }} />
+      </Box>
     );
   }
 
@@ -61,120 +48,181 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div>
-      {/* Başlık Alanı */}
-      <h1 style={{ fontSize: "26px", fontWeight: 700, color: "#111827", margin: "0 0 4px 0" }}>
+    <Box sx={{ width: "100%", overflowX: "hidden" }}>
+      {/* BAŞLIK ALANI */}
+      <Typography 
+        variant="h1" 
+        sx={{ 
+          fontSize: { xs: "20px", sm: "24px" }, 
+          fontWeight: 700, 
+          color: "#111827", 
+          mb: 0.5 
+        }}
+      >
         Genel Bakış
-      </h1>
-      <p style={{ color: "#6b7280", fontSize: "14px", margin: "0 0 32px 0" }}>
-        DeskHere yönetim paneline hoş geldin.
-      </p>
+      </Typography>
 
-      {/* KPI Kartları Grid */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", 
-        gap: "24px", 
-        marginBottom: "32px" 
-      }}>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          color: "#6b7280", 
+          fontSize: { xs: "13px", sm: "14px" }, 
+          mb: { xs: 2.5, sm: 3 } 
+        }}
+      >
+        DeskHere yönetim paneline hoş geldin.
+      </Typography>
+
+      {/* KPI KARTLARI GRID */}
+      <Box 
+        sx={{ 
+          display: "grid", 
+          gridTemplateColumns: {
+            xs: "1fr", // Mobilde tek kolon
+            sm: "repeat(2, 1fr)", // Tabletlerde 2 kolon
+            lg: "repeat(4, 1fr)" // Masaüstünde 4 kolon
+          }, 
+          gap: { xs: 2, sm: 2.5 }, 
+          mb: { xs: 2.5, sm: 3 } 
+        }}
+      >
         {KPI_CARDS.map((card) => (
-          <div 
+          <Card 
             key={card.label} 
-            style={{ 
+            elevation={0}
+            sx={{ 
               backgroundColor: "#ffffff", 
-              padding: "24px", 
-              borderRadius: "12px", 
+              padding: { xs: "16px", sm: "20px" }, 
+              borderRadius: "16px", 
               border: "1px solid #e5e7eb",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
+              boxShadow: "0 1px 3px rgba(0,0,0,0.02)"
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <div style={{ fontSize: "28px", fontWeight: 700, color: "#111827", marginBottom: "4px" }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <Box>
+                <Typography 
+                  sx={{ 
+                    fontSize: { xs: "22px", sm: "26px" }, 
+                    fontWeight: 700, 
+                    color: "#111827", 
+                    lineHeight: 1.2,
+                    mb: 0.5 
+                  }}
+                >
                   {card.value}
-                </div>
-                <div style={{ color: "#6b7280", fontSize: "13px", fontWeight: 500 }}>
+                </Typography>
+
+                <Typography 
+                  sx={{ 
+                    color: "#6b7280", 
+                    fontSize: { xs: "12px", sm: "13px" }, 
+                    fontWeight: 500 
+                  }}
+                >
                   {card.label}
-                </div>
-              </div>
-              <div style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "8px",
+                </Typography>
+              </Box>
+
+              <Box sx={{
+                width: { xs: "36px", sm: "40px" },
+                height: { xs: "36px", sm: "40px" },
+                borderRadius: "10px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: `${card.color}12`,
-                color: card.color
+                color: card.color,
+                flexShrink: 0
               }}>
                 {card.icon}
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Box>
+          </Card>
         ))}
-      </div>
+      </Box>
 
-      {/* Alt Grafik ve İlerleme Çubukları */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", 
-        gap: "24px" 
-      }}>
-        
+      {/* ALT GRAFİK VE İLERLEME ÇUBUKLARI */}
+      <Box 
+        sx={{ 
+          display: "grid", 
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, 
+          gap: { xs: 2, sm: 2.5 } 
+        }}
+      >
         {/* Anlık Doluluk */}
-        <div style={{ 
-          backgroundColor: "#ffffff", 
-          padding: "28px", 
-          borderRadius: "12px", 
-          border: "1px solid #e5e7eb"
-        }}>
-          <h3 style={{ fontSize: "15px", fontWeight: 600, margin: "0 0 20px 0", color: "#111827" }}>
-            Anlık Doluluk oranı
-          </h3>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "12px", marginBottom: "20px" }}>
-            <span style={{ fontSize: "36px", fontWeight: 700, color: "#111827" }}>
+        <Card 
+          elevation={0}
+          sx={{ 
+            backgroundColor: "#ffffff", 
+            padding: { xs: "16px", sm: "20px" }, 
+            borderRadius: "16px", 
+            border: "1px solid #e5e7eb"
+          }}
+        >
+          <Typography 
+            variant="h3" 
+            sx={{ fontSize: "15px", fontWeight: 600, mb: 2, color: "#111827" }}
+          >
+            Anlık Doluluk Oranı
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
+            <Typography sx={{ fontSize: { xs: "28px", sm: "32px" }, fontWeight: 700, color: "#111827" }}>
               %{Math.round(MOCK_STATS.occupancyRate * 100)}
-            </span>
-            <span style={{ 
-              fontSize: "12px", 
-              padding: "4px 10px", 
-              borderRadius: "6px", 
-              backgroundColor: "#eff6ff", 
-              color: "#2563eb", 
-              fontWeight: 600 
-            }}>
+            </Typography>
+
+            <Box 
+              component="span"
+              sx={{ 
+                fontSize: "12px", 
+                px: 1.25, 
+                py: 0.5, 
+                borderRadius: "6px", 
+                backgroundColor: "#eff6ff", 
+                color: "#2563eb", 
+                fontWeight: 600 
+              }}
+            >
               {MOCK_STATS.occupiedNow} / {MOCK_STATS.totalRooms} oda dolu
-            </span>
-          </div>
+            </Box>
+          </Box>
           
           {/* Progress Bar */}
-          <div style={{ width: "100%", height: "8px", backgroundColor: "#f3f4f6", borderRadius: "4px", overflow: "hidden" }}>
-            <div style={{ 
+          <Box sx={{ width: "100%", height: "8px", backgroundColor: "#f3f4f6", borderRadius: "4px", overflow: "hidden" }}>
+            <Box sx={{ 
               width: `${MOCK_STATS.occupancyRate * 100}%`, 
               height: "100%", 
               backgroundColor: "#2563eb",
-              borderRadius: "4px"
+              borderRadius: "4px",
+              transition: "width 0.4s ease"
             }} />
-          </div>
-        </div>
+          </Box>
+        </Card>
 
-        {/* Doluluk Grafiği */}
-        <div style={{ 
-          backgroundColor: "#ffffff", 
-          padding: "28px", 
-          borderRadius: "12px", 
-          border: "1px solid #e5e7eb",
-          minHeight: "180px" 
-        }}>
-          <h3 style={{ fontSize: "15px", fontWeight: 600, margin: "0 0 16px 0", color: "#111827" }}>
+        {/* Doluluk Grafiği Kartı */}
+        <Card 
+          elevation={0}
+          sx={{ 
+            backgroundColor: "#ffffff", 
+            padding: { xs: "16px", sm: "20px" }, 
+            borderRadius: "16px", 
+            border: "1px solid #e5e7eb",
+            minHeight: "160px" 
+          }}
+        >
+          <Typography 
+            variant="h3" 
+            sx={{ fontSize: "15px", fontWeight: 600, mb: 1.5, color: "#111827" }}
+          >
             Doluluk Grafiği
-          </h3>
-          <p style={{ color: "#6b7280", fontSize: "13px", margin: 0 }}>
-            Grafik burada yer alacak — Recharts veya mui-charts entegrasyonu için alan hazırlandı.
-          </p>
-        </div>
+          </Typography>
 
-      </div>
-    </div>
+          <Typography sx={{ color: "#6b7280", fontSize: "13px" }}>
+            Grafik burada yer alacak — Recharts veya mui-charts entegrasyonu için alan hazırlandı.
+          </Typography>
+        </Card>
+
+      </Box>
+    </Box>
   );
 }

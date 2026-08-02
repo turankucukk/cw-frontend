@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -22,10 +23,7 @@ type WeeklyCalendarProps = {
 
 function formatDateForInput(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(
-    2,
-    "0",
-  );
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -33,18 +31,12 @@ function formatDateForInput(date: Date) {
 
 function formatTimeForInput(date: Date) {
   const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(
-    2,
-    "0",
-  );
+  const minute = String(date.getMinutes()).padStart(2, "0");
 
   return `${hour}:${minute}`;
 }
 
-function getCurrentWeekDate(
-  dayOffset: number,
-  hour: number,
-) {
+function getCurrentWeekDate(dayOffset: number, hour: number) {
   const today = new Date();
   const currentDay = today.getDay();
 
@@ -54,7 +46,7 @@ function getCurrentWeekDate(
   const result = new Date(today);
 
   result.setDate(
-    today.getDate() + mondayDifference + dayOffset,
+    today.getDate() + mondayDifference + dayOffset
   );
 
   result.setHours(hour, 0, 0, 0);
@@ -65,17 +57,15 @@ function getCurrentWeekDate(
 export default function WeeklyCalendar({
   roomId,
 }: WeeklyCalendarProps) {
-  const [dialogOpen, setDialogOpen] =
-    useState(false);
+  const router = useRouter();
 
-  const [selectedDate, setSelectedDate] =
-    useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [startTime, setStartTime] =
-    useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
-  const [endTime, setEndTime] =
-    useState("");
+  const [startTime, setStartTime] = useState("");
+
+  const [endTime, setEndTime] = useState("");
 
   const [participantCount, setParticipantCount] =
     useState("1");
@@ -99,26 +89,26 @@ export default function WeeklyCalendar({
         end: getCurrentWeekDate(3, 16),
       },
     ],
-    [roomId],
+    [roomId]
   );
 
   const handleDateClick = (clickedDate: Date) => {
     const finishDate = new Date(clickedDate);
 
     finishDate.setHours(
-      finishDate.getHours() + 1,
+      finishDate.getHours() + 1
     );
 
     setSelectedDate(
-      formatDateForInput(clickedDate),
+      formatDateForInput(clickedDate)
     );
 
     setStartTime(
-      formatTimeForInput(clickedDate),
+      formatTimeForInput(clickedDate)
     );
 
     setEndTime(
-      formatTimeForInput(finishDate),
+      formatTimeForInput(finishDate)
     );
 
     setParticipantCount("1");
@@ -139,7 +129,7 @@ export default function WeeklyCalendar({
       !endTime
     ) {
       alert(
-        "Tarih, başlangıç ve bitiş saatini seçmelisin.",
+        "Tarih, başlangıç ve bitiş saatini seçmelisin."
       );
 
       return;
@@ -147,7 +137,7 @@ export default function WeeklyCalendar({
 
     if (startTime >= endTime) {
       alert(
-        "Bitiş saati başlangıç saatinden sonra olmalıdır.",
+        "Bitiş saati başlangıç saatinden sonra olmalıdır."
       );
 
       return;
@@ -158,26 +148,29 @@ export default function WeeklyCalendar({
       participantNumber < 1
     ) {
       alert(
-        "Katılımcı sayısı en az 1 olmalıdır.",
+        "Katılımcı sayısı en az 1 olmalıdır."
       );
 
       return;
     }
 
-    /*
-     * Daha sonra burada Supabase'e kayıt yapılacak.
-     * roomId hangi odaya rezervasyon yapıldığını belirtir.
-     */
-    console.log({
-      roomId,
-      selectedDate,
-      startTime,
-      endTime,
-      participantCount: participantNumber,
-    });
+    const start = new Date(
+      `${selectedDate}T${startTime}:00`
+    );
 
-    alert("Rezervasyon bilgileri seçildi.");
+    const end = new Date(
+      `${selectedDate}T${endTime}:00`
+    );
+
+    const paymentUrl =
+      `/payment?roomId=${roomId}` +
+      `&start=${encodeURIComponent(start.toISOString())}` +
+      `&end=${encodeURIComponent(end.toISOString())}` +
+      `&participants=${participantNumber}`;
+
     setDialogOpen(false);
+
+    router.push(paymentUrl);
   };
 
   return (
@@ -267,7 +260,9 @@ export default function WeeklyCalendar({
               type="date"
               value={selectedDate}
               onChange={(event) =>
-                setSelectedDate(event.target.value)
+                setSelectedDate(
+                  event.target.value
+                )
               }
               slotProps={{
                 inputLabel: {
@@ -292,7 +287,9 @@ export default function WeeklyCalendar({
                 type="time"
                 value={startTime}
                 onChange={(event) =>
-                  setStartTime(event.target.value)
+                  setStartTime(
+                    event.target.value
+                  )
                 }
                 slotProps={{
                   inputLabel: {
@@ -307,7 +304,9 @@ export default function WeeklyCalendar({
                 type="time"
                 value={endTime}
                 onChange={(event) =>
-                  setEndTime(event.target.value)
+                  setEndTime(
+                    event.target.value
+                  )
                 }
                 slotProps={{
                   inputLabel: {
@@ -324,7 +323,7 @@ export default function WeeklyCalendar({
               value={participantCount}
               onChange={(event) =>
                 setParticipantCount(
-                  event.target.value,
+                  event.target.value
                 )
               }
               slotProps={{
@@ -364,7 +363,7 @@ export default function WeeklyCalendar({
               },
             }}
           >
-            Rezervasyonu Onayla
+            Ödemeye Geç
           </Button>
         </DialogActions>
       </Dialog>
