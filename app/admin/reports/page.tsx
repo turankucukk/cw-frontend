@@ -1,6 +1,22 @@
 "use client";
-import { useState } from "react";
-import { Box, Card, Grid, Typography, MenuItem, TextField, Chip, Avatar } from "@mui/material";
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Card,
+  Grid,
+  Typography,
+  MenuItem,
+  TextField,
+  Chip,
+  Avatar,
+  Button,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  CircularProgress,
+} from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
@@ -9,6 +25,19 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table as DocxTable,
+  TableRow as DocxRow,
+  TableCell as DocxCell,
+} from "docx";
+import { saveAs } from "file-saver";
+import { createClient } from "@/src/utils/supabase/client"; // ← client dosyanızın gerçek yolu farklıysa burayı güncelleyin
 
 // ============ MOCK VERİ (Supabase bağlanınca değişecek) ============
 const MOCK_ROOMS = [
@@ -63,25 +92,194 @@ const cardSx = {
   boxShadow: "0 1px 3px rgba(16,24,40,0.05)",
 };
 
+type ReportRow = {
+  id: number;
+  room: string;
+  building: string;
+  space_id: number | undefined;
+  start: string;
+  end: string;
+  price: number;
+};
+
 export default function ReportsPage() {
   const [from, setFrom] = useState<Dayjs | null>(dayjs().subtract(30, "day"));
   const [to, setTo] = useState<Dayjs | null>(dayjs());
   const [room, setRoom] = useState("all");
+  const [rooms, setRooms] = useState<{ id: number; name: string }[]>([]);
+
+  // ── Detaylı rapor (Supabase) state'leri ──
+  const [reportRows, setReportRows] = useState<ReportRow[]>([]);
+  const [loadingReport, setLoadingReport] = useState(false);
 
   // Dinamik: her oda için gradyan dolgulu alan serisi
   const lineSeries = MOCK_ROOMS.map((r, i) => ({
-  dataKey: r.id,
-  label: r.name,
-  color: BRAND_COLORS[i % BRAND_COLORS.length],
-  showMark: false,
-  curve: "monotoneX" as const,
-}));
+    dataKey: r.id,
+    label: r.name,
+    color: BRAND_COLORS[i % BRAND_COLORS.length],
+    showMark: false,
+    curve: "monotoneX" as const,
+  }));
 
   const kpis = [
     { label: "Aktif Kullanıcı", ...MOCK_SUMMARY.activeUsers, color: "#0052CC", suffix: "" },
     { label: "Toplam Kullanıcı", ...MOCK_SUMMARY.totalUsers, color: "#00B4D8", suffix: "" },
     { label: "Ortalama Doluluk", ...MOCK_SUMMARY.avgOccupancy, color: "#11998E", suffix: "%" },
   ];
+
+  useEffect(() => {
+  const fetchRooms = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("space")
+      .select("id, name")
+      .eq("isActive", true)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setRooms(data ?? []);
+  };
+  fetchRooms();
+}, []);
+
+ // ── Supabase'den seçilen aralıktaki rezervasyonları çek ──
+  const fetchDetailedReport = async () => {
+    if (!from || !to) return;
+    setLoadingReport(true);
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("reservation")
+      .select(
+        `
+        id,
+        start_time,
+        end_time,
+        total_price,
+        status,
+        space:space_id (
+          id,
+          name,
+          building:building_id ( name )
+        )
+      `
+      )
+      .eq("status", "confirmed")
+      .gte("start_time", from.toISOString())
+      .lte("end_time", to.toISOString())
+      .order("start_time", { ascending: true });
+
+    setLoadingReport(false);
+    console.log("SORGU SONUCU:", { data, error, from: from?.toISOString(), to: to?.toISOString() });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    let formatted: ReportRow[] = (data ?? []).map((r: any) => ({
+      id: r.id,
+      room: r.space?.name ?? "-",
+      building: r.space?.building?.name ?? "-",
+      space_id: r.space?.id,
+      start: dayjs(r.start_time).format("DD.MM.YYYY HH:mm"),
+      end: dayjs(r.end_time).format("DD.MM.YYYY HH:mm"),
+      price: r.total_price ?? 0,
+    }));
+console.log("FILTRE KONTROL:", { room, ornekSpaceId: formatted[0]?.space_id, tumSpaceIdler: formatted.map(f => f.space_id) });
+    if (room !== "all") {
+      formatted = formatted.filter((r) => String(r.space_id) === String(room));
+    }
+
+    setReportRows(formatted);
+  };
+
+  // ── Export: Excel ──
+  const exportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      reportRows.map((r) => ({
+        Oda: r.room,
+        Bina: r.building,
+        Başlangıç: r.start,
+        Bitiş: r.end,
+        Ücret: r.price,
+      }))
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+    XLSX.writeFile(wb, `rapor_${from?.format("DD-MM-YYYY")}_${to?.format("DD-MM-YYYY")}.xlsx`);
+  };
+
+const turkceyiDuzelt = (text: string) =>
+  text
+    .replace(/ı/g, "i").replace(/İ/g, "I")
+    .replace(/ş/g, "s").replace(/Ş/g, "S")
+    .replace(/ğ/g, "g").replace(/Ğ/g, "G")
+    .replace(/ü/g, "u").replace(/Ü/g, "U")
+    .replace(/ö/g, "o").replace(/Ö/g, "O")
+    .replace(/ç/g, "c").replace(/Ç/g, "C");
+
+// ── Export: PDF ──
+const exportPDF = () => {
+  const doc = new jsPDF();
+  doc.text("Rezervasyon Raporu", 14, 15);
+  autoTable(doc, {
+    startY: 22,
+    head: [["Oda", "Bina", "Baslangic", "Bitis", "Ucret"]],
+    body: reportRows.map((r) => [
+      turkceyiDuzelt(r.room),
+      turkceyiDuzelt(r.building),
+      r.start,
+      r.end,
+      `${r.price} TL`,
+    ]),
+    columnStyles: {
+      0: { cellWidth: 40 },
+      1: { cellWidth: 45 },
+      2: { cellWidth: 35 },
+      3: { cellWidth: 35 },
+      4: { cellWidth: 25 },
+    },
+    styles: { fontSize: 10, cellPadding: 3 },
+  });
+  doc.save(`rapor_${from?.format("DD-MM-YYYY")}_${to?.format("DD-MM-YYYY")}.pdf`);
+};
+
+  // ── Export: Word ──
+  const exportWord = async () => {
+    const tableRows = [
+      new DocxRow({
+        children: ["Oda", "Bina", "Başlangıç", "Bitiş", "Ücret"].map(
+          (h) => new DocxCell({ children: [new Paragraph({ text: h })] })
+        ),
+      }),
+      ...reportRows.map(
+        (r) =>
+          new DocxRow({
+            children: [r.room, r.building, r.start, r.end, String(r.price)].map(
+              (v) => new DocxCell({ children: [new Paragraph({ text: v })] })
+            ),
+          })
+      ),
+    ];
+
+    const doc = new Document({
+      sections: [
+        {
+          children: [
+            new Paragraph({ text: "Rezervasyon Raporu", heading: "Heading1" }),
+            new DocxTable({ rows: tableRows }),
+          ],
+        },
+      ],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `rapor_${from?.format("DD-MM-YYYY")}_${to?.format("DD-MM-YYYY")}.docx`);
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -96,14 +294,31 @@ export default function ReportsPage() {
         {/* Filtre çubuğu */}
         <Card sx={{ ...cardSx, p: 2.5, mb: 3 }}>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
-            <DatePicker label="Başlangıç" value={from} onChange={setFrom} slotProps={{ textField: { size: "small" } }} />
-            <DatePicker label="Bitiş" value={to} onChange={setTo} slotProps={{ textField: { size: "small" } }} />
+            <DatePicker
+  label="Başlangıç"
+  value={from}
+  onChange={setFrom}
+  maxDate={to ?? undefined}
+  format="DD/MM/YYYY"
+  slotProps={{ textField: { size: "small" } }}
+/>
+<DatePicker
+  label="Bitiş"
+  value={to}
+  onChange={setTo}
+  minDate={from ?? undefined}
+  format="DD/MM/YYYY"
+  slotProps={{ textField: { size: "small" } }}
+/>
             <TextField select size="small" label="Oda" value={room} onChange={(e) => setRoom(e.target.value)} sx={{ minWidth: 200 }}>
               <MenuItem value="all">Tüm Odalar</MenuItem>
-              {MOCK_ROOMS.map((r) => (
+              {rooms.map((r) => (
                 <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
               ))}
             </TextField>
+            <Button variant="contained" onClick={fetchDetailedReport} disabled={loadingReport}>
+              {loadingReport ? <CircularProgress size={20} /> : "Detaylı Raporu Getir"}
+            </Button>
           </Box>
         </Card>
 
@@ -272,6 +487,44 @@ export default function ReportsPage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* ── Detaylı Rapor Tablosu + Export Butonları ── */}
+        {reportRows.length > 0 && (
+          <Card sx={{ ...cardSx, mt: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
+              <Typography sx={{ fontWeight: 600 }}>
+                Detaylı Rapor ({reportRows.length} kayıt)
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button size="small" variant="outlined" onClick={exportExcel}>Excel</Button>
+                <Button size="small" variant="outlined" onClick={exportPDF}>PDF</Button>
+                <Button size="small" variant="outlined" onClick={exportWord}>Word</Button>
+              </Box>
+            </Box>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Oda</TableCell>
+                  <TableCell>Bina</TableCell>
+                  <TableCell>Başlangıç</TableCell>
+                  <TableCell>Bitiş</TableCell>
+                  <TableCell>Ücret</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reportRows.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>{r.room}</TableCell>
+                    <TableCell>{r.building}</TableCell>
+                    <TableCell>{r.start}</TableCell>
+                    <TableCell>{r.end}</TableCell>
+                    <TableCell>{r.price} ₺</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
       </Box>
     </LocalizationProvider>
   );
