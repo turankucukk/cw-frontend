@@ -1,7 +1,9 @@
+// app/buildings/page.tsx
 "use client";
 
 import Navbar from "@/src/components/layout/Navbar";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/src/utils/supabase/client";
 import Link from "next/link";
 import DynamicFloorPlan, {
@@ -15,7 +17,10 @@ import {
   Grid,
   Typography,
   Container,
+  Link as MuiLink,
 } from "@mui/material";
+import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 
 type Building = {
   id: number;
@@ -25,28 +30,8 @@ type Building = {
 };
 
 export default function BuildingsPage() {
+  const router = useRouter();
   const [buildings, setBuildings] = useState<Building[]>([]);
-
-  const exampleRooms: FloorPlanRoom[] = [
-    {
-      id: 1,
-      name: "Oda A",
-      x: 5,
-      y: 8,
-      width: 25,
-      height: 30,
-      isOccupied: false,
-    },
-    {
-      id: 2,
-      name: "Oda B",
-      x: 38,
-      y: 8,
-      width: 25,
-      height: 30,
-      isOccupied: true,
-    },
-  ];
 
   useEffect(() => {
     const fetchBuildings = async () => {
@@ -112,83 +97,71 @@ export default function BuildingsPage() {
           <Grid container spacing={3}>
             {buildings.map((building) => (
               <Grid size={{ xs: 12, sm: 6 }} key={building.id}>
-                <Link
-                  href={`/rooms?building=${building.id}`}
-                  style={{
-                    textDecoration: "none",
-                    color: "inherit",
+                <Card
+                  onClick={() => router.push(`/rooms?buildingId=${building.id}`)}
+                  sx={{
+                    borderRadius: 4,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      transform: "translateY(-8px)",
+                      boxShadow: "0 19px 24px rgba(0,0,0,0.12)",
+                    },
                   }}
                 >
-                  <Card
+                  <Box
                     sx={{
-                      height: "100%",
-                      cursor: "pointer",
-                      transition: "box-shadow 0.3s ease",
-                      "&:hover": {
-                        boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
-                      },
+                      height: 280,
+                      bgcolor: "#f9fafb",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    <CardMedia
-                      component="div"
-                      sx={{
-                        height: 280,
-                        backgroundColor: "#f9fafb",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        p: 2,
-                      }}
-                    >
-                      {building.floor_plan_url ? (
-                        <DynamicFloorPlan
-                          imageUrl={building.floor_plan_url}
-                          rooms={exampleRooms}
-                          height={280}
-                        />
-                      ) : (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: "#9ca3af",
-                          }}
-                        >
-                          Kroki henüz eklenmemiş
-                        </Typography>
-                      )}
-                    </CardMedia>
+                    {building.floor_plan_url ? (
+                      <Box
+                        component="img"
+                        src={building.floor_plan_url}
+                        alt={`${building.name} krokisi`}
+                        sx={{ width: "100%", height: "100%", objectFit: "contain", p: 2 }}
+                      />
+                    ) : (
+                      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", color: "#9ca3af" }}>
+                        <ApartmentRoundedIcon sx={{ fontSize: 48, mb: 1.5 }} />
+                        <Typography>Kroki henüz eklenmemiş</Typography>
+                      </Box>
+                    )}
+                  </Box>
 
-                    <CardContent>
-                      <Typography
-                        variant="h6"
-                        component="h2"
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                      {building.name}
+                    </Typography>
+
+                    {building.location_url && (
+                      <MuiLink
+                        href={building.location_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{
-                          fontWeight: 600,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          fontSize: 14,
+                          color: "primary.main",
+                          textDecoration: "none",
+                          "&:hover": { textDecoration: "underline" },
                         }}
                       >
-                        {building.name}
-                      </Typography>
-
-                      {building.location_url && (
-                        <a
-                          href={building.location_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            color: "#2563eb",
-                            fontSize: "14px",
-                            textDecoration: "none",
-                            display: "inline-block",
-                            marginTop: "8px",
-                          }}
-                        >
-                          📍 Haritada Gör
-                        </a>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Link>
+                        <PlaceRoundedIcon sx={{ fontSize: 16 }} />
+                        Haritada Gör
+                      </MuiLink>
+                    )}
+                  </Box>
+                </Card>
               </Grid>
             ))}
           </Grid>
