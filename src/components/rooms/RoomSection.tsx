@@ -41,7 +41,7 @@ export default function RoomsSection() {
     <>
       <Navbar />
       <Box sx={{ px: { xs: 3, md: 8 }, mt: { xs: 2, md: 10 } }}>
-        <GlassCard>
+        <GlassCard sx={{mt:{xs:10 , md:3}}}>
           <FilterBar
             search={search}
             onSearchChange={setSearch}

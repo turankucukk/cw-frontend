@@ -114,11 +114,11 @@ export default function Navbar() {
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
             </Link>
-            <Link href="/workspaces" className={getLinkClass("/workspaces")}>
-              Çalışma Alanlarımız
+            <Link href="/hakkımızda" className={getLinkClass("/hakkımızda")}>
+              Hakkımızda
             </Link>
-            <Link href="/resources" className={getLinkClass("/resources")}>
-              Kaynaklar
+            <Link href="/iletişim" className={getLinkClass("/iletişim")}>
+              İletişim
             </Link>
             {!loading && role === "superadmin" && (
               <Link href="/admin" className={getLinkClass("/admin")}>
