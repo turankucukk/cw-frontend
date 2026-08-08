@@ -8,6 +8,7 @@ import { createClient } from "@/src/utils/supabase/client";
 import { Box, Container, Grid, Card, Typography, Link as MuiLink } from "@mui/material";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
+import Footer from "@/src/components/layout/Footer";
 
 type Building = {
   id: number;
@@ -127,6 +128,7 @@ export default function BuildingsPage() {
           </Grid>
         </Container>
       </Box>
+      <Footer />
     </>
   );
 }
