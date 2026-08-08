@@ -32,7 +32,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
-// Supabase API servis fonksiyonları (updateRoom ve deleteRoom eklendi)
+// Supabase API servis fonksiyonları
 import { 
   getRooms, 
   addRoom, 
@@ -205,7 +205,6 @@ export default function RoomsPage() {
     if (mode === "add") {
       result = await addRoom(roomData, selectedFiles);
     } else {
-      // Düzenleme Modu
       if (!selectedRoomId) return;
       result = await updateRoom(selectedRoomId, roomData, selectedFiles.length > 0 ? selectedFiles : undefined);
     }
@@ -222,13 +221,28 @@ export default function RoomsPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" disableGutters sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 4 } }}>
       {/* Üst Başlık */}
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
+      <Box 
+        sx={{ 
+          mb: 4, 
+          display: "flex", 
+          flexDirection: { xs: "column", sm: "row" }, 
+          justifyContent: "space-between", 
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2 
+        }}
+      >
+        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold", fontSize: { xs: "1.5rem", sm: "2.125rem" } }}>
           Mekan Yönetimi ({rooms.length})
         </Typography>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenAdd}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<AddIcon />} 
+          onClick={handleOpenAdd}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+        >
           Mekan Ekle
         </Button>
       </Box>
@@ -239,7 +253,7 @@ export default function RoomsPage() {
           <CircularProgress />
         </Box>
       ) : rooms.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 8, bgcolor: "action.hover", borderRadius: 2, border: "2px dashed #ccc" }}>
+        <Box sx={{ textAlign: "center", py: 8, px: 2, bgcolor: "action.hover", borderRadius: 2, border: "2px dashed #ccc" }}>
           <MeetingRoomIcon sx={{ fontSize: 60, color: "text.secondary", mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Sistemde kayıtlı mekan bulunamadı.
@@ -249,25 +263,25 @@ export default function RoomsPage() {
           </Button>
         </Box>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {rooms.map((room) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
+              
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
                 
-                {/* Görsel varsa göster, yoksa boş kalır */}
-                {room.image && (
+                {room.room_images && room.room_images.length > 0 && (
                   <CardMedia
                     component="img"
                     height="200"
-                    image={room.image}
+                    image={room.room_images[0].image_url}
                     alt={room.name}
                     sx={{ objectFit: "cover" }}
                   />
                 )}
                 
-                <CardContent sx={{ flexGrow: 1 }}>
+                <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>{room.name}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>{room.name}</Typography>
                     <Chip label={room.isActive ? "Aktif" : "Pasif"} color={room.isActive ? "success" : "default"} size="small" />
                   </Box>
 
@@ -294,17 +308,29 @@ export default function RoomsPage() {
                 </CardContent>
 
                 {/* AKSİYON BUTONLARI (DÜZENLE VE SİL) */}
-                <CardActions sx={{ justifyContent: "space-between", px: 2, pb: 2, pt: 0 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} color="primary">
+                <CardActions 
+                  sx={{ 
+                    display: "flex", 
+                    flexDirection: { xs: "column", sm: "row" }, 
+                    justifyContent: "space-between", 
+                    alignItems: { xs: "stretch", sm: "center" },
+                    px: 2, 
+                    pb: 2, 
+                    pt: 0,
+                    gap: 1.5
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", textAlign: { xs: "center", sm: "left" } }} color="primary">
                     {room.price ?? 0} TL
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" } }}>
                     <Button 
                       size="small" 
                       variant="outlined" 
                       color="info" 
                       startIcon={<EditIcon />}
                       onClick={() => handleOpenEdit(room)}
+                      fullWidth
                     >
                       Düzenle
                     </Button>
@@ -314,6 +340,7 @@ export default function RoomsPage() {
                       color="error" 
                       startIcon={<DeleteIcon />}
                       onClick={() => handleDeleteRoom(room.id)}
+                      fullWidth
                     >
                       Sil
                     </Button>
@@ -327,12 +354,22 @@ export default function RoomsPage() {
       )}
 
       {/* MODAL FORM (EKLE / DÜZENLE) */}
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: "bold" }}>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        fullWidth 
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: "auto" } }
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold", fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>
           {mode === "add" ? "Yeni Mekan Kaydı" : "Mekan Bilgilerini Düzenle"}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
-          <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2, p: { xs: 2, sm: 3 } }}>
             
             {/* Bina Seçimi */}
             <FormControl fullWidth required>
@@ -353,13 +390,13 @@ export default function RoomsPage() {
             <TextField required fullWidth label="Mekan / Oda Adı" name="name" value={roomForm.name} onChange={handleChange} />
 
             <Grid container spacing={2}>
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField required fullWidth type="number" label="Kapasite" name="capacity" value={roomForm.capacity} onChange={handleChange} />
               </Grid>
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField required fullWidth type="number" label="Fiyat (TL)" name="price" value={roomForm.price} onChange={handleChange} />
               </Grid>
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField fullWidth label="Kat (Örn: Kat 2)" name="floor" value={roomForm.floor} onChange={handleChange} />
               </Grid>
             </Grid>
@@ -376,9 +413,9 @@ export default function RoomsPage() {
 
             {/* Özellik Ekleyici */}
             <Box>
-              <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1, mb: 1 }}>
                 <TextField fullWidth size="small" label="Özellik Ekle (Projeksiyon, Wifi vb.)" value={featureInput} onChange={(e) => setFeatureInput(e.target.value)} />
-                <Button variant="outlined" onClick={handleAddFeature}>Ekle</Button>
+                <Button variant="outlined" onClick={handleAddFeature} sx={{ width: { xs: "100%", sm: "auto" } }}>Ekle</Button>
               </Box>
               <Stack direction="row" spacing={1} useFlexGap sx={{ gap: 0.5, flexWrap: "wrap" }}>
                 {featuresList.map((feat, idx) => (
@@ -391,7 +428,6 @@ export default function RoomsPage() {
             <Box sx={{ border: "1px dashed #ccc", borderRadius: 1, p: 2, textAlign: "center" }}>
               <input type="file" multiple accept="image/*" style={{ display: "none" }} ref={fileInputRef} onChange={handleFileChange} />
               
-              {/* Düzenleme modunda mevcut görsel önizlemesi */}
               {mode === "edit" && existingImageUrl && selectedFiles.length === 0 && (
                 <Box sx={{ mb: 1.5 }}>
                   <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>Mevcut Görsel:</Typography>
@@ -416,14 +452,14 @@ export default function RoomsPage() {
                   * En az 1 görsel yüklemek zorunludur.
                 </Typography>
               ) : selectedFiles.length > 0 ? (
-                <Typography variant="caption" sx={{ display: "block", mt: 1, color: "text.secondary" }}>
+                <Typography variant="caption" sx={{ display: "block", mt: 1, color: "text.secondary", wordBreak: "break-all" }}>
                   Seçilenler: {selectedFiles.map((f) => f.name).join(", ")}
                 </Typography>
               ) : null}
             </Box>
 
           </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
+          <DialogActions sx={{ p: { xs: 2, sm: 2.5 } }}>
             <Button onClick={handleClose} color="inherit" disabled={submitLoading}>İptal</Button>
             <Button type="submit" variant="contained" color="primary" disabled={submitLoading}>
               {submitLoading ? "Kaydediliyor..." : mode === "add" ? "Mekanı Kaydet" : "Değişiklikleri Kaydet"}

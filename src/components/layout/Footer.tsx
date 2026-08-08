@@ -44,31 +44,7 @@ export default function Footer() {
           çalışma alanlarınızı yönetin ve QR teknolojisi ile hızlı giriş yapın.
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 5,
-            flexWrap: "wrap",
-            mb: 4,
-          }}
-        >
-          <Typography sx={{ cursor: "pointer" }}>
-            Ana Sayfa
-          </Typography>
 
-          <Typography sx={{ cursor: "pointer" }}>
-            Odalar
-          </Typography>
-
-          <Typography sx={{ cursor: "pointer" }}>
-            Hakkımızda
-          </Typography>
-
-          <Typography sx={{ cursor: "pointer" }}>
-            İletişim
-          </Typography>
-        </Box>
 
         <Typography
           align="center"
