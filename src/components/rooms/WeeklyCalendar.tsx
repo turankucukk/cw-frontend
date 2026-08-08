@@ -21,6 +21,7 @@ import { createClient } from "@/src/utils/supabase/client";
 
 type WeeklyCalendarProps = {
   roomId: number;
+  roomCapacity: number;
 };
 
 type CalendarReservation = {
@@ -62,6 +63,7 @@ function formatTimeForInput(date: Date) {
 
 export default function WeeklyCalendar({
   roomId,
+  roomCapacity,
 }: WeeklyCalendarProps) {
   const router = useRouter();
 
@@ -124,6 +126,11 @@ export default function WeeklyCalendar({
   const handleDateClick = (
     clickedDate: Date
   ) => {
+    if (clickedDate < new Date()) {
+      alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+      return;
+    }
+
     const finishDate = new Date(clickedDate);
 
     finishDate.setHours(
@@ -175,17 +182,6 @@ export default function WeeklyCalendar({
       return;
     }
 
-    if (
-      !Number.isInteger(participantNumber) ||
-      participantNumber < 1
-    ) {
-      alert(
-        "Katılımcı sayısı en az 1 olmalıdır."
-      );
-
-      return;
-    }
-
     const start = new Date(
       `${selectedDate}T${startTime}:00`
     );
@@ -193,6 +189,25 @@ export default function WeeklyCalendar({
     const end = new Date(
       `${selectedDate}T${endTime}:00`
     );
+
+    if (start < new Date()) {
+      alert("Geçmiş bir tarih veya saate rezervasyon yapamazsınız.");
+      return;
+    }
+
+    const minParticipants = Math.ceil(roomCapacity * 2 / 3);
+
+    if (
+      !Number.isInteger(participantNumber) ||
+      participantNumber < minParticipants ||
+      participantNumber > roomCapacity
+    ) {
+      alert(
+        `Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`
+      );
+
+      return;
+    }
 
     const hasConflict = reservations.some(
       (reservation) => {
@@ -393,10 +408,11 @@ export default function WeeklyCalendar({
               }
               slotProps={{
                 htmlInput: {
-                  min: 1,
-                  max: 8,
+                  min: Math.ceil(roomCapacity * 2 / 3),
+                  max: roomCapacity,
                 },
               }}
+              helperText={`Min: ${Math.ceil(roomCapacity * 2 / 3)} | Max: ${roomCapacity}`}
               fullWidth
             />
           </Box>

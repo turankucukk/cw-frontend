@@ -53,13 +53,13 @@ export default function PersonalInfoTab({ userData, setUserData }: { userData?: 
         <Alert severity="success" sx={{ mb: 3 }}>Bilgileriniz başarıyla güncellendi.</Alert>
       )}
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid xs={12} sm={6}>
           <TextField fullWidth label="Ad" name="name" value={formData.name} onChange={handleChange} variant="outlined" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid xs={12} sm={6}>
           <TextField fullWidth label="Soyad" name="surname" value={formData.surname} onChange={handleChange} variant="outlined" />
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid xs={12}>
           <TextField fullWidth label="E-posta Adresi" name="email" value={formData.email} disabled variant="outlined" helperText="E-posta adresinizi değiştirmek için lütfen destek ile iletişime geçin." />
         </Grid>
       </Grid>

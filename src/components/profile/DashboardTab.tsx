@@ -6,7 +6,7 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 export default function DashboardTab({ reservations = [], userData }: { reservations?: any[], userData?: any }) {
   // Yaklaşan rezervasyonu bul (En yakın tarihli olan)
-  const upcomingRes = reservations.find(r => r.status === "approved" || r.status === "pending");
+  const upcomingRes = reservations.find(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed");
 
   const QUICK_ACTIONS = [
     { label: "Bugünkü rezervasyon", value: upcomingRes ? "1 oda" : "Yok" },
@@ -16,14 +16,14 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
   return (
     <Box>
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid xs={12} md={7}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
             <Typography sx={{ fontWeight: 700, mb: 2 }}>Bugünkü Planın</Typography>
             <Stack spacing={2}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CalendarTodayIcon color="primary" />
-                  <Typography>Sonraki rezervasyon</Typography>
+                  <Typography sx={{ whiteSpace: "nowrap" }}>Sonraki rezervasyon</Typography>
                 </Box>
                 {upcomingRes ? (
                   <Chip label={`${upcomingRes.space?.name || "Oda"} · ${new Date(upcomingRes.start_time).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`} color="primary" />
@@ -35,7 +35,7 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid xs={12} md={5}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
             <Typography sx={{ fontWeight: 700, mb: 2 }}>Hızlı İşlemler</Typography>
             <Stack spacing={1.5}>
@@ -49,7 +49,7 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid xs={12}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
               <EventAvailableIcon color="primary" />

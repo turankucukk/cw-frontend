@@ -156,7 +156,7 @@ export default function RoomPage() {
                   Boş bir saate tıklayarak rezervasyon oluşturabilirsin.
                 </Typography>
 
-                <WeeklyCalendar roomId={room.id!} />
+                <WeeklyCalendar roomId={room.id!} roomCapacity={room.capacity} />
               </Box>
             </>
           )}

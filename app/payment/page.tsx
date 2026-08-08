@@ -240,6 +240,9 @@ export default function PaymentPage() {
           "Payment kayıt hatası:",
           JSON.stringify(paymentError, null, 2)
         );
+        setError("Ödeme kaydedilemedi (Veritabanı yetki/RLS hatası olabilir).");
+        setPaying(false);
+        return;
       }
 
       console.log(
