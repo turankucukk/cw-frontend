@@ -17,8 +17,9 @@ import {
   getRoomById,
   type RoomDetails,
 } from "@/src/lib/api/rooms";
+import { Suspense } from "react";
 
-export default function PaymentPage() {
+function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -490,5 +491,17 @@ export default function PaymentPage() {
         )}
       </Paper>
     </Box>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f5f6f8" }}>
+        <CircularProgress />
+      </Box>
+    }>
+      <PaymentContent />
+    </Suspense>
   );
 }

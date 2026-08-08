@@ -16,7 +16,7 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
   return (
     <Box>
       <Grid container spacing={3}>
-        <Grid xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
             <Typography sx={{ fontWeight: 700, mb: 2 }}>Bugünkü Planın</Typography>
             <Stack spacing={2}>
@@ -35,7 +35,7 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
           </Card>
         </Grid>
 
-        <Grid xs={12} md={5}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
             <Typography sx={{ fontWeight: 700, mb: 2 }}>Hızlı İşlemler</Typography>
             <Stack spacing={1.5}>
@@ -49,7 +49,7 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
           </Card>
         </Grid>
 
-        <Grid xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
               <EventAvailableIcon color="primary" />
