@@ -19,6 +19,7 @@ import { createClient } from "@/src/utils/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { translatePage } from "../../services/translateService";
 import { useUserRole } from "@/src/hooks/useUserRole";
+import FeedbackOutlinedIcon from "@mui/icons-material/FeedbackOutlined";
 
 export default function Navbar() {
   const router = useRouter();
@@ -65,9 +66,8 @@ export default function Navbar() {
   // Menü linklerinin aktiflik durumunu kontrol eden fonksiyon
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    return `transition-colors text-sm font-semibold ${
-      isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
-    }`;
+    return `transition-colors text-sm font-semibold ${isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+      }`;
   };
 
   return (
@@ -96,20 +96,9 @@ export default function Navbar() {
           </Link>
 
           {/* DİNAMİK AKTİF LİNKLER */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              ml: 6,
-              gap: 4,
-            }}
-          >
-            <Link href="/buildings" className={getLinkClass("/locations")}>
-              Binalar
-            </Link>
-            <Link href="/rooms" className={getLinkClass("/rooms")}>
-              Odalar
-            </Link>
+          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
+            <Link href="/locations" className={getLinkClass("/locations")}>Konumlar</Link>
+            <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
 
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
@@ -242,6 +231,28 @@ export default function Navbar() {
                       <PersonIcon fontSize="small" sx={{ color: "#4b5563" }} />
                     </ListItemIcon>
                     Profilim
+                  </MenuItem>
+
+                  {/* Şikayetlerim Butonu */}
+                  <MenuItem
+                    onClick={() => {
+                      handleMenuClose();
+                      router.push("/complaints");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <ListItemIcon>
+                      <FeedbackOutlinedIcon
+                        fontSize="small"
+                        sx={{ color: "#2563eb" }}
+                      />
+                    </ListItemIcon>
+                    Şikayetlerim
                   </MenuItem>
 
                   {/* Çıkış Yap Butonu */}
