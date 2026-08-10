@@ -12,7 +12,14 @@ import {
   IconButton,
   ListItemIcon,
   Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Typography,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import { createClient } from "@/src/utils/supabase/client";
@@ -31,6 +38,7 @@ export default function Navbar() {
   // Profil Menüsü State'i
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -44,6 +52,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     handleMenuClose();
+    setDrawerOpen(false);
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
@@ -55,6 +64,15 @@ export default function Navbar() {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const toggleDrawer = (open: boolean) => () => {
+    setDrawerOpen(open);
+  };
+
+  const handleMobileNavigation = (path: string) => {
+    setDrawerOpen(false);
+    router.push(path);
   };
 
   // Kullanıcının e-posta adresinden ilk harfini alarak geçici bir avatar oluşturmak için:
@@ -116,19 +134,154 @@ export default function Navbar() {
             )}
           </Box>
 
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
+            <Box sx={{ width: 280, p: 2 }} role="presentation">
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Menü
+                </Typography>
+                <IconButton onClick={toggleDrawer(false)}>
+                  <MenuIcon />
+                </IconButton>
+              </Box>
+              <List>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
+                    <ListItemText primary="Binalar" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/rooms")}> 
+                    <ListItemText primary="Odalar" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/services")}> 
+                    <ListItemText primary="Servislerimiz" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/about")}> 
+                    <ListItemText primary="Hakkımızda" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/contact")}> 
+                    <ListItemText primary="İletişim" />
+                  </ListItemButton>
+                </ListItem>
+                {!loading && role === "superadmin" && (
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMobileNavigation("/admin")}> 
+                      <ListItemText primary="Admin" />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+              </List>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <select
+                  onChange={(e) => translatePage(e.target.value)}
+                  defaultValue="tr"
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="en">EN</option>
+                  <option value="tr">TR</option>
+                </select>
+                {session ? (
+                  <>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        router.push("/user/profile");
+                      }}
+                      sx={{
+                        textTransform: "none",
+                        justifyContent: "flex-start",
+                        borderRadius: "10px",
+                        px: 2,
+                        py: 1.25,
+                        color: "#111827",
+                      }}
+                    >
+                      Profilim
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleLogout}
+                      sx={{
+                        textTransform: "none",
+                        borderRadius: "10px",
+                        px: 2,
+                        py: 1.25,
+                        backgroundColor: "#ef4444",
+                        color: "#ffffff",
+                        '&:hover': { backgroundColor: "#dc2626" },
+                      }}
+                    >
+                      Çıkış Yap
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="text"
+                      component={Link}
+                      href="/login"
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{
+                        textTransform: "none",
+                        justifyContent: "flex-start",
+                        color: "#111827",
+                      }}
+                    >
+                      Giriş
+                    </Button>
+                    <Button
+                      variant="contained"
+                      component={Link}
+                      href="/register"
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{
+                        textTransform: "none",
+                        borderRadius: "10px",
+                        backgroundColor: "#2563eb",
+                        color: "#ffffff",
+                        '&:hover': { backgroundColor: "#1d4ed8" },
+                      }}
+                    >
+                      Kayıt ol
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Drawer>
+
           {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
           <Box
             sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2.5 }}
           >
-            {/* Dil Seçici */}
-            <select
-              onChange={(e) => translatePage(e.target.value)}
-              defaultValue="tr"
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            <IconButton
+              aria-label="menu"
+              onClick={toggleDrawer(true)}
+              sx={{ display: { xs: "flex", md: "none" }, color: "#111827" }}
             >
-              <option value="en">EN</option>
-              <option value="tr">TR</option>
-            </select>
+              <MenuIcon />
+            </IconButton>
+
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+              {/* Dil Seçici */}
+              <select
+                onChange={(e) => translatePage(e.target.value)}
+                defaultValue="tr"
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              >
+                <option value="en">EN</option>
+                <option value="tr">TR</option>
+              </select>
+            </Box>
 
             {/* Giriş Durumuna Göre Değişen Alan */}
             {session ? (
