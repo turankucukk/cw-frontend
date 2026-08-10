@@ -20,12 +20,11 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 
 export default function LoginForm() {
-  const [errorMessage, setErrorMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // Hata mesajları için state ekledik
+  const [error, setError] = useState(""); // Hata mesajları için state
   const router = useRouter();
 
   // Supabase client'ı başlatıyoruz
@@ -39,10 +38,11 @@ export default function LoginForm() {
 
     try {
       // Supabase Giriş İşlemi
-      const { data, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+      const { data, error: supabaseError } =
+        await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
 
       if (supabaseError) {
         setError("Giriş başarısız: " + supabaseError.message);
@@ -50,13 +50,14 @@ export default function LoginForm() {
       }
 
       console.log("Login başarılı", data);
-      
+
       // Başarılı girişte ana sayfaya yönlendir ve auth durumunu tazele
       router.push("/");
       router.refresh();
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.");
+      setError(
+        err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.",
+      );
     } finally {
       setLoading(false);
     }
@@ -84,11 +85,7 @@ export default function LoginForm() {
           DeskHere
         </Typography>
 
-        <Typography
-          align="center"
-          color="text.secondary"
-          sx={{ mb: 4, mt: 1 }}
-        >
+        <Typography align="center" color="text.secondary" sx={{ mb: 4, mt: 1 }}>
           Sign in to your account
         </Typography>
 
@@ -154,11 +151,7 @@ export default function LoginForm() {
               "&:hover": { transform: "translateY(-2px)", boxShadow: 6 },
             }}
           >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Login"
-            )}
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
           </Button>
 
           <Typography align="center" sx={{ mt: 3 }}>

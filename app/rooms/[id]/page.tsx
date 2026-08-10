@@ -19,6 +19,7 @@ import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import RoomGallery from "@/src/components/rooms/RoomGallery";
 import WeeklyCalendar from "@/src/components/rooms/WeeklyCalendar";
 import RoomsSection from "@/src/components/rooms/RoomSection";
+import RoomLayoutViewer from "@/src/components/rooms/RoomLayoutViewer";
 import { getRoomById, type RoomDetails } from "@/src/lib/api/rooms";
 
 export default function RoomPage() {
@@ -143,6 +144,23 @@ export default function RoomPage() {
                   {room.description || "Bu oda için henüz açıklama eklenmemiş."}
                 </Typography>
               </Box>
+
+              {room.layout_data?.items && room.layout_data.items.length > 0 && (
+                <Box sx={{ borderTop: "1px solid #e4e4e4", pt: 5, pb: 5 }}>
+                  <Typography
+                    component="h2"
+                    sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700, mb: 1 }}
+                  >
+                    Oda Krokisi
+                  </Typography>
+
+                  <Typography sx={{ color: "#666666", mb: 4 }}>
+                    Toplantı salonunda nelerin nerede olduğunu kuş bakışı görebilirsin.
+                  </Typography>
+
+                  <RoomLayoutViewer layout={room.layout_data} />
+                </Box>
+              )}
 
               <Box id="weekly-calendar" sx={{ borderTop: "1px solid #e4e4e4", pt: 5 }}>
                 <Typography
