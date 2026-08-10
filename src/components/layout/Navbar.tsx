@@ -96,20 +96,9 @@ export default function Navbar() {
           </Link>
 
           {/* DİNAMİK AKTİF LİNKLER */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              ml: 6,
-              gap: 4,
-            }}
-          >
-            <Link href="/buildings" className={getLinkClass("/locations")}>
-              Binalar
-            </Link>
-            <Link href="/rooms" className={getLinkClass("/rooms")}>
-              Odalar
-            </Link>
+          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
+            <Link href="/locations" className={getLinkClass("/locations")}>Konumlar</Link>
+            <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
 
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
