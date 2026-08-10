@@ -1,8 +1,11 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Box, Typography, Card, Chip, Button, Stack, Divider } from "@mui/material";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import { cancelExpiredReservations } from "@/src/utils/reservationUtils";
+import { createClient } from "@/src/utils/supabase/client";
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
@@ -11,21 +14,49 @@ const formatTime = (dateStr: string) => {
   return new Date(dateStr).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 };
 
-  const getStatusChip = (status: string) => {
+const getStatusChip = (status: string) => {
   switch (status) {
     case "approved": return <Chip label="Onaylandı" color="primary" size="small" />;
     case "confirmed": return <Chip label="Onaylandı" color="primary" size="small" />;
     case "pending": return <Chip label="Bekliyor" color="warning" size="small" />;
     case "completed": return <Chip label="Tamamlandı" color="success" size="small" />;
     case "cancelled": return <Chip label="İptal Edildi" color="error" size="small" />;
+    case "checked_in": return <Chip label="Check-in Yapıldı" color="info" size="small" />;
     default: return <Chip label={status} size="small" />;
   }
 };
 
 export default function ReservationsTab({ reservations = [] }: { reservations?: any[] }) {
-  // Statülere göre rezervasyonları ayırıyoruz
-  const activeReservations = reservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed");
-  const pastReservations = reservations.filter(r => r.status === "completed" || r.status === "cancelled");
+  const [localReservations, setLocalReservations] = useState(reservations);
+
+  useEffect(() => {
+    setLocalReservations(reservations);
+    
+    // Tembel iptal (lazy cancellation) kontrolü
+    cancelExpiredReservations(reservations).then((updated) => {
+      if (updated) {
+        // Eğer veritabanında süresi geçmiş bir rezervasyon iptal edildiyse sayfayı yenile
+        window.location.reload();
+      }
+    });
+  }, [reservations]);
+
+  const handleCheckIn = async (resId: string) => {
+    // Demo QR okutma işlemi: durumu "checked_in" yapar.
+    const supabase = createClient();
+    const { error } = await supabase.from("reservation").update({ status: "checked_in" }).eq("id", resId);
+    
+    if (!error) {
+      alert("QR Başarıyla Okutuldu! Odaya giriş yapabilirsiniz.");
+      window.location.reload();
+    } else {
+      alert("Check-in sırasında bir hata oluştu.");
+    }
+  };
+
+  // Statülere göre rezervasyonları ayırıyoruz ("checked_in" olanlar da aktif kalır)
+  const activeReservations = localReservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed" || r.status === "checked_in");
+  const pastReservations = localReservations.filter(r => r.status === "completed" || r.status === "cancelled");
 
   return (
     <Box>
@@ -52,9 +83,11 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {getStatusChip(res.status)}
-                  <Button variant="contained" size="small" startIcon={<QrCodeScannerIcon />} onClick={() => alert("Kamera açılarak QR okunacak.")}>
-                    Check-in (QR)
-                  </Button>
+                  {res.status !== "checked_in" && (
+                    <Button variant="contained" size="small" startIcon={<QrCodeScannerIcon />} onClick={() => handleCheckIn(res.id)}>
+                      Check-in (QR)
+                    </Button>
+                  )}
                 </Box>
               </Box>
             </Card>

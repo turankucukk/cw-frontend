@@ -34,6 +34,19 @@ function PaymentContent() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -85,6 +98,11 @@ function PaymentContent() {
   const totalPrice = calculateTotalPrice();
 
   const handlePayment = async () => {
+    if (timeLeft <= 0) {
+      setError("Ödeme süreniz (5 dakika) doldu. Lütfen baştan rezervasyon yapın.");
+      return;
+    }
+
     if (!room) {
       setError("Oda bilgileri bulunamadı.");
       return;
@@ -447,11 +465,17 @@ function PaymentContent() {
               </Typography>
             </Box>
 
+            {timeLeft <= 0 && (
+              <Alert severity="warning" sx={{ mb: 3 }}>
+                Ödeme süreniz doldu. Güvenlik gereği işlemi baştan başlatmalısınız.
+              </Alert>
+            )}
+
             <Button
               fullWidth
               variant="contained"
               size="large"
-              disabled={paying}
+              disabled={paying || timeLeft <= 0}
               onClick={handlePayment}
               sx={{
                 py: 1.5,
@@ -471,8 +495,10 @@ function PaymentContent() {
                   size={24}
                   color="inherit"
                 />
+              ) : timeLeft <= 0 ? (
+                "Süre Doldu"
               ) : (
-                "Ödemeyi Onayla"
+                `Ödemeyi Onayla (${timeFormatted})`
               )}
             </Button>
 

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { isReservationExpired } from "@/src/utils/reservationUtils";
+
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -110,12 +112,21 @@ export default function WeeklyCalendar({
       }
 
       const calendarEvents: CalendarReservation[] =
-        (data ?? []).map((reservation) => ({
-          id: String(reservation.id),
-          title: "Dolu",
-          start: reservation.start_time,
-          end: reservation.end_time,
-        }));
+        (data ?? [])
+          .filter((reservation) => {
+            // Eğer rezervasyon onaylıysa ama 15 dk içinde check-in (qr okutma) yapılmadıysa
+            // takvimde dolu olarak GÖSTERME (başkasının alabilmesi için boşa düşür)
+            if ((reservation.status === "confirmed" || reservation.status === "approved" || reservation.status === "pending") && isReservationExpired(reservation.start_time)) {
+              return false;
+            }
+            return true;
+          })
+          .map((reservation) => ({
+            id: String(reservation.id),
+            title: "Dolu",
+            start: reservation.start_time,
+            end: reservation.end_time,
+          }));
 
       setReservations(calendarEvents);
     };
