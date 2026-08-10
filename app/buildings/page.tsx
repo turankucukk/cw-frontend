@@ -5,10 +5,6 @@ import Navbar from "@/src/components/layout/Navbar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/utils/supabase/client";
-import Link from "next/link";
-import DynamicFloorPlan, {
-  type FloorPlanRoom,
-} from "@/app/buildings/DynamicFloorPlan";
 import {
   Box,
   Card,
