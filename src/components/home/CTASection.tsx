@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Box, Button, Typography } from "@mui/material";
 
 export default function CTASection() {
@@ -36,6 +37,8 @@ export default function CTASection() {
       </Typography>
 
       <Button
+  component={Link}
+  href="/rooms"
   variant="contained"
   size="large"
   sx={{

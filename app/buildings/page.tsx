@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
+import Footer from "@/src/components/layout/Footer";
 
 type Building = {
   id: number;
@@ -163,6 +164,7 @@ export default function BuildingsPage() {
           </Grid>
         </Container>
       </Box>
+      <Footer />
     </>
   );
 }
