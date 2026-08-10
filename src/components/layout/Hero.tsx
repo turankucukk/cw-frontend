@@ -52,9 +52,7 @@ export default function Hero() {
             <Button component={Link} href="/rooms" variant="contained" size="large">
               Odaları gör
             </Button>
-            <Button variant="outlined" size="large" sx={{ color: 'white', borderColor: 'white' }}>
-              Nasıl çalışır?
-            </Button>
+            
           </Stack>
         </Box>
       </Box>

@@ -266,14 +266,14 @@ export default function RoomsPage() {
         <Grid container spacing={{ xs: 2, sm: 3 }}>
           {rooms.map((room) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
+              
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
                 
-                {/* Görsel varsa göster */}
-                {room.image && (
+                {room.room_images && room.room_images.length > 0 && (
                   <CardMedia
                     component="img"
                     height="200"
-                    image={room.image}
+                    image={room.room_images[0].image_url}
                     alt={room.name}
                     sx={{ objectFit: "cover" }}
                   />
