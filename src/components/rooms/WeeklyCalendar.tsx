@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import FullCalendar from "@fullcalendar/react";
@@ -17,82 +17,120 @@ import {
   TextField,
 } from "@mui/material";
 
+import { createClient } from "@/src/utils/supabase/client";
+
 type WeeklyCalendarProps = {
   roomId: number;
+  roomCapacity: number;
+};
+
+type CalendarReservation = {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
 };
 
 function formatDateForInput(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+
+  const month = String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  );
+
+  const day = String(date.getDate()).padStart(
+    2,
+    "0"
+  );
 
   return `${year}-${month}-${day}`;
 }
 
 function formatTimeForInput(date: Date) {
-  const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(
+    2,
+    "0"
+  );
+
+  const minute = String(date.getMinutes()).padStart(
+    2,
+    "0"
+  );
 
   return `${hour}:${minute}`;
 }
 
-function getCurrentWeekDate(dayOffset: number, hour: number) {
-  const today = new Date();
-  const currentDay = today.getDay();
-
-  const mondayDifference =
-    currentDay === 0 ? -6 : 1 - currentDay;
-
-  const result = new Date(today);
-
-  result.setDate(
-    today.getDate() + mondayDifference + dayOffset
-  );
-
-  result.setHours(hour, 0, 0, 0);
-
-  return result;
-}
-
 export default function WeeklyCalendar({
   roomId,
+  roomCapacity,
 }: WeeklyCalendarProps) {
   const router = useRouter();
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] =
+    useState("");
 
-  const [startTime, setStartTime] = useState("");
+  const [startTime, setStartTime] =
+    useState("");
 
-  const [endTime, setEndTime] = useState("");
+  const [endTime, setEndTime] =
+    useState("");
 
   const [participantCount, setParticipantCount] =
     useState("1");
 
-  /*
-   * Bunlar şimdilik demo rezervasyonlardır.
-   * Daha sonra Supabase'den roomId kullanılarak alınacak.
-   */
-  const exampleReservations = useMemo(
-    () => [
-      {
-        id: `room-${roomId}-reservation-1`,
-        title: "Dolu",
-        start: getCurrentWeekDate(1, 10),
-        end: getCurrentWeekDate(1, 12),
-      },
-      {
-        id: `room-${roomId}-reservation-2`,
-        title: "Dolu",
-        start: getCurrentWeekDate(3, 14),
-        end: getCurrentWeekDate(3, 16),
-      },
-    ],
-    [roomId]
-  );
+  const [reservations, setReservations] =
+    useState<CalendarReservation[]>([]);
 
-  const handleDateClick = (clickedDate: Date) => {
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from("reservation")
+        .select(
+          "id, space_id, start_time, end_time, status"
+        )
+        .eq("space_id", roomId)
+        .neq("status", "cancelled")
+        .order("start_time", {
+          ascending: true,
+        });
+
+      if (error) {
+        console.error(
+          "Rezervasyonlar alınamadı:",
+          JSON.stringify(error, null, 2)
+        );
+
+        return;
+      }
+
+      const calendarEvents: CalendarReservation[] =
+        (data ?? []).map((reservation) => ({
+          id: String(reservation.id),
+          title: "Dolu",
+          start: reservation.start_time,
+          end: reservation.end_time,
+        }));
+
+      setReservations(calendarEvents);
+    };
+
+    fetchReservations();
+  }, [roomId]);
+
+  const handleDateClick = (
+    clickedDate: Date
+  ) => {
+    if (clickedDate < new Date()) {
+      alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+      return;
+    }
+
     const finishDate = new Date(clickedDate);
 
     finishDate.setHours(
@@ -112,6 +150,7 @@ export default function WeeklyCalendar({
     );
 
     setParticipantCount("1");
+
     setDialogOpen(true);
   };
 
@@ -143,17 +182,6 @@ export default function WeeklyCalendar({
       return;
     }
 
-    if (
-      !Number.isInteger(participantNumber) ||
-      participantNumber < 1
-    ) {
-      alert(
-        "Katılımcı sayısı en az 1 olmalıdır."
-      );
-
-      return;
-    }
-
     const start = new Date(
       `${selectedDate}T${startTime}:00`
     );
@@ -162,10 +190,58 @@ export default function WeeklyCalendar({
       `${selectedDate}T${endTime}:00`
     );
 
+    if (start < new Date()) {
+      alert("Geçmiş bir tarih veya saate rezervasyon yapamazsınız.");
+      return;
+    }
+
+    const minParticipants = Math.ceil(roomCapacity * 2 / 3);
+
+    if (
+      !Number.isInteger(participantNumber) ||
+      participantNumber < minParticipants ||
+      participantNumber > roomCapacity
+    ) {
+      alert(
+        `Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`
+      );
+
+      return;
+    }
+
+    const hasConflict = reservations.some(
+      (reservation) => {
+        const existingStart = new Date(
+          reservation.start
+        );
+
+        const existingEnd = new Date(
+          reservation.end
+        );
+
+        return (
+          start < existingEnd &&
+          end > existingStart
+        );
+      }
+    );
+
+    if (hasConflict) {
+      alert(
+        "Seçtiğiniz saat aralığı dolu. Lütfen başka bir saat seçin."
+      );
+
+      return;
+    }
+
     const paymentUrl =
       `/payment?roomId=${roomId}` +
-      `&start=${encodeURIComponent(start.toISOString())}` +
-      `&end=${encodeURIComponent(end.toISOString())}` +
+      `&start=${encodeURIComponent(
+        start.toISOString()
+      )}` +
+      `&end=${encodeURIComponent(
+        end.toISOString()
+      )}` +
       `&participants=${participantNumber}`;
 
     setDialogOpen(false);
@@ -180,10 +256,12 @@ export default function WeeklyCalendar({
           backgroundColor: "#ffffff",
           border: "1px solid #dfe5ed",
           borderRadius: 3,
+
           p: {
             xs: 1,
             md: 3,
           },
+
           overflowX: "auto",
         }}
       >
@@ -228,7 +306,7 @@ export default function WeeklyCalendar({
             dateClick={(info) => {
               handleDateClick(info.date);
             }}
-            events={exampleReservations}
+            events={reservations}
           />
         </Box>
       </Box>
@@ -275,10 +353,12 @@ export default function WeeklyCalendar({
             <Box
               sx={{
                 display: "grid",
+
                 gridTemplateColumns: {
                   xs: "1fr",
                   sm: "1fr 1fr",
                 },
+
                 gap: 2,
               }}
             >
@@ -328,10 +408,11 @@ export default function WeeklyCalendar({
               }
               slotProps={{
                 htmlInput: {
-                  min: 1,
-                  max: 8,
+                  min: Math.ceil(roomCapacity * 2 / 3),
+                  max: roomCapacity,
                 },
               }}
+              helperText={`Min: ${Math.ceil(roomCapacity * 2 / 3)} | Max: ${roomCapacity}`}
               fullWidth
             />
           </Box>
@@ -358,6 +439,7 @@ export default function WeeklyCalendar({
             sx={{
               textTransform: "none",
               backgroundColor: "#175bb8",
+
               "&:hover": {
                 backgroundColor: "#104a99",
               },

@@ -47,12 +47,16 @@ export function useProfileData() {
             if (resData.length > 0) {
               const resIds = resData.map((r: any) => r.id);
               // 4. Rezervasyonlara ait ödeme geçmişini çekiyoruz
-              const { data: payData } = await supabase
+              const { data: payData, error: payError } = await supabase
                 .from("payment")
                 .select(`*, reservation(space(name))`)
                 .in("reservation_id", resIds)
-                .order("created_at", { ascending: false });
+                .order("paid_at", { ascending: false });
               
+              if (payError) {
+                console.error("Ödemeler çekilirken hata:", payError);
+              }
+
               if (payData) {
                 setPayments(payData);
               }

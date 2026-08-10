@@ -55,7 +55,6 @@ export default function ProfilePage() {
     );
   }
 
-  if (role === "superadmin") return null;
 
   return (
     <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto", px: { xs: 1, sm: 2 } }}>

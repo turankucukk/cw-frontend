@@ -11,9 +11,10 @@ const formatTime = (dateStr: string) => {
   return new Date(dateStr).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 };
 
-const getStatusChip = (status: string) => {
+  const getStatusChip = (status: string) => {
   switch (status) {
     case "approved": return <Chip label="Onaylandı" color="primary" size="small" />;
+    case "confirmed": return <Chip label="Onaylandı" color="primary" size="small" />;
     case "pending": return <Chip label="Bekliyor" color="warning" size="small" />;
     case "completed": return <Chip label="Tamamlandı" color="success" size="small" />;
     case "cancelled": return <Chip label="İptal Edildi" color="error" size="small" />;
@@ -23,7 +24,7 @@ const getStatusChip = (status: string) => {
 
 export default function ReservationsTab({ reservations = [] }: { reservations?: any[] }) {
   // Statülere göre rezervasyonları ayırıyoruz
-  const activeReservations = reservations.filter(r => r.status === "approved" || r.status === "pending");
+  const activeReservations = reservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed");
   const pastReservations = reservations.filter(r => r.status === "completed" || r.status === "cancelled");
 
   return (
