@@ -279,8 +279,9 @@ export default function WeeklyCalendar({
         <Box
           sx={{
             minWidth: {
-              xs: 900,
-              md: "100%",
+              xs: 300,
+              md: 500,
+              xl:'100%',
             },
           }}
         >

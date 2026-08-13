@@ -260,7 +260,7 @@ export default function RoomsPage() {
           </Typography>
           <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenAdd} sx={{ mt: 1 }}>
             İlk Mekanı Ekle
-          </Button>
+          </Button> 
         </Box>
       ) : (
         <Grid container spacing={{ xs: 2, sm: 3 }}>
@@ -270,14 +270,20 @@ export default function RoomsPage() {
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
                 
                 {room.room_images && room.room_images.length > 0 && (
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={room.room_images[0].image_url}
-                    alt={room.name}
-                    sx={{ objectFit: "cover" }}
-                  />
-                )}
+  <CardMedia
+    component="img"
+    image={room.room_images[0].image_url}
+    alt={room.name}
+    sx={{
+      height: 200,
+      width: "100%",
+      objectFit: "cover",
+      objectPosition: "center",
+      aspectRatio: "16/9", 
+      display: "block",
+    }}
+  />
+)}
                 
                 <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
@@ -323,7 +329,7 @@ export default function RoomsPage() {
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold", textAlign: { xs: "center", sm: "left" } }} color="primary">
                     {room.price ?? 0} TL
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" } }}>
+                  <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" }} }>
                     <Button 
                       size="small" 
                       variant="outlined" 
