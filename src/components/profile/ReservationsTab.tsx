@@ -6,7 +6,7 @@ import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef } from "react";
 
 const formatDate = (dateStr: string) => {
@@ -32,19 +32,22 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
   const activeReservations = reservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed");
   const pastReservations = reservations.filter(r => r.status === "completed" || r.status === "cancelled");
   const [scannerOpen, setScannerOpen] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const handleOpenScanner = () => {
     setScannerOpen(true);
   };
 
   const handleCloseScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear().catch(() => {});
-      scannerRef.current = null;
-    }
-    setScannerOpen(false);
-  };
+  if (scannerRef.current) {
+    scannerRef.current
+      .stop()
+      .then(() => scannerRef.current?.clear())
+      .catch(() => {});
+    scannerRef.current = null;
+  }
+  setScannerOpen(false);
+};
 
 useEffect(() => {
   if (!scannerOpen) return;
@@ -53,35 +56,36 @@ useEffect(() => {
     const el = document.getElementById("qr-reader");
     if (!el) return;
 
-    const scanner = new Html5QrcodeScanner(
-  "qr-reader",
-  {
-    fps: 10,
-    qrbox: { width: 250, height: 250 },
-    videoConstraints: {
-      facingMode: { exact: "environment" },
-    },
-  },
-  false
-);
-
-    scanner.render(
-      (decodedText) => {
-        scanner.clear().catch(() => {});
-        scannerRef.current = null;
-        setScannerOpen(false);
-        window.location.href = decodedText;
-      },
-      () => {}
-    );
-
+    const scanner = new Html5Qrcode("qr-reader");
     scannerRef.current = scanner;
+
+    scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          scanner
+            .stop()
+            .then(() => scanner.clear())
+            .catch(() => {});
+          scannerRef.current = null;
+          setScannerOpen(false);
+          window.location.href = decodedText;
+        },
+        () => {}
+      )
+      .catch((err) => {
+        console.error("Kamera başlatılamadı:", err);
+      });
   }, 150);
 
   return () => {
     clearTimeout(timer);
     if (scannerRef.current) {
-      scannerRef.current.clear().catch(() => {});
+      scannerRef.current
+        .stop()
+        .then(() => scannerRef.current?.clear())
+        .catch(() => {});
       scannerRef.current = null;
     }
   };
