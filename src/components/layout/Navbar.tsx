@@ -12,13 +12,21 @@ import {
   IconButton,
   ListItemIcon,
   Divider,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import { createClient } from "@/src/utils/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { translatePage } from "../../services/translateService";
 import { useUserRole } from "@/src/hooks/useUserRole";
+
+
 
 export default function Navbar() {
   const router = useRouter();
@@ -29,6 +37,7 @@ export default function Navbar() {
 
   // Profil Menüsü State'i
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
 
   useEffect(() => {
@@ -69,6 +78,14 @@ export default function Navbar() {
       isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
     }`;
   };
+
+  const navLinks = [
+  { href: "/buildings", label: "Binalar" },
+  { href: "/rooms", label: "Odalar" },
+  { href: "/services", label: "Servislerimiz" },
+  { href: "/about", label: "Hakkımızda" },
+  { href: "/contact", label: "İletişim" },
+];
 
   return (
     <>
@@ -126,6 +143,14 @@ export default function Navbar() {
   </Link>
 )}
           </Box>
+
+          {/* MOBİL HAMBURGER BUTONU */}
+          <IconButton
+            onClick={() => setMobileMenuOpen(true)}
+            sx={{ display: { xs: "flex", md: "none" }, color: "#111827" }}
+          >
+            <MenuIcon />
+          </IconButton>
 
           {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
           <Box
@@ -306,6 +331,39 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
+        {/* MOBİL AÇILIR MENÜ (DRAWER) */}
+      <Drawer anchor="right" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
+        <Box sx={{ width: 260, pt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", px: 2, mb: 1 }}>
+            <IconButton onClick={() => setMobileMenuOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <List>
+            {navLinks.map((link) => (
+              <ListItemButton
+                key={link.href}
+                component={Link}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                selected={pathname === link.href}
+              >
+                <ListItemText primary={link.label} />
+              </ListItemButton>
+            ))}
+            {!loading && (role === "superadmin" || role === "manager") && (
+              <ListItemButton
+                component={Link}
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                selected={pathname === "/admin"}
+              >
+                <ListItemText primary="Admin" />
+              </ListItemButton>
+            )}
+          </List>
+        </Box>
+      </Drawer>
     </>
   );
 }
