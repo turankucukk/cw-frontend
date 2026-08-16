@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import toast from "react-hot-toast";
 
 import {
   Alert,
@@ -17,7 +19,6 @@ import {
   getRoomById,
   type RoomDetails,
 } from "@/src/lib/api/rooms";
-import { Suspense } from "react";
 
 function PaymentContent() {
   const router = useRouter();
@@ -39,6 +40,7 @@ function PaymentContent() {
     const fetchRoom = async () => {
       if (!roomId || !Number.isInteger(roomId)) {
         setError("Geçersiz oda.");
+        toast.error("Geçersiz oda.");
         setLoading(false);
         return;
       }
@@ -48,6 +50,7 @@ function PaymentContent() {
 
         if (!roomData) {
           setError("Oda bulunamadı.");
+          toast.error("Oda bulunamadı.");
           return;
         }
 
@@ -55,6 +58,7 @@ function PaymentContent() {
       } catch (err) {
         console.error("Oda bilgileri alınamadı:", err);
         setError("Oda bilgileri alınamadı.");
+        toast.error("Oda bilgileri alınamadı.");
       } finally {
         setLoading(false);
       }
@@ -87,11 +91,13 @@ function PaymentContent() {
   const handlePayment = async () => {
     if (!room) {
       setError("Oda bilgileri bulunamadı.");
+      toast.error("Oda bilgileri bulunamadı.");
       return;
     }
 
     if (!start || !end) {
       setError("Rezervasyon tarih ve saat bilgileri eksik.");
+      toast.error("Rezervasyon tarih ve saat bilgileri eksik.");
       return;
     }
 
@@ -100,6 +106,7 @@ function PaymentContent() {
       participants < 1
     ) {
       setError("Katılımcı sayısı geçersiz.");
+      toast.error("Katılımcı sayısı geçersiz.");
       return;
     }
 
@@ -121,6 +128,7 @@ function PaymentContent() {
         );
 
         setError("Kullanıcı bilgileri alınamadı.");
+        toast.error("Kullanıcı bilgileri alınamadı.");
         setPaying(false);
         return;
       }
@@ -129,6 +137,11 @@ function PaymentContent() {
         setError(
           "Rezervasyon yapmak için giriş yapmalısınız."
         );
+
+        toast.error(
+          "Rezervasyon yapmak için giriş yapmalısınız."
+        );
+
         setPaying(false);
         return;
       }
@@ -149,6 +162,7 @@ function PaymentContent() {
         );
 
         setError("Kullanıcı profiliniz bulunamadı.");
+        toast.error("Kullanıcı profiliniz bulunamadı.");
         setPaying(false);
         return;
       }
@@ -176,6 +190,10 @@ function PaymentContent() {
           `Oda müsaitliği kontrol edilemedi: ${conflictError.message}`
         );
 
+        toast.error(
+          "Oda müsaitliği kontrol edilemedi."
+        );
+
         setPaying(false);
         return;
       }
@@ -183,6 +201,10 @@ function PaymentContent() {
       if (conflicts && conflicts.length > 0) {
         setError(
           "Seçtiğiniz saat aralığı artık müsait değil. Lütfen başka bir saat seçin."
+        );
+
+        toast.error(
+          "Seçtiğiniz saat aralığı artık müsait değil."
         );
 
         setPaying(false);
@@ -220,10 +242,13 @@ function PaymentContent() {
           `Rezervasyon oluşturulamadı: ${reservationError.message}`
         );
 
+        toast.error(
+          "Rezervasyon oluşturulamadı."
+        );
+
         setPaying(false);
         return;
       }
-
 
       const { error: paymentError } = await supabase
         .from("payment")
@@ -241,7 +266,15 @@ function PaymentContent() {
           "Payment kayıt hatası:",
           JSON.stringify(paymentError, null, 2)
         );
-        setError("Ödeme kaydedilemedi (Veritabanı yetki/RLS hatası olabilir).");
+
+        setError(
+          "Ödeme kaydedilemedi (Veritabanı yetki/RLS hatası olabilir)."
+        );
+
+        toast.error(
+          "Ödeme kaydedilemedi."
+        );
+
         setPaying(false);
         return;
       }
@@ -251,9 +284,15 @@ function PaymentContent() {
         reservation
       );
 
-      router.push(
-        `/rooms/${room.id}#weekly-calendar`
+      toast.success(
+        "Ödemeniz alındı ve rezervasyon oluşturuldu."
       );
+
+      setTimeout(() => {
+        router.push(
+          `/rooms/${room.id}#weekly-calendar`
+        );
+      }, 800);
     } catch (err) {
       console.error(
         "Ödeme / rezervasyon işlemi hatası:",
@@ -261,6 +300,10 @@ function PaymentContent() {
       );
 
       setError(
+        "İşlem sırasında beklenmeyen bir hata oluştu."
+      );
+
+      toast.error(
         "İşlem sırasında beklenmeyen bir hata oluştu."
       );
 
@@ -496,11 +539,13 @@ function PaymentContent() {
 
 export default function PaymentPage() {
   return (
-    <Suspense fallback={
-      <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f5f6f8" }}>
-        <CircularProgress />
-      </Box>
-    }>
+    <Suspense
+      fallback={
+        <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f5f6f8" }}>
+          <CircularProgress />
+        </Box>
+      }
+    >
       <PaymentContent />
     </Suspense>
   );

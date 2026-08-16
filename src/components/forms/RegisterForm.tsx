@@ -1,8 +1,8 @@
 ﻿"use client";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { Box, TextField, Button, Typography, Alert, CircularProgress } from "@mui/material";
-// Supabase client'ı import ediyoruz
 import { createClient } from "@/src/utils/supabase/client";
 
 export default function RegisterForm() {
@@ -15,7 +15,6 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Supabase client'ı başlatıyoruz
   const supabase = createClient();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -23,19 +22,18 @@ export default function RegisterForm() {
 
     if (password !== confirmPassword) {
       setError("Şifreler eşleşmiyor.");
+      toast.error("Şifreler eşleşmiyor.");
       return;
     }
-    
+
     setError("");
     setLoading(true);
 
     try {
-      // Supabase Kayıt İşlemi
       const { data, error: supabaseError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          // `data` alanı, kullanıcı profili tablonuza eklenecek verileri içerir.
           data: {
             full_name: name,
             username: nickname,
@@ -45,14 +43,23 @@ export default function RegisterForm() {
 
       if (supabaseError) {
         setError("Kayıt başarısız: " + supabaseError.message);
+        toast.error("Kayıt başarısız.");
         return;
       }
 
-      // Başarılı kayıttan sonra ana sayfaya yönlendir.
-      router.push("/");
-      router.refresh();
+      console.log("Kayıt başarılı", data);
+
+      toast.success("Kayıt başarıyla oluşturuldu.");
+
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 700);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Bir hata oluştu.");
+      const message = err instanceof Error ? err.message : "Bir hata oluştu.";
+
+      setError(message);
+      toast.error("Kayıt sırasında bir hata oluştu.");
     } finally {
       setLoading(false);
     }
@@ -70,7 +77,6 @@ export default function RegisterForm() {
       }}
     >
       <Box sx={{ width: { xs: "100%", sm: 400 } }}>
-        {/* DeskHere Logo */}
         <Box sx={{ width: 280, ml: -1.5 }}>
           <svg viewBox="0 0 420 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
