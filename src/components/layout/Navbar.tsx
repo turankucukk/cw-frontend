@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import CheckinModal from "@/src/components/checkin/CheckinModal";
 import {
   Box,
   AppBar,
@@ -39,6 +41,7 @@ export default function Navbar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [checkinOpen, setCheckinOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -75,13 +78,11 @@ export default function Navbar() {
     router.push(path);
   };
 
-  // Kullanıcının e-posta adresinden ilk harfini alarak geçici bir avatar oluşturmak için:
   const userInitial = session?.user?.email
     ? session.user.email[0].toUpperCase()
     : "U";
   const userAvatarUrl = session?.user?.user_metadata?.avatar_url || "";
 
-  // Menü linklerinin aktiflik durumunu kontrol eden fonksiyon
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
     return `transition-colors text-sm font-semibold ${isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
@@ -113,10 +114,9 @@ export default function Navbar() {
             Desk<span style={{ color: "#2563eb" }}>Here</span>
           </Link>
 
-          {/* DİNAMİK AKTİF LİNKLER */}
           <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
-            <Link href="/locations" className={getLinkClass("/locations")}>Konumlar</Link>
             <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
+            <Link href="/rooms" className={getLinkClass("/rooms")}>Odalar</Link>
 
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
@@ -188,8 +188,34 @@ export default function Navbar() {
                   <option value="en">EN</option>
                   <option value="tr">TR</option>
                 </select>
+
+             
+
+
                 {session ? (
                   <>
+
+                  <Button
+                        variant="outlined"
+                        onClick={() => {
+                          setDrawerOpen(false);
+                          setCheckinOpen(true);
+                        }}
+                        startIcon={<QrCodeScannerIcon />}
+                        sx={{
+                          textTransform: "none",
+                          justifyContent: "flex-start",
+                          borderRadius: "10px",
+                          px: 2,
+                          py: 1.25,
+                          color: "#2563eb",
+                          borderColor: "#2563eb",
+                        }}
+                      >
+                        QR Okut
+                  
+                  </Button>
+                  
                     <Button
                       variant="outlined"
                       onClick={() => {
@@ -259,7 +285,6 @@ export default function Navbar() {
             </Box>
           </Drawer>
 
-          {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
           <Box
             sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2.5 }}
           >
@@ -271,8 +296,9 @@ export default function Navbar() {
               <MenuIcon />
             </IconButton>
 
+                  
+
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              {/* Dil Seçici */}
               <select
                 onChange={(e) => translatePage(e.target.value)}
                 defaultValue="tr"
@@ -283,7 +309,13 @@ export default function Navbar() {
               </select>
             </Box>
 
-            {/* Giriş Durumuna Göre Değişen Alan */}
+
+              {session && (
+                      <IconButton onClick={() => setCheckinOpen(true)} sx={{ color: "#2563eb" }} aria-label="QR okut">
+                      <QrCodeScannerIcon />
+                            </IconButton>
+                 )}
+
             {session ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 {/* Profil Resmi Butonu */}
@@ -470,6 +502,8 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
+            <CheckinModal open={checkinOpen} onClose={() => setCheckinOpen(false)} />
+
     </>
   );
 }
