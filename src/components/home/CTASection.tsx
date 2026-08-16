@@ -38,7 +38,7 @@ export default function CTASection() {
 
       <Button
   component={Link}
-  href="/rooms"
+  href="/login"
   variant="contained"
   size="large"
   sx={{

@@ -27,12 +27,12 @@ const contactCards = [
   },
   {
     title: "Telefon",
-    value: "+90 212 555 12 34",
+    value: "+90 533 800 00 00",
     icon: <PhoneRounded sx={{ fontSize: 30 }} />,
   },
   {
     title: "Adres",
-    value: "İstanbul, Türkiye",
+    value: "Lefkoşa Köşklüçiftlik , KKTC",
     icon: <LocationOnRounded sx={{ fontSize: 30 }} />,
   },
 ];
@@ -65,7 +65,7 @@ export default function ContactPage() {
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 640 }}>
                 DeskHere ekibi olarak rezervasyon, destek veya kurumsal kullanım konularında size yardımcı olmak için buradayız.
-                İletişim bilgileri aşağıda yer alıyor.
+               
               </Typography>
               
             </Box>
