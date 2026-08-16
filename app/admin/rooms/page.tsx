@@ -38,6 +38,8 @@ import BuildIcon from "@mui/icons-material/Build";
 import { createClient } from "@/src/utils/supabase/client";
 import { useUserRole } from "@/src/hooks/useUserRole";
 import { can } from "@/src/lib/permissions";
+import QRCodeIcon from "@mui/icons-material/QrCode2";
+import { QRCodeCanvas } from "qrcode.react";
 
 // Supabase API servis fonksiyonları
 import { 
@@ -67,6 +69,8 @@ export default function RoomsPage() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [featureInput, setFeatureInput] = useState<string>("");
   const [featuresList, setFeaturesList] = useState<string[]>([]);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [qrRoom, setQrRoom] = useState<Room | null>(null);
 
 const [roomForm, setRoomForm] = useState({
   name: "",
@@ -207,6 +211,21 @@ const handleToggleMaintenance = async (room: Room) => {
 
   showToast(newStatus ? "Oda tekrar aktif edildi!" : "Oda bakıma alındı!", newStatus ? "success" : "warning");
   await fetchData();
+};
+
+const handleOpenQr = (room: Room) => {
+  setQrRoom(room);
+  setQrModalOpen(true);
+};
+
+const handleDownloadQr = () => {
+  const canvas = document.getElementById("room-qr-canvas") as HTMLCanvasElement;
+  if (!canvas) return;
+  const url = canvas.toDataURL("image/png");
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `qr-${qrRoom?.name ?? "oda"}.png`;
+  link.click();
 };
 
 
@@ -360,7 +379,18 @@ const roomData = {
                     {room.price ?? 0} TL
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" }, flexWrap: "wrap" }}>
+  <Button 
+    size="small" 
+    variant="outlined" 
+    color="primary" 
+    startIcon={<QRCodeIcon />}
+    onClick={() => handleOpenQr(room)}
+    fullWidth
+  >
+    QR Kodu
+  </Button>
   {can(role as any, "rooms.maintenance") && (
+
     <Button 
       size="small" 
       variant="outlined" 
@@ -523,6 +553,28 @@ const roomData = {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* QR KODU MODALI */}
+      <Dialog open={qrModalOpen} onClose={() => setQrModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold" }}>{qrRoom?.name} — QR Kodu</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, py: 4 }}>
+          {qrRoom && (
+            <QRCodeCanvas
+              id="room-qr-canvas"
+              value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${qrRoom.id}`}
+              size={220}
+              level="H"
+            />
+          )}
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+            Bu QR kodu odanın kapısına yapıştırın. Kullanıcılar okuttuğunda rezervasyonları kontrol edilir.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={() => setQrModalOpen(false)} color="inherit">Kapat</Button>
+          <Button onClick={handleDownloadQr} variant="contained">İndir (PNG)</Button>
+        </DialogActions>
       </Dialog>
     </Container>
   );
