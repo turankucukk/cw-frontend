@@ -22,7 +22,9 @@ import {
   InputLabel,
   Select,
   CircularProgress,
-  Stack
+  Stack,
+  Checkbox,
+  FormControlLabel
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
@@ -31,6 +33,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useToast } from "@/src/contexts/toastcontext";
+import BuildIcon from "@mui/icons-material/Build";
+import { createClient } from "@/src/utils/supabase/client";
+import { useUserRole } from "@/src/hooks/useUserRole";
+import { can } from "@/src/lib/permissions";
 
 // Supabase API servis fonksiyonları
 import { 
@@ -44,6 +51,8 @@ import {
 } from "../../../src/lib/api/rooms";
 
 export default function RoomsPage() {
+  const { showToast } = useToast();
+  const { role } = useUserRole();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -59,15 +68,16 @@ export default function RoomsPage() {
   const [featureInput, setFeatureInput] = useState<string>("");
   const [featuresList, setFeaturesList] = useState<string[]>([]);
 
-  const [roomForm, setRoomForm] = useState({
-    name: "",
-    capacity: "",
-    type: "Room",
-    price: "0",
-    building_id: "",
-    floor: "",
-    description: ""
-  });
+const [roomForm, setRoomForm] = useState({
+  name: "",
+  capacity: "",
+  type: "Room",
+  price: "0",
+  building_id: "",
+  floor: "",
+  description: "",
+  needsApproval: false
+});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,15 +101,16 @@ export default function RoomsPage() {
   const handleOpenAdd = () => {
     setMode("add");
     setSelectedRoomId(null);
-    setRoomForm({
-      name: "",
-      capacity: "",
-      type: "Room",
-      price: "0",
-      building_id: buildings.length > 0 ? String(buildings[0].id) : "1",
-      floor: "",
-      description: ""
-    });
+setRoomForm({
+  name: "",
+  capacity: "",
+  type: "Room",
+  price: "0",
+  building_id: buildings.length > 0 ? String(buildings[0].id) : "1",
+  floor: "",
+  description: "",
+  needsApproval: false
+});
     setSelectedFiles([]);
     setExistingImageUrl(null);
     setFeaturesList([]);
@@ -110,15 +121,16 @@ export default function RoomsPage() {
   const handleOpenEdit = (room: Room) => {
     setMode("edit");
     setSelectedRoomId(room.id ?? null);
-    setRoomForm({
-      name: room.name || "",
-      capacity: String(room.capacity || ""),
-      type: room.type || "Room",
-      price: String(room.price || 0),
-      building_id: String(room.building_id || (buildings[0]?.id ?? 1)),
-      floor: room.floor || "",
-      description: room.description || ""
-    });
+setRoomForm({
+  name: room.name || "",
+  capacity: String(room.capacity || ""),
+  type: room.type || "Room",
+  price: String(room.price || 0),
+  building_id: String(room.building_id || (buildings[0]?.id ?? 1)),
+  floor: room.floor || "",
+  description: room.description || "",
+  needsApproval: room.needsApproval ?? false
+});
     setFeaturesList(room.features || []);
     setExistingImageUrl(room.image || null);
     setSelectedFiles([]);
@@ -159,19 +171,44 @@ export default function RoomsPage() {
 
   // ODA SİLME İŞLEMİ
   const handleDeleteRoom = async (id?: number) => {
-    if (!id) return;
-    if (confirm("Bu mekan kayıtını tamamen silmek istediğinize emin misiniz?")) {
-      setLoading(true);
-      const res = await deleteRoom(id);
-      if (res.success) {
-        alert("Oda başarıyla silindi.");
-        await fetchData();
-      } else {
-        alert("Silme hatası: " + res.error);
-        setLoading(false);
-      }
+  if (!id) return;
+  if (confirm("Bu mekan kayıtını tamamen silmek istediğinize emin misiniz?")) {
+    setLoading(true);
+    const res = await deleteRoom(id);
+    if (res.success) {
+      showToast("Oda silindi!", "error");
+      await fetchData();
+    } else {
+      showToast("Silme hatası: " + res.error, "error");
+      setLoading(false);
     }
-  };
+  }
+
+};
+// ODAYI BAKIMA ALMA
+const handleToggleMaintenance = async (room: Room) => {
+  const newStatus = !room.isActive;
+  const confirmMsg = newStatus
+    ? "Bu odayı tekrar aktif hale getirmek istediğinize emin misiniz?"
+    : "Bu odayı bakıma almak istediğinize emin misiniz? Kullanıcılar bu odayı göremeyecek/rezerve edemeyecek.";
+
+  if (!confirm(confirmMsg)) return;
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("space")
+    .update({ isActive: newStatus })
+    .eq("id", room.id);
+
+  if (error) {
+    showToast("İşlem sırasında hata oluştu: " + error.message, "error");
+    return;
+  }
+
+  showToast(newStatus ? "Oda tekrar aktif edildi!" : "Oda bakıma alındı!", newStatus ? "success" : "warning");
+  await fetchData();
+};
+
 
   // FORM GÖNDERİMİ (EKLE VEYA GÜNCELLE)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,7 +216,7 @@ export default function RoomsPage() {
 
     // Yeni Ekleme Modundaysak Fotoğraf Yüklemek Zorunludur
     if (mode === "add" && selectedFiles.length === 0) {
-      alert("Lütfen en az bir oda fotoğrafı yükleyiniz!");
+      showToast("Lütfen en az bir oda fotoğrafı yükleyiniz!", "warning");
       return;
     }
 
@@ -187,19 +224,18 @@ export default function RoomsPage() {
 
     setSubmitLoading(true);
 
-    const roomData = {
-      name: roomForm.name,
-      capacity: Number(roomForm.capacity),
-      type: roomForm.type,
-      price: Number(roomForm.price),
-      building_id: Number(roomForm.building_id),
-      floor: roomForm.floor,
-      description: roomForm.description,
-      features: featuresList,
-      isActive: true,
-      needsApproval: false
-    };
-
+const roomData = {
+  name: roomForm.name,
+  capacity: Number(roomForm.capacity),
+  type: roomForm.type,
+  price: Number(roomForm.price),
+  building_id: Number(roomForm.building_id),
+  floor: roomForm.floor,
+  description: roomForm.description,
+  features: featuresList,
+  isActive: true,
+  needsApproval: roomForm.needsApproval
+};
     let result;
 
     if (mode === "add") {
@@ -210,12 +246,12 @@ export default function RoomsPage() {
     }
 
     if (result.success) {
-      alert(mode === "add" ? "Mekan eklendi!" : "Mekan bilgileri güncellendi!");
-      await fetchData();
-      handleClose();
-    } else {
-      alert("İşlem hatası: " + result.error);
-    }
+  showToast(mode === "add" ? "Oda eklendi!" : "Oda bilgileri güncellendi!", "success");
+  await fetchData();
+  handleClose();
+} else {
+  showToast("İşlem hatası: " + result.error, "error");
+}
 
     setSubmitLoading(false);
   };
@@ -282,7 +318,7 @@ export default function RoomsPage() {
                 <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>{room.name}</Typography>
-                    <Chip label={room.isActive ? "Aktif" : "Pasif"} color={room.isActive ? "success" : "default"} size="small" />
+                    <Chip label={room.isActive ? "Aktif" : "Bakımda"} color={room.isActive ? "success" : "warning"} size="small" />
                   </Box>
 
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -323,28 +359,40 @@ export default function RoomsPage() {
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold", textAlign: { xs: "center", sm: "left" } }} color="primary">
                     {room.price ?? 0} TL
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" } }}>
-                    <Button 
-                      size="small" 
-                      variant="outlined" 
-                      color="info" 
-                      startIcon={<EditIcon />}
-                      onClick={() => handleOpenEdit(room)}
-                      fullWidth
-                    >
-                      Düzenle
-                    </Button>
-                    <Button 
-                      size="small" 
-                      variant="outlined" 
-                      color="error" 
-                      startIcon={<DeleteIcon />}
-                      onClick={() => handleDeleteRoom(room.id)}
-                      fullWidth
-                    >
-                      Sil
-                    </Button>
-                  </Box>
+                  <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" }, flexWrap: "wrap" }}>
+  {can(role as any, "rooms.maintenance") && (
+    <Button 
+      size="small" 
+      variant="outlined" 
+      color="warning" 
+      startIcon={<BuildIcon />}
+      onClick={() => handleToggleMaintenance(room)}
+      fullWidth
+    >
+      {room.isActive ? "Bakıma Al" : "Bakımdan Çıkar"}
+    </Button>
+  )}
+  <Button 
+    size="small" 
+    variant="outlined" 
+    color="info" 
+    startIcon={<EditIcon />}
+    onClick={() => handleOpenEdit(room)}
+    fullWidth
+  >
+    Düzenle
+  </Button>
+  <Button 
+    size="small" 
+    variant="outlined" 
+    color="error" 
+    startIcon={<DeleteIcon />}
+    onClick={() => handleDeleteRoom(room.id)}
+    fullWidth
+  >
+    Sil
+  </Button>
+</Box>
                 </CardActions>
 
               </Card>
@@ -410,6 +458,15 @@ export default function RoomsPage() {
             </FormControl>
 
             <TextField fullWidth multiline rows={2} label="Açıklama" name="description" value={roomForm.description} onChange={handleChange} />
+            <FormControlLabel
+  control={
+    <Checkbox
+      checked={roomForm.needsApproval}
+      onChange={(e) => setRoomForm({ ...roomForm, needsApproval: e.target.checked })}
+    />
+  }
+  label="Bu oda için rezervasyon onay gerektirsin"
+/>
 
             {/* Özellik Ekleyici */}
             <Box>

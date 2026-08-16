@@ -201,7 +201,7 @@ function PaymentContent() {
           end_time: end,
           participant_count: participants,
           total_price: totalPrice,
-          status: "confirmed",
+          status: room?.needsApproval ? "pending" : "confirmed",
         })
         .select()
         .single();

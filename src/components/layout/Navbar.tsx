@@ -120,11 +120,11 @@ export default function Navbar() {
             <Link href="/contact" className={getLinkClass("/contact")}>
               İletişim
             </Link>
-            {!loading && role === "superadmin" && (
-              <Link href="/admin" className={getLinkClass("/admin")}>
-                Admin
-              </Link>
-            )}
+            {!loading && (role === "superadmin" || role === "manager") && (
+  <Link href="/admin" className={getLinkClass("/admin")}>
+    Admin
+  </Link>
+)}
           </Box>
 
           {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
@@ -219,7 +219,7 @@ export default function Navbar() {
                         marginTop: "2px",
                       }}
                     >
-                      {role === "superadmin" ? "Süper Yönetici" : "Kullanıcı"}
+                      {role === "superadmin" ? "Süper Yönetici" : role === "manager" ? "Yönetici" : "Kullanıcı"}
                     </div>
                   </Box>
 

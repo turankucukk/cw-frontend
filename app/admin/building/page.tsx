@@ -24,6 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useToast } from "@/src/contexts/toastcontext";
 
 // Supabase API servis fonksiyonları (Bina için olanlar)
 import { 
@@ -35,6 +36,7 @@ import {
 } from "../../../src/lib/api/building";
 
 export default function BuildingsPage() {
+  const { showToast } = useToast();
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
@@ -115,26 +117,26 @@ export default function BuildingsPage() {
 
   // BİNA SİLME İŞLEMİ
   const handleDeleteBuilding = async (id?: number) => {
-    if (!id) return;
-    if (confirm("Bu binayı silmek istediğinize emin misiniz? Binaya bağlı olan mekanlar da etkilenebilir!")) {
-      setLoading(true);
-      const res = await deleteBuilding(id);
-      if (res.success) {
-        alert("Bina başarıyla silindi.");
-        await fetchData();
-      } else {
-        alert("Silme hatası: " + res.error);
-        setLoading(false);
-      }
+  if (!id) return;
+  if (confirm("Bu binayı silmek istediğinize emin misiniz? Binaya bağlı olan mekanlar da etkilenebilir!")) {
+    setLoading(true);
+    const res = await deleteBuilding(id);
+    if (res.success) {
+      showToast("Bina silindi!", "error");
+      await fetchData();
+    } else {
+      showToast("Silme hatası: " + res.error, "error");
+      setLoading(false);
     }
-  };
+  }
+};
 
   // FORM GÖNDERİMİ (EKLE VEYA GÜNCELLE)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!buildingForm.name) {
-      alert("Lütfen bina adını giriniz!");
+      showToast("Lütfen bina adını giriniz!", "warning");
       return;
     }
 
@@ -156,12 +158,12 @@ export default function BuildingsPage() {
     }
 
     if (result.success) {
-      alert(mode === "add" ? "Bina eklendi!" : "Bina bilgileri güncellendi!");
-      await fetchData();
-      handleClose();
-    } else {
-      alert("İşlem hatası: " + result.error);
-    }
+  showToast(mode === "add" ? "Bina eklendi!" : "Bina bilgileri güncellendi!", "success");
+  await fetchData();
+  handleClose();
+} else {
+  showToast("İşlem hatası: " + result.error, "error");
+}
 
     setSubmitLoading(false);
   };
