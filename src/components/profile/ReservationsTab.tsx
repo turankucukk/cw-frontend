@@ -46,8 +46,12 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
     setScannerOpen(false);
   };
 
-  useEffect(() => {
-    if (!scannerOpen) return;
+useEffect(() => {
+  if (!scannerOpen) return;
+
+  const timer = setTimeout(() => {
+    const el = document.getElementById("qr-reader");
+    if (!el) return;
 
     const scanner = new Html5QrcodeScanner(
       "qr-reader",
@@ -62,17 +66,20 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
         setScannerOpen(false);
         window.location.href = decodedText;
       },
-      () => {
-        // sessizce geç
-      }
+      () => {}
     );
 
     scannerRef.current = scanner;
+  }, 150);
 
-    return () => {
-      scanner.clear().catch(() => {});
-    };
-  }, [scannerOpen]);
+  return () => {
+    clearTimeout(timer);
+    if (scannerRef.current) {
+      scannerRef.current.clear().catch(() => {});
+      scannerRef.current = null;
+    }
+  };
+}, [scannerOpen]);
 
   return (
     <Box>
