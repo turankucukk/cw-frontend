@@ -54,10 +54,16 @@ useEffect(() => {
     if (!el) return;
 
     const scanner = new Html5QrcodeScanner(
-      "qr-reader",
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
+  "qr-reader",
+  {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    videoConstraints: {
+      facingMode: { exact: "environment" },
+    },
+  },
+  false
+);
 
     scanner.render(
       (decodedText) => {
