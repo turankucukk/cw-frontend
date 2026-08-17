@@ -49,7 +49,6 @@ export default function BuildingLayoutViewer({
           variant="scrollable"
           scrollButtons="auto"
           sx={{ mb: 2, borderBottom: "1px solid #e0e0e0" }}
-          centered={floorsWithItems.length <= 4}
         >
           {floorsWithItems.map((f) => (
             <Tab key={f.floor} value={f.floor} label={f.floor} />

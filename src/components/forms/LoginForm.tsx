@@ -90,12 +90,31 @@ export default function LoginForm() {
           borderRadius: 4,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: "700" }} align="center">
-          DeskHere
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mb: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "2rem",
+              fontWeight: 700,
+              letterSpacing: "-1px",
+            }}
+          >
+            <Box component="span" sx={{ color: "#111827" }}>
+              Desk
+            </Box>
+            <Box component="span" sx={{ color: "#1976d2" }}>
+              Here
+            </Box>
+          </Typography>
+        </Box>
 
         <Typography align="center" color="text.secondary" sx={{ mb: 4, mt: 1 }}>
-          Sign in to your account
+          Hesabınıza giriş yapın
         </Typography>
 
         <form onSubmit={handleSubmit}>
@@ -106,7 +125,7 @@ export default function LoginForm() {
           )}
 
           <TextField
-            label="Email"
+            label="E-posta"
             type="email"
             fullWidth
             margin="normal"
@@ -116,7 +135,7 @@ export default function LoginForm() {
           />
 
           <TextField
-            label="Password"
+            label="Şifre"
             type={showPassword ? "text" : "password"}
             fullWidth
             margin="normal"
@@ -141,7 +160,7 @@ export default function LoginForm() {
 
           <FormControlLabel
             control={<Checkbox />}
-            label="Remember me"
+            label="Beni Hatırla"
             sx={{ mt: 1 }}
           />
 
@@ -159,11 +178,25 @@ export default function LoginForm() {
               "&:hover": { transform: "translateY(-2px)", boxShadow: 6 },
             }}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Giriş Yap"
+            )}
           </Button>
 
           <Typography align="center" sx={{ mt: 3 }}>
-            Don't have an account? <Link href="/register">Register</Link>
+            Hesabınız yok mu?{" "}
+            <Link
+              href="/register"
+              style={{
+                color: "#1976d2",
+                textDecoration: "none",
+                fontWeight: 600,
+              }}
+            >
+              Kayıt Ol
+            </Link>
           </Typography>
         </form>
       </Paper>
