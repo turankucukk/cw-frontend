@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import CheckinModal from "@/src/components/checkin/CheckinModal";
+
 import {
   Box,
   AppBar,
@@ -41,7 +40,7 @@ export default function Navbar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [checkinOpen, setCheckinOpen] = useState(false);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -195,26 +194,7 @@ export default function Navbar() {
                 {session ? (
                   <>
 
-                  <Button
-                        variant="outlined"
-                        onClick={() => {
-                          setDrawerOpen(false);
-                          setCheckinOpen(true);
-                        }}
-                        startIcon={<QrCodeScannerIcon />}
-                        sx={{
-                          textTransform: "none",
-                          justifyContent: "flex-start",
-                          borderRadius: "10px",
-                          px: 2,
-                          py: 1.25,
-                          color: "#2563eb",
-                          borderColor: "#2563eb",
-                        }}
-                      >
-                        QR Okut
-                  
-                  </Button>
+
                   
                     <Button
                       variant="outlined"
@@ -310,11 +290,7 @@ export default function Navbar() {
             </Box>
 
 
-              {session && (
-                      <IconButton onClick={() => setCheckinOpen(true)} sx={{ color: "#2563eb" }} aria-label="QR okut">
-                      <QrCodeScannerIcon />
-                            </IconButton>
-                 )}
+
 
             {session ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -502,7 +478,7 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
-            <CheckinModal open={checkinOpen} onClose={() => setCheckinOpen(false)} />
+
 
     </>
   );
