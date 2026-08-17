@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { isReservationExpired } from "@/src/utils/reservationUtils";
+
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -143,24 +145,33 @@ export default function WeeklyCalendar({
         return;
       }
 
-      const calendarEvents: CalendarReservation[] = (data ?? []).map((reservation) => {
-        const isMine =
-          currentDbUserId !== null &&
-          String(currentDbUserId) === String(reservation.user_id);
+      const calendarEvents: CalendarReservation[] = (data ?? [])
+        .filter((reservation) => {
+          // Eğer rezervasyon onaylıysa ama 15 dk içinde check-in (qr okutma) yapılmadıysa
+          // takvimde dolu olarak GÖSTERME (başkasının alabilmesi için boşa düşür)
+          if ((reservation.status === "confirmed" || reservation.status === "approved" || reservation.status === "pending") && isReservationExpired(reservation.start_time)) {
+            return false;
+          }
+          return true;
+        })
+        .map((reservation) => {
+          const isMine =
+            currentDbUserId !== null &&
+            String(currentDbUserId) === String(reservation.user_id);
 
-        return {
-          id: String(reservation.id),
-          title: isMine ? "Rezervasyonum" : "Dolu",
-          start: reservation.start_time,
-          end: reservation.end_time,
-          backgroundColor: isMine ? "#175bb8" : "#9ca3af",
-          borderColor: isMine ? "#175bb8" : "#9ca3af",
-          textColor: "#ffffff",
-          extendedProps: {
-            isMine,
-          },
-        };
-      });
+          return {
+            id: String(reservation.id),
+            title: isMine ? "Rezervasyonum" : "Dolu",
+            start: reservation.start_time,
+            end: reservation.end_time,
+            backgroundColor: isMine ? "#175bb8" : "#9ca3af",
+            borderColor: isMine ? "#175bb8" : "#9ca3af",
+            textColor: "#ffffff",
+            extendedProps: {
+              isMine,
+            },
+          };
+        });
 
       setReservations(calendarEvents);
     };
