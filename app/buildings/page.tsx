@@ -5,8 +5,10 @@ import Navbar from "@/src/components/layout/Navbar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/utils/supabase/client";
-import Link from "next/link";
-import { Box, Typography } from "@mui/material";
+import { Box, Container, Grid, Card, Typography, Link as MuiLink } from "@mui/material";
+import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
+import Footer from "@/src/components/layout/Footer";
 
 type Building = {
   id: number;
@@ -39,98 +41,44 @@ export default function BuildingsPage() {
   }, []);
 
   return (
-    <Box sx={{ width: "100%", overflowX: "hidden", minHeight: "100vh", backgroundColor: "#f5f6f8" }}>
+    <>
       <Navbar />
 
-      <Box
-        component="main"
-        sx={{
-          padding: { xs: "90px 16px 40px", md: "110px 40px 60px" },
-          width: "100%",
-          boxSizing: "border-box",
-        }}
-      >
-        <Box sx={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
-
-          <Box
-            sx={{
-              textAlign: "center",
-              marginBottom: { xs: "32px", md: "48px" },
-            }}
-          >
-            <Typography
-              variant="h4"
-              sx={{
-                fontSize: { xs: "26px", md: "34px" },
-                fontWeight: 700,
-                color: "#111827",
-                marginBottom: "8px",
-              }}
-            >
+      <Box sx={{ pt: { xs: 14, md: 16 }, pb: 6, minHeight: "100vh", bgcolor: "#f5f6f8" }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", mb: 5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
               BİNALAR
             </Typography>
-
-            <Typography
-              variant="body1"
-              sx={{
-                color: "#6b7280",
-                fontSize: { xs: "14px", md: "16px" },
-              }}
-            >
+            <Typography color="text.secondary">
               Odalarını görmek istediğiniz binayı seçin.
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
-              gap: { xs: "20px", md: "28px" },
-              width: "100%",
-            }}
-          >
+          <Grid container spacing={3}>
             {buildings.map((building) => (
-              <Link
-                key={building.id}
-                href={`/buildings/${building.id}`}
-                style={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  display: "flex",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  component="article"
+              <Grid size={{ xs: 12, sm: 6 }} key={building.id}>
+                <Card
+                  onClick={() => router.push(`/buildings/${building.id}`)}
                   sx={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "20px",
+                    borderRadius: 4,
                     overflow: "hidden",
                     cursor: "pointer",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                    transition: "all 0.3s ease",
                     "&:hover": {
-                      transform: { md: "translateY(-6px)" },
-                      boxShadow: { md: "0 16px 32px rgba(0,0,0,0.1)" },
-                      borderColor: "#d1d5db",
+                      transform: "translateY(-8px)",
+                      boxShadow: "0 19px 24px rgba(0,0,0,0.12)",
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      height: { xs: "220px", sm: "240px", md: "280px" },
-                      backgroundColor: "#f8fafc",
+                      height: 280,
+                      bgcolor: "#f9fafb",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      borderBottom: "1px solid #f1f5f9",
-                      position: "relative",
-                      overflow: "hidden",
-                      width: "100%",
                     }}
                   >
                     {building.floor_plan_url ? (
@@ -138,66 +86,49 @@ export default function BuildingsPage() {
                         component="img"
                         src={building.floor_plan_url}
                         alt={`${building.name} krokisi`}
-                        sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          padding: "20px",
-                          transition: "transform 0.3s ease",
-                          "&:hover": {
-                            transform: { md: "scale(1.03)" }
-                          }
-                        }}
+                        sx={{ width: "100%", height: "100%", objectFit: "contain", p: 2 }}
                       />
                     ) : (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          color: "#9ca3af",
-                        }}
-                      >
-                        <Box
-                          component="span"
-                          sx={{
-                            fontSize: { xs: "40px", md: "48px" },
-                            marginBottom: "10px",
-                          }}
-                        >
-                          🏢
-                        </Box>
-
-                        <Typography sx={{ margin: 0, fontSize: "16px" }}>
-                          Kroki henüz eklenmemiş
-                        </Typography>
+                      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", color: "#9ca3af" }}>
+                        <ApartmentRoundedIcon sx={{ fontSize: 48, mb: 1.5 }} />
+                        <Typography>Kroki henüz eklenmemiş</Typography>
                       </Box>
                     )}
                   </Box>
 
-                  <Box sx={{ padding: "20px" }}>
-                    <Typography component="h2" sx={{ margin: 0, fontSize: "21px", fontWeight: 600, marginBottom: "10px" }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                       {building.name}
                     </Typography>
 
                     {building.location_url && (
-                      <Box component="a"
+                      <MuiLink
                         href={building.location_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                        sx={{ color: "#2563eb", fontSize: "14px", textDecoration: "none" }}
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          fontSize: 14,
+                          color: "primary.main",
+                          textDecoration: "none",
+                          "&:hover": { textDecoration: "underline" },
+                        }}
                       >
-                        📍 Haritada Gör
-                      </Box>
+                        <PlaceRoundedIcon sx={{ fontSize: 16 }} />
+                        Haritada Gör
+                      </MuiLink>
                     )}
                   </Box>
-                </Box>
-              </Link>
+                </Card>
+              </Grid>
             ))}
-          </Box>
-        </Box>
+          </Grid>
+        </Container>
       </Box>
-    </Box>
+      <Footer />
+    </>
   );
 }

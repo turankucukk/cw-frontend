@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Container,
   Grid,
@@ -31,6 +32,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import GridOnIcon from "@mui/icons-material/GridOn";
 
 // Supabase API servis fonksiyonları
 import { 
@@ -44,6 +46,7 @@ import {
 } from "../../../src/lib/api/rooms";
 
 export default function RoomsPage() {
+  const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -266,14 +269,14 @@ export default function RoomsPage() {
         <Grid container spacing={{ xs: 2, sm: 3 }}>
           {rooms.map((room) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
+              
               <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
                 
-                {/* Görsel varsa göster */}
-                {room.image && (
+                {room.room_images && room.room_images.length > 0 && (
                   <CardMedia
                     component="img"
                     height="200"
-                    image={room.image}
+                    image={room.room_images[0].image_url}
                     alt={room.name}
                     sx={{ objectFit: "cover" }}
                   />
@@ -324,20 +327,30 @@ export default function RoomsPage() {
                     {room.price ?? 0} TL
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" } }}>
-                    <Button 
-                      size="small" 
-                      variant="outlined" 
-                      color="info" 
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<GridOnIcon />}
+                      onClick={() => router.push(`/admin/rooms/${room.id}/layout`)}
+                      fullWidth
+                      data-testid={`room-kroki-${room.id}`}
+                    >
+                      Kroki
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="info"
                       startIcon={<EditIcon />}
                       onClick={() => handleOpenEdit(room)}
                       fullWidth
                     >
                       Düzenle
                     </Button>
-                    <Button 
-                      size="small" 
-                      variant="outlined" 
-                      color="error" 
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
                       startIcon={<DeleteIcon />}
                       onClick={() => handleDeleteRoom(room.id)}
                       fullWidth

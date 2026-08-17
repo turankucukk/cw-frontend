@@ -1,9 +1,8 @@
-﻿// src/components/rooms/RoomList.tsx
-"use client";
+﻿"use client";
 
 import { Box, Alert, Grid } from "@mui/material";
 import RoomCard from "./RoomCard";
-import { type Room } from "@/src/lib/api/rooms";
+import { Room } from "@/src/lib/api/rooms";
 
 interface RoomListProps {
   rooms?: Room[];
@@ -14,6 +13,7 @@ interface RoomListProps {
   error?: string | null;
 }
 
+
 export default function RoomList({
   rooms = [],
   search = "",
@@ -22,6 +22,7 @@ export default function RoomList({
   selectedFeatures = [],
   error = null,
 }: RoomListProps) {
+
   if (error) {
     return (
       <Alert severity="error" sx={{ m: 3 }}>
@@ -51,7 +52,7 @@ export default function RoomList({
   if (filteredRooms.length === 0) {
     return (
       <Box sx={{ textAlign: "center", p: 4 }}>
-        <Alert severity="info">Filtrelere uyan oda bulunamadı.</Alert>
+        <Alert severity="info"> Filtrelere uyan oda bulunamadı.</Alert>
       </Box>
     );
   }
@@ -60,7 +61,7 @@ export default function RoomList({
     <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={3}>
         {filteredRooms.map((room) => (
-          <Grid key={room.id} size={{ xs: 12, sm: 6, md: 6 }}>
+          <Grid  key={room.id} size={{ xs: 12, sm: 6, md: 6 }}>
             <RoomCard room={room} />
           </Grid>
         ))}

@@ -10,6 +10,7 @@ import {
   Tab,
   TextField,
   InputAdornment,
+  Button,
   Table,
   TableHead,
   TableBody,
@@ -128,6 +129,7 @@ export default function AdminUsersPage() {
   const [dataLoading, setDataLoading] = useState(true);
 
   const [search, setSearch] = useState("");
+  const [showAllNormalUsers, setShowAllNormalUsers] = useState(false);
 
   useEffect(() => {
     if (!roleLoading && !can((role as Role) ?? "user", "users.view")) {
@@ -165,6 +167,8 @@ export default function AdminUsersPage() {
     () => users.filter((u) => u.role === "user" && matchesQuery(u, search)),
     [users, search],
   );
+  const isSearchingNormalUsers = search.trim() !== "";
+  const shouldShowNormalUsers = isSearchingNormalUsers || showAllNormalUsers;
 
   const stats = useMemo(() => {
     return {
@@ -242,14 +246,46 @@ export default function AdminUsersPage() {
             onDelete={handleDeleteUser}
           />
 
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5, mt: 4 }}>
-            Kullanıcılar ({normalUsers.length})
-          </Typography>
-          <UserTable
-            users={normalUsers}
-            loading={dataLoading}
-            onDelete={handleDeleteUser}
-          />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 1,
+              mb: 1.5,
+              mt: 4,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Kullanıcılar ({normalUsers.length})
+            </Typography>
+            {!isSearchingNormalUsers && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => setShowAllNormalUsers((v) => !v)}
+              >
+                {showAllNormalUsers ? "Gizle" : "Tümünü Göster"}
+              </Button>
+            )}
+          </Box>
+
+          {shouldShowNormalUsers ? (
+            <UserTable
+              users={normalUsers}
+              loading={dataLoading}
+              onDelete={handleDeleteUser}
+            />
+          ) : (
+            <Paper
+              variant="outlined"
+              sx={{ p: 3, textAlign: "center", color: "text.secondary", mb: 3 }}
+            >
+              Normal kullanıcıları görmek için yukarıdan isim/email ile arayın veya
+              "Tümünü Göster"e tıklayın.
+            </Paper>
+          )}
         </Box>
       )}
 
