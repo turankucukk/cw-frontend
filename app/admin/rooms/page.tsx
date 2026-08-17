@@ -34,6 +34,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import GridOnIcon from "@mui/icons-material/GridOn";
 import { useToast } from "@/src/contexts/toastcontext";
 import BuildIcon from "@mui/icons-material/Build";
 import { createClient } from "@/src/utils/supabase/client";
@@ -54,6 +55,7 @@ import {
 } from "../../../src/lib/api/rooms";
 
 export default function RoomsPage() {
+  const router = useRouter();
   const { showToast } = useToast();
   const { role } = useUserRole();
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -503,6 +505,16 @@ export default function RoomsPage() {
                       fullWidth
                     >
                       QR Kodu
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<GridOnIcon />}
+                      onClick={() => router.push(`/admin/rooms/${room.id}/layout`)}
+                      fullWidth
+                      data-testid={`room-kroki-${room.id}`}
+                    >
+                      Kroki
                     </Button>
                     {can(role as any, "rooms.maintenance") && (
                       <Button

@@ -24,6 +24,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
+import GridOnIcon from "@mui/icons-material/GridOn";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useToast } from "@/src/contexts/toastcontext";
 
@@ -37,6 +38,7 @@ import {
 } from "../../../src/lib/api/building";
 
 export default function BuildingsPage() {
+  const router = useRouter();
   const { showToast } = useToast();
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
