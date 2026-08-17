@@ -184,10 +184,17 @@ export default function WeeklyCalendar({
       alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
       return;
     }
-
+    
     const finishDate = new Date(clickedDate);
+    finishDate.setHours( finishDate.getHours() + 1);
 
-    finishDate.setHours(finishDate.getHours() + 1);
+    const registerUrl = 
+   `/register?roomId=${roomId}` +
+   `&start=${encodeURIComponent(clickedDate.toISOString())}` +
+   `&end=${encodeURIComponent(finishDate.toISOString())}`;
+
+    router.push(registerUrl);
+   
 
     setSelectedDate(formatDateForInput(clickedDate));
     setStartTime(formatTimeForInput(clickedDate));
@@ -277,15 +284,19 @@ export default function WeeklyCalendar({
       return;
     }
 
-    const paymentUrl =
-      `/payment?roomId=${roomId}` +
-      `&start=${encodeURIComponent(start.toISOString())}` +
-      `&end=${encodeURIComponent(end.toISOString())}` +
+    const registerUrl =
+      `/register?roomId=${roomId}` +
+      `&start=${encodeURIComponent(
+        start.toISOString()
+      )}` +
+      `&end=${encodeURIComponent(
+        end.toISOString()
+      )}` +
       `&participants=${participantNumber}`;
 
     setDialogOpen(false);
 
-    router.push(paymentUrl);
+    router.push(registerUrl);
   };
 
   return (

@@ -65,135 +65,234 @@ export default function RegisterForm() {
     }
   };
 
-  return (
+return (
+  <Box
+    sx={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      bgcolor: "#f3f6fa",
+      px: 2,
+      py: 2,
+    
+    }}
+  >
     <Box
       sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        bgcolor: "background.default",
-        px: 2,
+        width: "100%",
+         maxWidth: 630,
+        backgroundColor: "#fff",
+        borderRadius: "48px",
+        boxShadow: "0 12px 28px rgba(0, 0, 0, 0.25)",
+        px: { xs: 3, sm: 7.5 },
+        py: { xs: 4, sm: 6},
+
+    transform: "scale(0.75)",
+    transformOrigin: "center center",
       }}
     >
-      <Box sx={{ width: { xs: "100%", sm: 400 } }}>
-        <Box sx={{ width: 280, ml: -1.5 }}>
-          <svg viewBox="0 0 420 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0052CC" />
-                <stop offset="100%" stopColor="#00B4D8" />
-              </linearGradient>
-              <linearGradient id="checkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#38EF7D" />
-                <stop offset="100%" stopColor="#11998E" />
-              </linearGradient>
-            </defs>
-            <g transform="translate(10, 10)">
-              <rect x="15" y="10" width="70" height="70" rx="16" fill="url(#brandGradient)" opacity="0.1" />
-              <rect x="30" y="45" width="16" height="20" rx="4" fill="none" stroke="url(#brandGradient)" strokeWidth="4" />
-              <path d="M 38,65 L 38,75" stroke="url(#brandGradient)" strokeWidth="4" strokeLinecap="round" />
-              <path d="M 25,55 L 75,55 L 75,75" fill="none" stroke="url(#brandGradient)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M 60,25 L 70,35 L 90,15" fill="none" stroke="url(#checkGradient)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-            </g>
-            <g transform="translate(105, 70)">
-              <text fontFamily="Segoe UI, Inter, Arial, sans-serif" fontSize="48" fontWeight="800" fill="#1E293B" letterSpacing="-0.5">Desk</text>
-              <text x="116" fontFamily="Segoe UI, Inter, Arial, sans-serif" fontSize="48" fontWeight="400" fill="url(#brandGradient)" letterSpacing="-0.5">Here</text>
-            </g>
-          </svg>
-        </Box>
-
-        <h1 className="text-4xl font-bold text-gray-900">Kayıt ol</h1>
-
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-
-          <div>
-            <label htmlFor="name" className="block text-sm text-gray-700 mb-1.5">Tam ad</label>
-            <input
-              id="name"
-              type="text"
-              placeholder="Çetin Ceviz"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="nickname" className="block text-sm text-gray-700 mb-1.5">Kullanıcı adı</label>
-            <input
-              id="nickname"
-              type="text"
-              placeholder="çetinceviz"
-              value={nickname}
-              onChange={(event) => setNickname(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 mb-1.5">E-posta</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="ornek@email.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm text-gray-700 mb-1.5">Şifre</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1.5">Şifreyi onayla</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-[#0052CC] focus:border-[#0052CC] focus:outline-none"
-              required
-            />
-          </div>
-
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={loading}
-            fullWidth
-            sx={{
-              py: 1.5,
-              background: "linear-gradient(135deg, #0052CC 0%, #00B4D8 100%)",
-              textTransform: "none",
-              fontSize: "1rem",
-            }}
-          >
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Kayıt Ol"}
-          </Button>
-        </Box>
-
-        <p className="text-center text-sm text-gray-500">
-          Zaten bir hesabın var mı?{" "}
-          <a href="/login" className="text-[#0052CC] hover:underline font-medium">
-            Giriş yap
-          </a>
-        </p>
-      </Box>
+{/* DeskHere Logo */}
+<Box
+  sx={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    mb: 1.5,
+  }}
+>
+  <Typography
+    component="h1"
+    sx={{
+      fontSize: "2rem",
+      fontWeight: 700,
+      lineHeight: 1,
+      letterSpacing: "-1px",
+    }}
+  >
+    <Box component="span" sx={{ color: "#111827" }}>
+      Desk
     </Box>
-  );
+    <Box component="span" sx={{ color: "#1976d2" }}>
+      Here
+    </Box>
+  </Typography>
+</Box>
+
+      {/* Alt başlık */}
+      <Typography
+        sx={{
+          textAlign: "center",
+          fontSize: "1.1rem",
+          color: "#111",
+          mb: 2.5,
+        }}
+      >
+        Hesap oluştur
+      </Typography>
+
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+        }}
+      >
+
+        {error && (
+          <Alert severity="error">
+            {error}
+          </Alert>
+        )}
+
+        <input
+          id="name"
+          type="text"
+          placeholder="Ad Soyad *"
+          value={name}
+          onChange={(event) =>
+            setName(event.target.value)
+          }
+          className="register-input"
+          required
+        />
+
+        <input
+          id="nickname"
+          type="text"
+          placeholder="Kullanıcı Adı *"
+          value={nickname}
+          onChange={(event) =>
+            setNickname(event.target.value)
+          }
+          className="register-input"
+          required
+        />
+
+        <input
+          id="email"
+          type="email"
+          placeholder="E-posta *"
+          value={email}
+          onChange={(event) =>
+            setEmail(event.target.value)
+          }
+          className="register-input"
+          required
+        />
+
+        <input
+          id="password"
+          type="password"
+          placeholder="Şifre *"
+          value={password}
+          onChange={(event) =>
+            setPassword(event.target.value)
+          }
+          className="register-input"
+          required
+        />
+
+        <input
+          id="confirmPassword"
+          type="password"
+          placeholder="Şifre Tekrarı *"
+          value={confirmPassword}
+          onChange={(event) =>
+            setConfirmPassword(event.target.value)
+          }
+          className="register-input"
+          required
+        />
+
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={loading}
+          fullWidth
+          sx={{
+            height: 58,
+            borderRadius: "24px",
+            backgroundColor: "#1976d2",
+            textTransform: "uppercase",
+            fontSize: "1.05rem",
+            fontWeight: 400,
+            boxShadow: "0 5px 10px rgba(0,0,0,0.25)",
+            mt: 1,
+
+            "&:hover": {
+              backgroundColor: "#1976d2",
+            },
+          }}
+        >
+          {loading ? (
+            <CircularProgress
+              size={26}
+              color="inherit"
+            />
+          ) : (
+            "REGISTER"
+          )}
+        </Button>
+
+      </Box>
+
+      <Typography
+        sx={{
+          textAlign: "center",
+          fontSize: "1.2rem",
+          color: "#111",
+          mt: 4,
+        }}
+      >
+        Zaten hesabınız var?{" "}
+        <a
+          href="/login"
+          style={{
+            color: "#1976d2",
+            textDecoration: "none",
+            fontWeight: 500,
+          }}
+        >
+          Giriş Yap
+        </a>
+      </Typography>
+
+    </Box>
+
+    <style jsx global>{`
+      .register-input {
+        width: 100%;
+        height: 65px;
+        box-sizing: border-box;
+
+        border: 1px solid #c8c8c8;
+        border-radius: 14px;
+
+        background-color: #fff;
+
+        padding: 0 20px;
+
+        font-family: Arial, sans-serif;
+        font-size: 1.1rem;
+        color: #222;
+
+        outline: none;
+      }
+
+      .register-input::placeholder {
+        color: #666;
+        opacity: 1;
+      }
+
+      .register-input:focus {
+        border-color: #1976d2;
+        box-shadow: 0 0 0 1px #1976d2;
+      }
+    `}</style>
+
+  </Box>
+);
 }
