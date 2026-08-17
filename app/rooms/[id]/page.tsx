@@ -44,11 +44,16 @@ export default function RoomPage() {
         const roomData = await getRoomById(roomId);
 
         if (!roomData) {
-          setError("Oda bulunamadı.");
-          return;
-        }
+  setError("Oda bulunamadı.");
+  return;
+}
 
-        setRoom(roomData);
+if (!roomData.isActive) {
+  setError("Bu oda şu anda bakımda ve rezervasyona kapalıdır.");
+  return;
+}
+
+setRoom(roomData);
       } catch (err) {
         console.error(err);
         setError("Oda bilgileri yüklenemedi.");

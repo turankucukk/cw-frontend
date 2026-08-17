@@ -190,6 +190,24 @@ function PaymentContent() {
       }
 
       const {
+  data: roomCheck,
+  error: roomCheckError,
+} = await supabase
+  .from("space")
+  .select("isActive")
+  .eq("id", room.id!)
+  .single();
+
+if (roomCheckError || !roomCheck?.isActive) {
+  setError(
+    "Bu oda artık müsait değil (bakıma alınmış olabilir). Lütfen başka bir oda seçin."
+  );
+
+  setPaying(false);
+  return;
+}
+
+      const {
         data: reservation,
         error: reservationError,
       } = await supabase
@@ -201,7 +219,7 @@ function PaymentContent() {
           end_time: end,
           participant_count: participants,
           total_price: totalPrice,
-          status: "confirmed",
+          status: room?.needsApproval ? "pending" : "confirmed",
         })
         .select()
         .single();

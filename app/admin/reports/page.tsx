@@ -106,8 +106,8 @@ type ReportRow = {
 };
 
 export default function ReportsPage() {
-  const [from, setFrom] = useState<Dayjs | null>(dayjs().subtract(30, "day"));
-  const [to, setTo] = useState<Dayjs | null>(dayjs());
+const [from, setFrom] = useState<Dayjs | null>(dayjs().subtract(7, "day"));
+const [to, setTo] = useState<Dayjs | null>(dayjs());
   const [room, setRoom] = useState("all");
   const [rooms, setRooms] = useState<{ id: number; name: string }[]>([]);
 
@@ -116,6 +116,7 @@ const [reportRows, setReportRows] = useState<ReportRow[]>([]);
 const [loadingReport, setLoadingReport] = useState(false);
 const [kpiData, setKpiData] = useState({ activeUsers: 0, totalUsers: 0, avgOccupancy: 0 });
 const [occupancyDataset, setOccupancyDataset] = useState<any[]>([]);
+const [occupancyDayCount, setOccupancyDayCount] = useState(0);
 const [roomDistribution, setRoomDistribution] = useState<{ id: number; value: number; label: string }[]>([]);
 const [weekdayData, setWeekdayData] = useState<{ day: string; count: number }[]>([]);
 const [topUsers, setTopUsers] = useState<{ name: string; count: number }[]>([]);
@@ -141,7 +142,7 @@ const lineSeries = rooms
     dataKey: `room_${r.id}`,
     label: r.name,
     color: BRAND_COLORS[i % BRAND_COLORS.length],
-    showMark: false,
+    showMark: true,
     curve: "monotoneX" as const,
   }));
 
@@ -195,9 +196,9 @@ const fetchDetailedReport = async () => {
     `
     )
     .eq("status", "confirmed")
-    .gte("start_time", from.toISOString())
-    .lte("end_time", to.toISOString())
-    .order("start_time", { ascending: true });
+.gte("start_time", from.startOf("day").toISOString())
+.lte("end_time", to.endOf("day").toISOString())
+.order("start_time", { ascending: true });
 
   if (error) {
     console.error(error);
@@ -257,10 +258,10 @@ const fetchDetailedReport = async () => {
     const label = WEEKDAY_LABELS[dayIndex];
     weekdayCounts[label] = (weekdayCounts[label] || 0) + 1;
   });
-  const weekdayArr = ["Pzt", "Sal", "Çar", "Per", "Cum"].map((day) => ({
-    day,
-    count: weekdayCounts[day] ?? 0,
-  }));
+  const weekdayArr = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map((day) => ({
+  day,
+  count: weekdayCounts[day] ?? 0,
+}));
   setWeekdayData(weekdayArr);
 
   // ── En yoğun kullanıcılar ──
@@ -277,7 +278,7 @@ const fetchDetailedReport = async () => {
   setTopUsers(topUsersArr);
 
   // ── Günlük doluluk oranı (mesai saatine göre) ──
-  const dayCount = to.diff(from, "day") + 1;
+  const dayCount = to.startOf("day").diff(from.startOf("day"), "day") + 1;
   const occupancyByDate: Record<string, Record<string, number>> = {};
 
   for (let i = 0; i < dayCount; i++) {
@@ -306,6 +307,7 @@ const fetchDetailedReport = async () => {
     return row;
   });
   setOccupancyDataset(occupancyDatasetArr);
+  setOccupancyDayCount(dayCount);
 
   // ── Genel ortalama doluluk ──
   const totalBookedHours = formatted.reduce(
@@ -516,26 +518,26 @@ const exportPDF = () => {
               <Typography sx={{ color: "text.secondary", fontSize: 13, mb: 1 }}>
                 Odalara göre zaman içindeki değişim
               </Typography>
-              <LineChart
-                dataset={occupancyDataset}
-                xAxis={[{ dataKey: "date", scaleType: "point", disableLine: true, disableTicks: true }]}
-                yAxis={[{ max: 100, disableLine: true, disableTicks: true, valueFormatter: (v: number) => `%${v}` }]}
-                series={lineSeries}
-                height={320}
-                margin={{ left: 10, right: 10, top: 20, bottom: 10 }}
-                grid={{ horizontal: true }}
-                sx={{
-                  "& .MuiAreaElement-root": { opacity: 0.15 },
-                  "& .MuiChartsGrid-line": { stroke: "#F1F5F9", strokeDasharray: "4 4" },
-                  "& .MuiChartsAxis-tickLabel": { fill: "#94A3B8", fontSize: 12 },
-                }}
-                slotProps={{
-                  legend: {
-                    direction: "horizontal",
-                    position: { vertical: "top", horizontal: "end" },
-                  },
-                }}
-              />
+<BarChart
+  dataset={occupancyDataset}
+  xAxis={[{ dataKey: "date", scaleType: "band", disableLine: true, disableTicks: true }]}
+  yAxis={[{ max: 100, disableLine: true, disableTicks: true, valueFormatter: (v: number) => `%${v}` }]}
+  series={lineSeries.map((s) => ({ dataKey: s.dataKey, label: s.label, color: s.color }))}
+  height={320}
+  borderRadius={6}
+  margin={{ left: 10, right: 10, top: 20, bottom: 10 }}
+  grid={{ horizontal: true }}
+  sx={{
+    "& .MuiChartsGrid-line": { stroke: "#F1F5F9", strokeDasharray: "4 4" },
+    "& .MuiChartsAxis-tickLabel": { fill: "#94A3B8", fontSize: 12 },
+  }}
+  slotProps={{
+    legend: {
+      direction: "horizontal",
+      position: { vertical: "top", horizontal: "end" },
+    },
+  }}
+/>
             </Card>
           </Grid>
 
@@ -582,7 +584,9 @@ const exportPDF = () => {
                   <Box key={d.label} sx={{ display: "flex", alignItems: "center", gap: 1, py: 0.6 }}>
                     <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: BRAND_COLORS[i % BRAND_COLORS.length] }} />
                     <Typography sx={{ fontSize: 13, flexGrow: 1, color: "text.secondary" }}>{d.label}</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 700 }}>%{d.value}</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+  {d.value} ({Math.round((d.value / roomDistribution.reduce((sum, x) => sum + x.value, 0)) * 100)}%)
+</Typography>
                   </Box>
                 ))}
               </Box>

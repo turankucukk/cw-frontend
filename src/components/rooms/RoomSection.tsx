@@ -28,7 +28,7 @@ export default function RoomsSection() {
   }, []);
 
   useEffect(() => {
-    getRooms().then(setRooms);
+    getRooms().then((data) => setRooms(data.filter((r) => r.isActive)));
   }, []);
 
   useEffect(() => {

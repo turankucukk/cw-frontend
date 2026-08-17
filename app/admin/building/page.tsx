@@ -17,7 +17,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  CircularProgress
+  CircularProgress,
 } from "@mui/material";
 import BusinessIcon from "@mui/icons-material/Business";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -25,19 +25,19 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import GridOnIcon from "@mui/icons-material/GridOn";
+import { useToast } from "@/src/contexts/toastcontext";
 
 // Supabase API servis fonksiyonları (Bina için olanlar)
-import { 
-  getBuildings, 
-  addBuilding, 
-  updateBuilding, 
-  deleteBuilding, 
-  Building 
+import {
+  getBuildings,
+  addBuilding,
+  updateBuilding,
+  deleteBuilding,
+  Building,
 } from "../../../src/lib/api/building";
 
 export default function BuildingsPage() {
-  const router = useRouter();
+  const { showToast } = useToast();
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
@@ -45,15 +45,19 @@ export default function BuildingsPage() {
 
   // Mod kontrolü: "add" mi "edit" mi?
   const [mode, setMode] = useState<"add" | "edit">("add");
-  const [selectedBuildingId, setSelectedBuildingId] = useState<number | null>(null);
+  const [selectedBuildingId, setSelectedBuildingId] = useState<number | null>(
+    null,
+  );
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [existingFloorPlanUrl, setExistingFloorPlanUrl] = useState<string | null>(null);
+  const [existingFloorPlanUrl, setExistingFloorPlanUrl] = useState<
+    string | null
+  >(null);
 
   const [buildingForm, setBuildingForm] = useState({
     name: "",
     location_url: "",
-    manager_id: "1" // Varsayılan olarak 1 atandı
+    manager_id: "1", // Varsayılan olarak 1 atandı
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +81,7 @@ export default function BuildingsPage() {
     setBuildingForm({
       name: "",
       location_url: "",
-      manager_id: "1"
+      manager_id: "1",
     });
     setSelectedFiles([]);
     setExistingFloorPlanUrl(null);
@@ -91,7 +95,7 @@ export default function BuildingsPage() {
     setBuildingForm({
       name: building.name || "",
       location_url: building.location_url || "",
-      manager_id: building.manager_id ? String(building.manager_id) : "1"
+      manager_id: building.manager_id ? String(building.manager_id) : "1",
     });
     setExistingFloorPlanUrl(building.floor_plan_url || null);
     setSelectedFiles([]);
@@ -103,7 +107,9 @@ export default function BuildingsPage() {
     setSelectedBuildingId(null);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setBuildingForm({ ...buildingForm, [name]: value });
   };
@@ -119,14 +125,18 @@ export default function BuildingsPage() {
   // BİNA SİLME İŞLEMİ
   const handleDeleteBuilding = async (id?: number) => {
     if (!id) return;
-    if (confirm("Bu binayı silmek istediğinize emin misiniz? Binaya bağlı olan mekanlar da etkilenebilir!")) {
+    if (
+      confirm(
+        "Bu binayı silmek istediğinize emin misiniz? Binaya bağlı olan mekanlar da etkilenebilir!",
+      )
+    ) {
       setLoading(true);
       const res = await deleteBuilding(id);
       if (res.success) {
-        alert("Bina başarıyla silindi.");
+        showToast("Bina silindi!", "error");
         await fetchData();
       } else {
-        alert("Silme hatası: " + res.error);
+        showToast("Silme hatası: " + res.error, "error");
         setLoading(false);
       }
     }
@@ -137,7 +147,7 @@ export default function BuildingsPage() {
     e.preventDefault();
 
     if (!buildingForm.name) {
-      alert("Lütfen bina adını giriniz!");
+      showToast("Lütfen bina adını giriniz!", "warning");
       return;
     }
 
@@ -146,7 +156,7 @@ export default function BuildingsPage() {
     const buildingData = {
       name: buildingForm.name,
       location_url: buildingForm.location_url,
-      manager_id: buildingForm.manager_id ? Number(buildingForm.manager_id) : 1
+      manager_id: buildingForm.manager_id ? Number(buildingForm.manager_id) : 1,
     };
 
     let result;
@@ -155,40 +165,58 @@ export default function BuildingsPage() {
       result = await addBuilding(buildingData, selectedFiles);
     } else {
       if (!selectedBuildingId) return;
-      result = await updateBuilding(selectedBuildingId, buildingData, selectedFiles.length > 0 ? selectedFiles : undefined);
+      result = await updateBuilding(
+        selectedBuildingId,
+        buildingData,
+        selectedFiles.length > 0 ? selectedFiles : undefined,
+      );
     }
 
     if (result.success) {
-      alert(mode === "add" ? "Bina eklendi!" : "Bina bilgileri güncellendi!");
+      showToast(
+        mode === "add" ? "Bina eklendi!" : "Bina bilgileri güncellendi!",
+        "success",
+      );
       await fetchData();
       handleClose();
     } else {
-      alert("İşlem hatası: " + result.error);
+      showToast("İşlem hatası: " + result.error, "error");
     }
 
     setSubmitLoading(false);
   };
 
   return (
-    <Container maxWidth="lg" disableGutters sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 4 } }}>
+    <Container
+      maxWidth="lg"
+      disableGutters
+      sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 4 } }}
+    >
       {/* Üst Başlık */}
-      <Box 
-        sx={{ 
-          mb: 4, 
-          display: "flex", 
-          flexDirection: { xs: "column", sm: "row" }, 
-          justifyContent: "space-between", 
+      <Box
+        sx={{
+          mb: 4,
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
           alignItems: { xs: "stretch", sm: "center" },
-          gap: 2
+          gap: 2,
         }}
       >
-        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold", fontSize: { xs: "1.5rem", sm: "2.125rem" } }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            fontSize: { xs: "1.5rem", sm: "2.125rem" },
+          }}
+        >
           Bina Yönetimi ({buildings.length})
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<AddIcon />} 
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
           onClick={handleOpenAdd}
           sx={{ width: { xs: "100%", sm: "auto" } }}
         >
@@ -202,12 +230,27 @@ export default function BuildingsPage() {
           <CircularProgress />
         </Box>
       ) : buildings.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 8, px: 2, bgcolor: "action.hover", borderRadius: 2, border: "2px dashed #ccc" }}>
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 8,
+            px: 2,
+            bgcolor: "action.hover",
+            borderRadius: 2,
+            border: "2px dashed #ccc",
+          }}
+        >
           <BusinessIcon sx={{ fontSize: 60, color: "text.secondary", mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Sistemde kayıtlı bina bulunamadı.
           </Typography>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenAdd} sx={{ mt: 1 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAdd}
+            sx={{ mt: 1 }}
+          >
             İlk Binayı Ekle
           </Button>
         </Box>
@@ -215,8 +258,15 @@ export default function BuildingsPage() {
         <Grid container spacing={{ xs: 2, sm: 3 }}>
           {buildings.map((building) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={building.id}>
-              <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
-                
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxShadow: 3,
+                  borderRadius: 2,
+                }}
+              >
                 {/* Kat Planı / Görsel varsa göster */}
                 {building.floor_plan_url && (
                   <CardMedia
@@ -227,22 +277,42 @@ export default function BuildingsPage() {
                     sx={{ objectFit: "cover" }}
                   />
                 )}
-                
+
                 <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5 } }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 1,
+                      fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                    }}
+                  >
                     {building.name}
                   </Typography>
 
                   {building.location_url && (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "primary.main", mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        color: "primary.main",
+                        mb: 1,
+                      }}
+                    >
                       <LocationOnIcon fontSize="small" />
-                      <Typography 
-                        variant="body2" 
-                        component="a" 
-                        href={building.location_url} 
-                        target="_blank" 
+                      <Typography
+                        variant="body2"
+                        component="a"
+                        href={building.location_url}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        sx={{ textDecoration: "none", color: "inherit", wordBreak: "break-all", "&:hover": { textDecoration: "underline" } }}
+                        sx={{
+                          textDecoration: "none",
+                          color: "inherit",
+                          wordBreak: "break-all",
+                          "&:hover": { textDecoration: "underline" },
+                        }}
                       >
                         Haritada Göster
                       </Typography>
@@ -257,20 +327,24 @@ export default function BuildingsPage() {
                 </CardContent>
 
                 {/* DÜZENLE VE SİL BUTONLARI */}
-                <CardActions sx={{ 
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "flex-end", 
-                  px: 2, 
-                  pb: 2, 
-                  pt: 0, 
-                  gap: 1 
-                }}>
+                <CardActions
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    justifyContent: "flex-end",
+                    px: 2,
+                    pb: 2,
+                    pt: 0,
+                    gap: 1,
+                  }}
+                >
                   <Button
                     size="small"
                     variant="outlined"
                     startIcon={<GridOnIcon />}
-                    onClick={() => router.push(`/admin/building/${building.id}/layout`)}
+                    onClick={() =>
+                      router.push(`/admin/building/${building.id}/layout`)
+                    }
                     fullWidth
                     data-testid={`building-kroki-${building.id}`}
                   >
@@ -286,10 +360,10 @@ export default function BuildingsPage() {
                   >
                     Düzenle
                   </Button>
-                  <Button 
-                    size="small" 
-                    variant="outlined" 
-                    color="error" 
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
                     startIcon={<DeleteIcon />}
                     onClick={() => handleDeleteBuilding(building.id)}
                     fullWidth
@@ -297,7 +371,6 @@ export default function BuildingsPage() {
                     Sil
                   </Button>
                 </CardActions>
-
               </Card>
             </Grid>
           ))}
@@ -305,81 +378,133 @@ export default function BuildingsPage() {
       )}
 
       {/* MODAL FORM (BİNA EKLE / DÜZENLE) */}
-      <Dialog 
-        open={open} 
-        onClose={handleClose} 
-        fullWidth 
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
         maxWidth="sm"
         slotProps={{
           paper: {
-            sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: "auto" } }
-          }
+            sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: "auto" } },
+          },
         }}
       >
-        <DialogTitle sx={{ fontWeight: "bold", fontSize: { xs: "1.1rem", sm: "1.25rem" } }}>
+        <DialogTitle
+          sx={{ fontWeight: "bold", fontSize: { xs: "1.1rem", sm: "1.25rem" } }}
+        >
           {mode === "add" ? "Yeni Bina Kaydı" : "Bina Bilgilerini Düzenle"}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
-          <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2, p: { xs: 2, sm: 3 } }}>
-            
-            <TextField 
-              required 
-              fullWidth 
-              label="Bina Adı" 
-              name="name" 
-              value={buildingForm.name} 
-              onChange={handleChange} 
-            />
-
-            <TextField 
-              fullWidth 
-              label="Konum URL (Google Maps Linki)" 
-              name="location_url" 
-              value={buildingForm.location_url} 
-              onChange={handleChange} 
-            />
-
-            <TextField 
+          <DialogContent
+            dividers
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              p: { xs: 2, sm: 3 },
+            }}
+          >
+            <TextField
               required
-              fullWidth 
-              type="number" 
-              label="Yönetici Kullanıcı ID" 
-              name="manager_id" 
-              value={buildingForm.manager_id} 
-              onChange={handleChange} 
+              fullWidth
+              label="Bina Adı"
+              name="name"
+              value={buildingForm.name}
+              onChange={handleChange}
+            />
+
+            <TextField
+              fullWidth
+              label="Konum URL (Google Maps Linki)"
+              name="location_url"
+              value={buildingForm.location_url}
+              onChange={handleChange}
+            />
+
+            <TextField
+              required
+              fullWidth
+              type="number"
+              label="Yönetici Kullanıcı ID"
+              name="manager_id"
+              value={buildingForm.manager_id}
+              onChange={handleChange}
             />
 
             {/* Kat Planı / Görsel Yükleyici */}
-            <Box sx={{ border: "1px dashed #ccc", borderRadius: 1, p: 2, textAlign: "center" }}>
-              <input type="file" accept="image/*" style={{ display: "none" }} ref={fileInputRef} onChange={handleFileChange} />
-              
-              {mode === "edit" && existingFloorPlanUrl && selectedFiles.length === 0 && (
-                <Box sx={{ mb: 1.5 }}>
-                  <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>Mevcut Kat Planı / Görsel:</Typography>
-                  <img src={existingFloorPlanUrl} alt="Mevcut" style={{ width: "100%", maxHeight: "120px", objectFit: "cover", borderRadius: "4px" }} />
-                </Box>
-              )}
+            <Box
+              sx={{
+                border: "1px dashed #ccc",
+                borderRadius: 1,
+                p: 2,
+                textAlign: "center",
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
 
-              <Button 
-                variant="outlined" 
+              {mode === "edit" &&
+                existingFloorPlanUrl &&
+                selectedFiles.length === 0 && (
+                  <Box sx={{ mb: 1.5 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ display: "block", mb: 0.5 }}
+                    >
+                      Mevcut Kat Planı / Görsel:
+                    </Typography>
+                    <img
+                      src={existingFloorPlanUrl}
+                      alt="Mevcut"
+                      style={{
+                        width: "100%",
+                        maxHeight: "120px",
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                      }}
+                    />
+                  </Box>
+                )}
+
+              <Button
+                variant="outlined"
                 color="primary"
-                startIcon={<CloudUploadIcon />} 
-                onClick={() => fileInputRef.current?.click()} 
+                startIcon={<CloudUploadIcon />}
+                onClick={() => fileInputRef.current?.click()}
                 sx={{ width: "100%", py: 1.5 }}
               >
-                {selectedFiles.length > 0 
-                  ? `Seçilen Dosya: ${selectedFiles[0].name}` 
-                  : existingFloorPlanUrl 
-                    ? "Kat Planını / Görseli Değiştir" 
+                {selectedFiles.length > 0
+                  ? `Seçilen Dosya: ${selectedFiles[0].name}`
+                  : existingFloorPlanUrl
+                    ? "Kat Planını / Görseli Değiştir"
                     : "Kat Planı / Bina Görseli Yükle"}
               </Button>
             </Box>
-
           </DialogContent>
           <DialogActions sx={{ p: { xs: 2, sm: 2.5 } }}>
-            <Button onClick={handleClose} color="inherit" disabled={submitLoading}>İptal</Button>
-            <Button type="submit" variant="contained" color="primary" disabled={submitLoading}>
-              {submitLoading ? "Kaydediliyor..." : mode === "add" ? "Binayı Kaydet" : "Değişiklikleri Kaydet"}
+            <Button
+              onClick={handleClose}
+              color="inherit"
+              disabled={submitLoading}
+            >
+              İptal
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={submitLoading}
+            >
+              {submitLoading
+                ? "Kaydediliyor..."
+                : mode === "add"
+                  ? "Binayı Kaydet"
+                  : "Değişiklikleri Kaydet"}
             </Button>
           </DialogActions>
         </form>

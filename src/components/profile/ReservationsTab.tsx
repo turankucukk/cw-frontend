@@ -3,6 +3,11 @@ import { Box, Typography, Card, Chip, Button, Stack, Divider } from "@mui/materi
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import { useState } from "react";
+import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { Html5Qrcode } from "html5-qrcode";
+import { useEffect, useRef } from "react";
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
@@ -26,6 +31,65 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
   // Statülere göre rezervasyonları ayırıyoruz
   const activeReservations = reservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed");
   const pastReservations = reservations.filter(r => r.status === "completed" || r.status === "cancelled");
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  const handleOpenScanner = () => {
+    setScannerOpen(true);
+  };
+
+  const handleCloseScanner = () => {
+  if (scannerRef.current) {
+    scannerRef.current
+      .stop()
+      .then(() => scannerRef.current?.clear())
+      .catch(() => {});
+    scannerRef.current = null;
+  }
+  setScannerOpen(false);
+};
+
+useEffect(() => {
+  if (!scannerOpen) return;
+
+  const timer = setTimeout(() => {
+    const el = document.getElementById("qr-reader");
+    if (!el) return;
+
+    const scanner = new Html5Qrcode("qr-reader");
+    scannerRef.current = scanner;
+
+    scanner
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          scanner
+            .stop()
+            .then(() => scanner.clear())
+            .catch(() => {});
+          scannerRef.current = null;
+          setScannerOpen(false);
+          window.location.href = decodedText;
+        },
+        () => {}
+      )
+      .catch((err) => {
+        console.error("Kamera başlatılamadı:", err);
+      });
+  }, 150);
+
+  return () => {
+    clearTimeout(timer);
+    if (scannerRef.current) {
+      scannerRef.current
+        .stop()
+        .then(() => scannerRef.current?.clear())
+        .catch(() => {});
+      scannerRef.current = null;
+    }
+  };
+}, [scannerOpen]);
 
   return (
     <Box>
@@ -52,7 +116,7 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {getStatusChip(res.status)}
-                  <Button variant="contained" size="small" startIcon={<QrCodeScannerIcon />} onClick={() => alert("Kamera açılarak QR okunacak.")}>
+                  <Button variant="contained" size="small" startIcon={<QrCodeScannerIcon />} onClick={handleOpenScanner}>
                     Check-in (QR)
                   </Button>
                 </Box>
@@ -83,6 +147,17 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
           ))
         )}
       </Stack>
+    <Dialog open={scannerOpen} onClose={handleCloseScanner} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          QR Kodu Okutun
+          <IconButton onClick={handleCloseScanner} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <div id="qr-reader" style={{ width: "100%" }} />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

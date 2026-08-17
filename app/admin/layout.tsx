@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Navbar from "@/src/components/layout/Navbar"; // Sitenin orijinal Navbar'ı
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -10,6 +10,10 @@ import PeopleIcon from "@mui/icons-material/People";
 import AparthmentIcon from "@mui/icons-material/Apartment";
 import { Box, Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import { useUserRole } from "@/src/hooks/useUserRole";
+import { can, type Role } from "@/src/lib/permissions";
+import FactCheckIcon from "@mui/icons-material/FactCheck";
+import { ToastProvider } from "@/src/contexts/toastcontext";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   
@@ -17,15 +21,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   
   // Mobil yan menünün (Drawer) açık/kapalı durumunu tutan state
-  const [mobileOpen, setMobileOpen] = useState(false);
+const [mobileOpen, setMobileOpen] = useState(false);
+const { role: rawRole, loading: roleLoading } = useUserRole();
+const role = rawRole as Role | null;
 
-  const menuItems = [
-    { text: "Genel Bakış", icon: <DashboardIcon style={{ fontSize: "22px" }} />, path: "/admin" },
-    { text: "Odalar", icon: <MeetingRoomIcon style={{ fontSize: "22px" }} />, path: "/admin/rooms" },
-    { text: "Binalar" , icon: <AparthmentIcon style={{ fontSize:"22px"}}/>, path: "/admin/building"},
-    { text: "Raporlar", icon: <BarChartIcon style={{ fontSize: "22px" }} />, path: "/admin/reports" },
-    { text: "Kullanıcılar", icon: <PeopleIcon style={{ fontSize: "22px" }} />, path: "/admin/users" },
+  const allMenuItems = [
+    { text: "Genel Bakış", icon: <DashboardIcon style={{ fontSize: "22px" }} />, path: "/admin", permission: null },
+    { text: "Odalar", icon: <MeetingRoomIcon style={{ fontSize: "22px" }} />, path: "/admin/rooms", permission: "rooms.view" },
+    { text: "Binalar", icon: <AparthmentIcon style={{ fontSize: "22px" }} />, path: "/admin/building", permission: "buildings.manage" },
+    { text: "Raporlar", icon: <BarChartIcon style={{ fontSize: "22px" }} />, path: "/admin/reports", permission: "reports.view" },
+    { text: "Kullanıcılar", icon: <PeopleIcon style={{ fontSize: "22px" }} />, path: "/admin/users", permission: "users.view" },
+    { text: "Onaylar", icon: <FactCheckIcon style={{ fontSize: "22px" }} />, path: "/admin/approvals", permission: "approvals.manage" },
   ];
+
+  // Rol henüz yüklenmediyse hiçbir menü öğesi gösterme (yanlışlıkla yetkisiz menü göstermemek için)
+const menuItems = role && !roleLoading
+  ? allMenuItems.filter((item) => !item.permission || can(role, item.permission))
+  : [];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -95,14 +107,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </Box>
   );
 
-  return (
-    <Box sx={{ 
-      display: "flex", 
-      flexDirection: "column",
-      minHeight: "100vh", 
-      backgroundColor: "#f4f5f7", 
-      fontFamily: "'Inter', sans-serif"
-    }}>
+return (
+  <ToastProvider>
+  <Box sx={{ 
+    display: "flex", 
+    flexDirection: "column",
+    minHeight: "100vh", 
+    backgroundColor: "#f4f5f7", 
+    fontFamily: "'Inter', sans-serif"
+  }}>
       
       {/* ─── 1. KATMAN: SİTENİN ORİJİNAL NAVBAR'I ─── */}
       <Box sx={{ position: "fixed", top: 0, left: 0, width: "100%", zIndex: 1100 }}>
@@ -191,6 +204,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {sidebarContent}
       </Drawer>
 
-    </Box>
+  </Box>
+  </ToastProvider>
   );
 }
