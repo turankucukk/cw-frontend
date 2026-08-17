@@ -7,7 +7,7 @@ export default function HowItWorks() {
       title: "Alanını keşfet",
       description:
         "İhtiyacınıza uygun toplantı odasını veya çalışma alanını kolayca bulun.",
-      image:"/images/booking.avif",
+      image:"/images/ofis2.webp",
 
     },
     {

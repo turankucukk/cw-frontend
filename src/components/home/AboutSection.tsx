@@ -55,8 +55,12 @@ export default function AboutSection() {
         
       </Box>
 
-      {/* Görsel alanı */}
+      {/* Görsel kısmı */}
+      
       <Box
+        component="img"
+        src="/images/workspaceImage.jpg"
+        alt="Workspace Görseli"
         sx={{
           width: { xs: "100%", md: 450 },
           height: 320,
@@ -64,17 +68,9 @@ export default function AboutSection() {
           objectFit: "cover",
           boxShadow: 4,
           transition:"0.4s",
-          "&:hover":{transform: "scale(1.03)",},
-          backgroundColor: "#f1f5f9",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          "&:hover":{transform: "scale(1.03)"}
         }}
-      >
-        <Typography color="text.secondary">
-          Workspace Image
-        </Typography>
-      </Box>
+      />
     </Box>
   );
 }
