@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Container,
   Grid,
@@ -24,6 +25,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import GridOnIcon from "@mui/icons-material/GridOn";
 
 // Supabase API servis fonksiyonları (Bina için olanlar)
 import { 
@@ -35,6 +37,7 @@ import {
 } from "../../../src/lib/api/building";
 
 export default function BuildingsPage() {
+  const router = useRouter();
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
@@ -263,10 +266,20 @@ export default function BuildingsPage() {
                   pt: 0, 
                   gap: 1 
                 }}>
-                  <Button 
-                    size="small" 
-                    variant="outlined" 
-                    color="info" 
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<GridOnIcon />}
+                    onClick={() => router.push(`/admin/building/${building.id}/layout`)}
+                    fullWidth
+                    data-testid={`building-kroki-${building.id}`}
+                  >
+                    Kroki
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="info"
                     startIcon={<EditIcon />}
                     onClick={() => handleOpenEdit(building)}
                     fullWidth

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import RoomList from './RoomList';
 import BuildingFloorPlan from '@/src/components/rooms/BuildingFloorPlan';
+import BuildingLayoutViewer from '@/src/components/rooms/BuildingLayoutViewer';
 import GlassCard from '@/src/components/layout/GlassCard';
 import Navbar from '../layout/Navbar';
 import FilterBar from './FilterBar';
@@ -36,6 +37,12 @@ export default function RoomsSection() {
       setSelectedBuildingId(Number(buildingIdFromUrl));
     }
   }, [searchParams]);
+
+  const selectedBuilding = buildings.find((b) => b.id === selectedBuildingId) ?? null;
+  const hasBuildingLayout = !!selectedBuilding?.layout_data?.floors?.some((f) => f.items.length > 0);
+  const selectedBuildingRooms = selectedBuildingId
+    ? rooms.filter((room) => room.building_id === selectedBuildingId)
+    : rooms;
 
   return (
     <>
@@ -69,7 +76,14 @@ export default function RoomsSection() {
           </Box>
           <Box sx={{ flex: { md: '0 0 40%' }, display: 'flex', justifyContent: 'center' }}>
             <GlassCard>
-              <BuildingFloorPlan />
+              {hasBuildingLayout ? (
+                <BuildingLayoutViewer
+                  layout={selectedBuilding!.layout_data}
+                  rooms={selectedBuildingRooms}
+                />
+              ) : (
+                <BuildingFloorPlan />
+              )}
             </GlassCard>
           </Box>
         </Box>
