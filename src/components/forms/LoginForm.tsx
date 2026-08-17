@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { createClient } from "@/src/utils/supabase/client";
 import {
   Box,
@@ -24,17 +25,16 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // Hata mesajları için state
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  // Supabase client'ı başlatıyoruz
   const supabase = createClient();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setLoading(true);
-    setError(""); // Yeni denemede eski hatayı temizle
+    setError("");
 
     try {
       // Supabase Giriş İşlemi
@@ -45,19 +45,28 @@ export default function LoginForm() {
         });
 
       if (supabaseError) {
-        setError("Giriş başarısız: " + supabaseError.message);
+        const message = "Giriş başarısız: " + supabaseError.message;
+
+        setError(message);
+        toast.error("Giriş başarısız. Email veya şifrenizi kontrol edin.");
         return;
       }
 
       console.log("Login başarılı", data);
 
+      toast.success("Başarıyla giriş yapıldı.");
+
       // Başarılı girişte ana sayfaya yönlendir ve auth durumunu tazele
-      router.push("/");
-      router.refresh();
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 700);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.",
-      );
+      const message =
+        err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.";
+
+      setError(message);
+      toast.error("Giriş sırasında beklenmeyen bir hata oluştu.");
     } finally {
       setLoading(false);
     }
@@ -90,7 +99,6 @@ export default function LoginForm() {
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          {/* Hata mesajı alanı */}
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}

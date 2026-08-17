@@ -366,7 +366,7 @@ export default function RoomsPage() {
             sx={{ mt: 1 }}
           >
             İlk Mekanı Ekle
-          </Button>
+          </Button> 
         </Box>
       ) : (
         <Grid container spacing={{ xs: 2, sm: 3 }}>
@@ -384,10 +384,16 @@ export default function RoomsPage() {
                 {room.room_images && room.room_images.length > 0 && (
                   <CardMedia
                     component="img"
-                    height="200"
                     image={room.room_images[0].image_url}
                     alt={room.name}
-                    sx={{ objectFit: "cover" }}
+                    sx={{
+                      height: 200,
+                      width: "100%",
+                      objectFit: "cover",
+                      objectPosition: "center",
+                      aspectRatio: "16/9",
+                      display: "block",
+                    }}
                   />
                 )}
 

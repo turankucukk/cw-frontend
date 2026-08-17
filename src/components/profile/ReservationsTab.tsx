@@ -1,13 +1,12 @@
 "use client";
-import { Box, Typography, Card, Chip, Button, Stack, Divider } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { Box, Typography, Card, Chip, Button, Stack, Divider, Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import { useState } from "react";
-import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { Html5Qrcode } from "html5-qrcode";
-import { useEffect, useRef } from "react";
+import { cancelExpiredReservations } from "@/src/utils/reservationUtils";
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
@@ -16,23 +15,34 @@ const formatTime = (dateStr: string) => {
   return new Date(dateStr).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 };
 
-  const getStatusChip = (status: string) => {
+const getStatusChip = (status: string) => {
   switch (status) {
     case "approved": return <Chip label="Onaylandı" color="primary" size="small" />;
     case "confirmed": return <Chip label="Onaylandı" color="primary" size="small" />;
     case "pending": return <Chip label="Bekliyor" color="warning" size="small" />;
     case "completed": return <Chip label="Tamamlandı" color="success" size="small" />;
     case "cancelled": return <Chip label="İptal Edildi" color="error" size="small" />;
+    case "checked_in": return <Chip label="Check-in Yapıldı" color="info" size="small" />;
     default: return <Chip label={status} size="small" />;
   }
 };
 
 export default function ReservationsTab({ reservations = [] }: { reservations?: any[] }) {
-  // Statülere göre rezervasyonları ayırıyoruz
-  const activeReservations = reservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed");
-  const pastReservations = reservations.filter(r => r.status === "completed" || r.status === "cancelled");
+  const [localReservations, setLocalReservations] = useState(reservations);
   const [scannerOpen, setScannerOpen] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  useEffect(() => {
+    setLocalReservations(reservations);
+
+    // Tembel iptal (lazy cancellation) kontrolü
+    cancelExpiredReservations(reservations).then((updated) => {
+      if (updated) {
+        // Eğer veritabanında süresi geçmiş bir rezervasyon iptal edildiyse sayfayı yenile
+        window.location.reload();
+      }
+    });
+  }, [reservations]);
 
   const handleOpenScanner = () => {
     setScannerOpen(true);
@@ -91,6 +101,10 @@ useEffect(() => {
   };
 }, [scannerOpen]);
 
+  // Statülere göre rezervasyonları ayırıyoruz ("checked_in" olanlar da aktif kalır)
+  const activeReservations = localReservations.filter(r => r.status === "approved" || r.status === "pending" || r.status === "confirmed" || r.status === "checked_in");
+  const pastReservations = localReservations.filter(r => r.status === "completed" || r.status === "cancelled");
+
   return (
     <Box>
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Aktif Rezervasyonlarım</Typography>
@@ -116,9 +130,11 @@ useEffect(() => {
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {getStatusChip(res.status)}
-                  <Button variant="contained" size="small" startIcon={<QrCodeScannerIcon />} onClick={handleOpenScanner}>
-                    Check-in (QR)
-                  </Button>
+                  {res.status !== "checked_in" && (
+                    <Button variant="contained" size="small" startIcon={<QrCodeScannerIcon />} onClick={handleOpenScanner}>
+                      Check-in (QR)
+                    </Button>
+                  )}
                 </Box>
               </Box>
             </Card>

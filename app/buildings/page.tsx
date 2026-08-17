@@ -5,7 +5,16 @@ import Navbar from "@/src/components/layout/Navbar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/src/utils/supabase/client";
-import { Box, Container, Grid, Card, Typography, Link as MuiLink } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardMedia,
+  CardContent,
+  Grid,
+  Typography,
+  Container,
+  Link as MuiLink,
+} from "@mui/material";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import Footer from "@/src/components/layout/Footer";
@@ -44,13 +53,40 @@ export default function BuildingsPage() {
     <>
       <Navbar />
 
-      <Box sx={{ pt: { xs: 14, md: 16 }, pb: 6, minHeight: "100vh", bgcolor: "#f5f6f8" }}>
+      <Box
+        component="main"
+        sx={{
+          pt: "110px",
+          px: 5,
+          pb: 5,
+          minHeight: "100vh",
+          backgroundColor: "#f5f6f8",
+        }}
+      >
         <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 5 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          <Box
+            sx={{
+              textAlign: "center",
+              mb: 5,
+            }}
+          >
+            <Typography
+              variant="h3"
+              component="h1"
+              sx={{
+                mb: 1,
+                fontWeight: 600,
+              }}
+            >
               BİNALAR
             </Typography>
-            <Typography color="text.secondary">
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: "#6b7280",
+              }}
+            >
               Odalarını görmek istediğiniz binayı seçin.
             </Typography>
           </Box>
