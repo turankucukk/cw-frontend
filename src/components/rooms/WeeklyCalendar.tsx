@@ -179,30 +179,43 @@ export default function WeeklyCalendar({
     fetchReservations();
   }, [roomId]);
 
-  const handleDateClick = (clickedDate: Date) => {
-    if (clickedDate < new Date()) {
-      alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
-      return;
-    }
-    
-    const finishDate = new Date(clickedDate);
-    finishDate.setHours( finishDate.getHours() + 1);
+  const handleDateClick = async (clickedDate: Date) => {
+  if (clickedDate < new Date()) {
+    alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+    return;
+  }
 
-    const registerUrl = 
-   `/register?roomId=${roomId}` +
-   `&start=${encodeURIComponent(clickedDate.toISOString())}` +
-   `&end=${encodeURIComponent(finishDate.toISOString())}`;
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Giriş yapmamış kullanıcı → Register
+  if (!user) {
+    const finishDate = new Date(clickedDate);
+    finishDate.setHours(finishDate.getHours() + 1);
+
+    const registerUrl =
+      `/register?roomId=${roomId}` +
+      `&start=${encodeURIComponent(clickedDate.toISOString())}` +
+      `&end=${encodeURIComponent(finishDate.toISOString())}`;
 
     router.push(registerUrl);
-   
+    return;
+  }
 
-    setSelectedDate(formatDateForInput(clickedDate));
-    setStartTime(formatTimeForInput(clickedDate));
-    setEndTime(formatTimeForInput(finishDate));
-    setParticipantCount(String(minParticipants));
+  // Giriş yapmış kullanıcı → Rezervasyon penceresi
+  const finishDate = new Date(clickedDate);
+  finishDate.setHours(finishDate.getHours() + 1);
 
-    setDialogOpen(true);
-  };
+  setSelectedDate(formatDateForInput(clickedDate));
+  setStartTime(formatTimeForInput(clickedDate));
+  setEndTime(formatTimeForInput(finishDate));
+  setParticipantCount(String(minParticipants));
+
+  setDialogOpen(true);
+};
 
   const handleAddReservation = () => {
     const nextHour = getNextHour();
@@ -227,7 +240,7 @@ export default function WeeklyCalendar({
     setDialogOpen(false);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedDate) {
       alert("Lütfen tarih seçin.");
       return;
@@ -283,20 +296,25 @@ export default function WeeklyCalendar({
       alert("Seçtiğiniz saat aralığı dolu. Lütfen başka bir saat seçin.");
       return;
     }
+const supabase = createClient();
 
-    const registerUrl =
-      `/register?roomId=${roomId}` +
-      `&start=${encodeURIComponent(
-        start.toISOString()
-      )}` +
-      `&end=${encodeURIComponent(
-        end.toISOString()
-      )}` +
-      `&participants=${participantNumber}`;
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
-    setDialogOpen(false);
+const targetUrl = user
+  ? `/payment?roomId=${roomId}` +
+    `&start=${encodeURIComponent(start.toISOString())}` +
+    `&end=${encodeURIComponent(end.toISOString())}` +
+    `&participants=${participantNumber}`
+  : `/register?roomId=${roomId}` +
+    `&start=${encodeURIComponent(start.toISOString())}` +
+    `&end=${encodeURIComponent(end.toISOString())}` +
+    `&participants=${participantNumber}`;
 
-    router.push(registerUrl);
+setDialogOpen(false);
+
+router.push(targetUrl);
   };
 
   return (
