@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { isReservationExpired } from "@/src/utils/reservationUtils";
 
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -16,16 +19,29 @@ import {
   TextField,
 } from "@mui/material";
 
+import { createClient } from "@/src/utils/supabase/client";
+
 type WeeklyCalendarProps = {
   roomId: number;
+  roomCapacity: number;
+};
+
+type CalendarReservation = {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  backgroundColor: string;
+  borderColor: string;
+  textColor: string;
+  extendedProps: {
+    isMine: boolean;
+  };
 };
 
 function formatDateForInput(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(
-    2,
-    "0",
-  );
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -33,151 +49,272 @@ function formatDateForInput(date: Date) {
 
 function formatTimeForInput(date: Date) {
   const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(
-    2,
-    "0",
-  );
+  const minute = String(date.getMinutes()).padStart(2, "0");
 
   return `${hour}:${minute}`;
 }
 
-function getCurrentWeekDate(
-  dayOffset: number,
-  hour: number,
-) {
-  const today = new Date();
-  const currentDay = today.getDay();
+function addOneHour(time: string) {
+  if (!time) return "";
 
-  const mondayDifference =
-    currentDay === 0 ? -6 : 1 - currentDay;
+  const [hour, minute] = time.split(":").map(Number);
 
-  const result = new Date(today);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return "";
+  }
 
-  result.setDate(
-    today.getDate() + mondayDifference + dayOffset,
-  );
+  const date = new Date();
 
-  result.setHours(hour, 0, 0, 0);
+  date.setHours(hour, minute, 0, 0);
+  date.setHours(date.getHours() + 1);
 
-  return result;
+  return formatTimeForInput(date);
+}
+
+function getNextHour() {
+  const date = new Date();
+
+  date.setMinutes(0, 0, 0);
+  date.setHours(date.getHours() + 1);
+
+  return date;
 }
 
 export default function WeeklyCalendar({
   roomId,
+  roomCapacity,
 }: WeeklyCalendarProps) {
-  const [dialogOpen, setDialogOpen] =
-    useState(false);
+  const router = useRouter();
 
-  const [selectedDate, setSelectedDate] =
-    useState("");
+  const minParticipants = Math.ceil((roomCapacity * 2) / 3);
 
-  const [startTime, setStartTime] =
-    useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [participantCount, setParticipantCount] = useState(String(minParticipants));
+  const [reservations, setReservations] = useState<CalendarReservation[]>([]);
 
-  const [endTime, setEndTime] =
-    useState("");
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const supabase = createClient();
 
-  const [participantCount, setParticipantCount] =
-    useState("1");
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-  /*
-   * Bunlar şimdilik demo rezervasyonlardır.
-   * Daha sonra Supabase'den roomId kullanılarak alınacak.
-   */
-  const exampleReservations = useMemo(
-    () => [
-      {
-        id: `room-${roomId}-reservation-1`,
-        title: "Dolu",
-        start: getCurrentWeekDate(1, 10),
-        end: getCurrentWeekDate(1, 12),
-      },
-      {
-        id: `room-${roomId}-reservation-2`,
-        title: "Dolu",
-        start: getCurrentWeekDate(3, 14),
-        end: getCurrentWeekDate(3, 16),
-      },
-    ],
-    [roomId],
-  );
+      if (authError) {
+        console.error("Kullanıcı bilgisi alınamadı:", authError);
+      }
 
-  const handleDateClick = (clickedDate: Date) => {
+      let currentDbUserId: number | string | null = null;
+
+      if (authUser) {
+        const { data: dbUser, error: dbUserError } = await supabase
+          .from("user")
+          .select("id")
+          .eq("user_id", authUser.id)
+          .single();
+
+        if (dbUserError) {
+          console.error("Public user bulunamadı:", dbUserError);
+        } else if (dbUser) {
+          currentDbUserId = dbUser.id;
+        }
+      }
+
+      const { data, error } = await supabase
+        .from("reservation")
+        .select(`
+          id,
+          space_id,
+          user_id,
+          start_time,
+          end_time,
+          status
+        `)
+        .eq("space_id", roomId)
+        .neq("status", "cancelled")
+        .order("start_time", {
+          ascending: true,
+        });
+
+      if (error) {
+        console.error("Rezervasyonlar alınamadı:", error);
+        return;
+      }
+
+      const calendarEvents: CalendarReservation[] = (data ?? [])
+        .filter((reservation) => {
+          // Eğer rezervasyon onaylıysa ama 15 dk içinde check-in (qr okutma) yapılmadıysa
+          // takvimde dolu olarak GÖSTERME (başkasının alabilmesi için boşa düşür)
+          if ((reservation.status === "confirmed" || reservation.status === "approved" || reservation.status === "pending") && isReservationExpired(reservation.start_time)) {
+            return false;
+          }
+          return true;
+        })
+        .map((reservation) => {
+          const isMine =
+            currentDbUserId !== null &&
+            String(currentDbUserId) === String(reservation.user_id);
+
+          return {
+            id: String(reservation.id),
+            title: isMine ? "Rezervasyonum" : "Dolu",
+            start: reservation.start_time,
+            end: reservation.end_time,
+            backgroundColor: isMine ? "#175bb8" : "#9ca3af",
+            borderColor: isMine ? "#175bb8" : "#9ca3af",
+            textColor: "#ffffff",
+            extendedProps: {
+              isMine,
+            },
+          };
+        });
+
+      setReservations(calendarEvents);
+    };
+
+    fetchReservations();
+  }, [roomId]);
+
+  const handleDateClick = async (clickedDate: Date) => {
+  if (clickedDate < new Date()) {
+    alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+    return;
+  }
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Giriş yapmamış kullanıcı → Register
+  if (!user) {
     const finishDate = new Date(clickedDate);
+    finishDate.setHours(finishDate.getHours() + 1);
 
-    finishDate.setHours(
-      finishDate.getHours() + 1,
-    );
+    const registerUrl =
+      `/register?roomId=${roomId}` +
+      `&start=${encodeURIComponent(clickedDate.toISOString())}` +
+      `&end=${encodeURIComponent(finishDate.toISOString())}`;
 
-    setSelectedDate(
-      formatDateForInput(clickedDate),
-    );
+    router.push(registerUrl);
+    return;
+  }
 
-    setStartTime(
-      formatTimeForInput(clickedDate),
-    );
+  // Giriş yapmış kullanıcı → Rezervasyon penceresi
+  const finishDate = new Date(clickedDate);
+  finishDate.setHours(finishDate.getHours() + 1);
 
-    setEndTime(
-      formatTimeForInput(finishDate),
-    );
+  setSelectedDate(formatDateForInput(clickedDate));
+  setStartTime(formatTimeForInput(clickedDate));
+  setEndTime(formatTimeForInput(finishDate));
+  setParticipantCount(String(minParticipants));
 
-    setParticipantCount("1");
+  setDialogOpen(true);
+};
+
+  const handleAddReservation = () => {
+    const nextHour = getNextHour();
+    const finishDate = new Date(nextHour);
+
+    finishDate.setHours(finishDate.getHours() + 1);
+
+    setSelectedDate(formatDateForInput(new Date()));
+    setStartTime(formatTimeForInput(nextHour));
+    setEndTime(formatTimeForInput(finishDate));
+    setParticipantCount(String(minParticipants));
+
     setDialogOpen(true);
+  };
+
+  const handleStartTimeChange = (value: string) => {
+    setStartTime(value);
+    setEndTime(addOneHour(value));
   };
 
   const handleClose = () => {
     setDialogOpen(false);
   };
 
-  const handleConfirm = () => {
-    const participantNumber =
-      Number(participantCount);
-
-    if (
-      !selectedDate ||
-      !startTime ||
-      !endTime
-    ) {
-      alert(
-        "Tarih, başlangıç ve bitiş saatini seçmelisin.",
-      );
-
+  const handleConfirm = async () => {
+    if (!selectedDate) {
+      alert("Lütfen tarih seçin.");
       return;
     }
 
-    if (startTime >= endTime) {
-      alert(
-        "Bitiş saati başlangıç saatinden sonra olmalıdır.",
-      );
+    if (!startTime) {
+      alert("Lütfen başlangıç saatini seçin.");
+      return;
+    }
 
+    if (!endTime) {
+      alert("Lütfen bitiş saatini seçin.");
+      return;
+    }
+
+    const participantNumber = Number(participantCount);
+
+    const start = new Date(`${selectedDate}T${startTime}:00`);
+    const end = new Date(`${selectedDate}T${endTime}:00`);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      alert("Tarih veya saat bilgisi geçersiz.");
+      return;
+    }
+
+    if (end <= start) {
+      alert("Bitiş saati başlangıç saatinden sonra olmalıdır.");
+      return;
+    }
+
+    if (start < new Date()) {
+      alert("Geçmiş bir tarih veya saate rezervasyon yapamazsınız.");
       return;
     }
 
     if (
       !Number.isInteger(participantNumber) ||
-      participantNumber < 1
+      participantNumber < minParticipants ||
+      participantNumber > roomCapacity
     ) {
-      alert(
-        "Katılımcı sayısı en az 1 olmalıdır.",
-      );
-
+      alert(`Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`);
       return;
     }
 
-    /*
-     * Daha sonra burada Supabase'e kayıt yapılacak.
-     * roomId hangi odaya rezervasyon yapıldığını belirtir.
-     */
-    console.log({
-      roomId,
-      selectedDate,
-      startTime,
-      endTime,
-      participantCount: participantNumber,
+    const hasConflict = reservations.some((reservation) => {
+      const existingStart = new Date(reservation.start);
+      const existingEnd = new Date(reservation.end);
+
+      return start < existingEnd && end > existingStart;
     });
 
-    alert("Rezervasyon bilgileri seçildi.");
-    setDialogOpen(false);
+    if (hasConflict) {
+      alert("Seçtiğiniz saat aralığı dolu. Lütfen başka bir saat seçin.");
+      return;
+    }
+const supabase = createClient();
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+const targetUrl = user
+  ? `/payment?roomId=${roomId}` +
+    `&start=${encodeURIComponent(start.toISOString())}` +
+    `&end=${encodeURIComponent(end.toISOString())}` +
+    `&participants=${participantNumber}`
+  : `/register?roomId=${roomId}` +
+    `&start=${encodeURIComponent(start.toISOString())}` +
+    `&end=${encodeURIComponent(end.toISOString())}` +
+    `&participants=${participantNumber}`;
+
+setDialogOpen(false);
+
+router.push(targetUrl);
   };
 
   return (
@@ -187,26 +324,22 @@ export default function WeeklyCalendar({
           backgroundColor: "#ffffff",
           border: "1px solid #dfe5ed",
           borderRadius: 3,
-          p: {
-            xs: 1,
-            md: 3,
-          },
+          p: { xs: 1, md: 3 },
           overflowX: "auto",
+          "& .fc-addReservation-button": {
+            backgroundColor: "#175bb8 !important",
+            borderColor: "#175bb8 !important",
+            color: "#ffffff !important",
+          },
+          "& .fc-addReservation-button:hover": {
+            backgroundColor: "#104a99 !important",
+            borderColor: "#104a99 !important",
+          },
         }}
       >
-        <Box
-          sx={{
-            minWidth: {
-              xs: 900,
-              md: "100%",
-            },
-          }}
-        >
+        <Box sx={{ minWidth: { xs: 300, md: 500, xl: "100%" } }}>
           <FullCalendar
-            plugins={[
-              timeGridPlugin,
-              interactionPlugin,
-            ]}
+            plugins={[timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             firstDay={1}
             allDaySlot={false}
@@ -217,10 +350,16 @@ export default function WeeklyCalendar({
             slotMaxTime="22:00:00"
             slotDuration="01:00:00"
             height="auto"
+            customButtons={{
+              addReservation: {
+                text: "Ekle",
+                click: handleAddReservation,
+              },
+            }}
             headerToolbar={{
               start: "prev,next today",
               center: "title",
-              end: "timeGridWeek,timeGridDay",
+              end: "addReservation timeGridWeek,timeGridDay",
             }}
             slotLabelFormat={{
               hour: "2-digit",
@@ -235,69 +374,55 @@ export default function WeeklyCalendar({
             dateClick={(info) => {
               handleDateClick(info.date);
             }}
-            events={exampleReservations}
+            eventClick={(info) => {
+              const isMine = info.event.extendedProps.isMine;
+
+              if (!isMine) {
+                return;
+              }
+
+              router.push(
+                `/user/profile?tab=reservations&reservationId=${info.event.id}`
+              );
+            }}
+            eventDidMount={(info) => {
+              const isMine = info.event.extendedProps.isMine;
+
+              info.el.style.cursor = isMine ? "pointer" : "default";
+            }}
+            events={reservations}
           />
         </Box>
       </Box>
 
-      <Dialog
-        open={dialogOpen}
-        onClose={handleClose}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle
-          sx={{
-            fontWeight: 700,
-          }}
-        >
+      <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700 }}>
           Rezervasyon Oluştur
         </DialogTitle>
 
         <DialogContent>
-          <Box
-            sx={{
-              display: "grid",
-              gap: 2,
-              pt: 1,
-            }}
-          >
+          <Box sx={{ display: "grid", gap: 2, pt: 1 }}>
             <TextField
               label="Tarih"
               type="date"
               value={selectedDate}
-              onChange={(event) =>
-                setSelectedDate(event.target.value)
-              }
+              onChange={(event) => setSelectedDate(event.target.value)}
               slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
+                inputLabel: { shrink: true },
+                htmlInput: { min: formatDateForInput(new Date()) },
               }}
               fullWidth
             />
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "1fr 1fr",
-                },
-                gap: 2,
-              }}
-            >
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
               <TextField
                 label="Başlangıç"
                 type="time"
                 value={startTime}
-                onChange={(event) =>
-                  setStartTime(event.target.value)
-                }
+                onChange={(event) => handleStartTimeChange(event.target.value)}
                 slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
+                  inputLabel: { shrink: true },
+                  htmlInput: { step: 300 },
                 }}
                 fullWidth
               />
@@ -306,13 +431,10 @@ export default function WeeklyCalendar({
                 label="Bitiş"
                 type="time"
                 value={endTime}
-                onChange={(event) =>
-                  setEndTime(event.target.value)
-                }
+                onChange={(event) => setEndTime(event.target.value)}
                 slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
+                  inputLabel: { shrink: true },
+                  htmlInput: { step: 300 },
                 }}
                 fullWidth
               />
@@ -322,34 +444,21 @@ export default function WeeklyCalendar({
               label="Katılımcı sayısı"
               type="number"
               value={participantCount}
-              onChange={(event) =>
-                setParticipantCount(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setParticipantCount(event.target.value)}
               slotProps={{
                 htmlInput: {
-                  min: 1,
-                  max: 8,
+                  min: minParticipants,
+                  max: roomCapacity,
                 },
               }}
+              helperText={`Min: ${minParticipants} | Max: ${roomCapacity}`}
               fullWidth
             />
           </Box>
         </DialogContent>
 
-        <DialogActions
-          sx={{
-            px: 3,
-            pb: 3,
-          }}
-        >
-          <Button
-            onClick={handleClose}
-            sx={{
-              textTransform: "none",
-            }}
-          >
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={handleClose} sx={{ textTransform: "none" }}>
             İptal
           </Button>
 
@@ -364,7 +473,7 @@ export default function WeeklyCalendar({
               },
             }}
           >
-            Rezervasyonu Onayla
+            Ödemeye Geç
           </Button>
         </DialogActions>
       </Dialog>

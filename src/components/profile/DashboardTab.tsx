@@ -6,11 +6,23 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 export default function DashboardTab({ reservations = [], userData }: { reservations?: any[], userData?: any }) {
   // Yaklaşan rezervasyonu bul (En yakın tarihli olan)
-  const upcomingRes = reservations.find(r => r.status === "approved" || r.status === "pending");
+  const activeStatuses = ["approved", "pending", "confirmed", "checked_in"];
+  const activeReservations = reservations.filter(r => activeStatuses.includes(r.status));
+  const upcomingRes = activeReservations.length > 0 ? activeReservations[0] : null;
+
+  const formatUpcomingTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const isToday = d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    const timeStr = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return timeStr; // Eğer bugünse sadece saati göster
+    const dateFormatted = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+    return `${dateFormatted} · ${timeStr}`; // Bugün değilse tarihi de göster
+  };
 
   const QUICK_ACTIONS = [
-    { label: "Bugünkü rezervasyon", value: upcomingRes ? "1 oda" : "Yok" },
-    { label: "Yaklaşan toplantı", value: upcomingRes ? new Date(upcomingRes.start_time).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) : "-" },
+    { label: "Aktif rezervasyon", value: activeReservations.length > 0 ? `${activeReservations.length} oda` : "Yok" },
+    { label: "Yaklaşan toplantı", value: upcomingRes ? formatUpcomingTime(upcomingRes.start_time) : "-" },
   ];
 
   return (
@@ -18,15 +30,15 @@ export default function DashboardTab({ reservations = [], userData }: { reservat
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7 }}>
           <Card sx={{ p: 3, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>
-            <Typography sx={{ fontWeight: 700, mb: 2 }}>Bugünkü Planın</Typography>
+            <Typography sx={{ fontWeight: 700, mb: 2 }}>Yaklaşan Planın</Typography>
             <Stack spacing={2}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CalendarTodayIcon color="primary" />
-                  <Typography>Sonraki rezervasyon</Typography>
+                  <Typography sx={{ whiteSpace: "nowrap" }}>Sonraki rezervasyon</Typography>
                 </Box>
                 {upcomingRes ? (
-                  <Chip label={`${upcomingRes.space?.name || "Oda"} · ${new Date(upcomingRes.start_time).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`} color="primary" />
+                  <Chip label={`${upcomingRes.space?.name || "Oda"} · ${formatUpcomingTime(upcomingRes.start_time)}`} color="primary" />
                 ) : (
                   <Typography sx={{ color: "text.secondary" }}>Rezervasyon Yok</Typography>
                 )}

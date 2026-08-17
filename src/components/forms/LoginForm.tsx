@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { createClient } from "@/src/utils/supabase/client";
 import {
   Box,
@@ -20,43 +21,52 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 
 export default function LoginForm() {
-  const [errorMessage, setErrorMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // Hata mesajları için state ekledik
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  // Supabase client'ı başlatıyoruz
   const supabase = createClient();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setLoading(true);
-    setError(""); // Yeni denemede eski hatayı temizle
+    setError("");
 
     try {
       // Supabase Giriş İşlemi
-      const { data, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+      const { data, error: supabaseError } =
+        await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
 
       if (supabaseError) {
-        setError("Giriş başarısız: " + supabaseError.message);
+        const message = "Giriş başarısız: " + supabaseError.message;
+
+        setError(message);
+        toast.error("Giriş başarısız. Email veya şifrenizi kontrol edin.");
         return;
       }
 
       console.log("Login başarılı", data);
-      
-      // Başarılı girişte ana sayfaya yönlendir ve auth durumunu tazele
-      router.push("/");
-      router.refresh();
 
+      toast.success("Başarıyla giriş yapıldı.");
+
+      // Başarılı girişte ana sayfaya yönlendir ve auth durumunu tazele
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 700);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.");
+      const message =
+        err instanceof Error ? err.message : "Beklenmeyen bir hata oluştu.";
+
+      setError(message);
+      toast.error("Giriş sırasında beklenmeyen bir hata oluştu.");
     } finally {
       setLoading(false);
     }
@@ -80,20 +90,34 @@ export default function LoginForm() {
           borderRadius: 4,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: "700" }} align="center">
-          DeskHere
-        </Typography>
-
-        <Typography
-          align="center"
-          color="text.secondary"
-          sx={{ mb: 4, mt: 1 }}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mb: 1,
+          }}
         >
-          Sign in to your account
+          <Typography
+            sx={{
+              fontSize: "2rem",
+              fontWeight: 700,
+              letterSpacing: "-1px",
+            }}
+          >
+            <Box component="span" sx={{ color: "#111827" }}>
+              Desk
+            </Box>
+            <Box component="span" sx={{ color: "#1976d2" }}>
+              Here
+            </Box>
+          </Typography>
+        </Box>
+
+        <Typography align="center" color="text.secondary" sx={{ mb: 4, mt: 1 }}>
+          Hesabınıza giriş yapın
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          {/* Hata mesajı alanı */}
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
@@ -101,7 +125,7 @@ export default function LoginForm() {
           )}
 
           <TextField
-            label="Email"
+            label="E-posta"
             type="email"
             fullWidth
             margin="normal"
@@ -111,7 +135,7 @@ export default function LoginForm() {
           />
 
           <TextField
-            label="Password"
+            label="Şifre"
             type={showPassword ? "text" : "password"}
             fullWidth
             margin="normal"
@@ -136,7 +160,7 @@ export default function LoginForm() {
 
           <FormControlLabel
             control={<Checkbox />}
-            label="Remember me"
+            label="Beni Hatırla"
             sx={{ mt: 1 }}
           />
 
@@ -157,12 +181,22 @@ export default function LoginForm() {
             {loading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              "Login"
+              "Giriş Yap"
             )}
           </Button>
 
           <Typography align="center" sx={{ mt: 3 }}>
-            Don't have an account? <Link href="/register">Register</Link>
+            Hesabınız yok mu?{" "}
+            <Link
+              href="/register"
+              style={{
+                color: "#1976d2",
+                textDecoration: "none",
+                fontWeight: 600,
+              }}
+            >
+              Kayıt Ol
+            </Link>
           </Typography>
         </form>
       </Paper>
