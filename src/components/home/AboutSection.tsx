@@ -59,8 +59,7 @@ export default function AboutSection() {
       
       <Box
         component="img"
-        src="/images/workspaceImage.jpg"
-        alt="Workspace Görseli"
+        src="/images/toplantı.webp"
         sx={{
           width: { xs: "100%", md: 450 },
           height: 320,
@@ -68,9 +67,14 @@ export default function AboutSection() {
           objectFit: "cover",
           boxShadow: 4,
           transition:"0.4s",
-          "&:hover":{transform: "scale(1.03)"}
+          "&:hover":{transform: "scale(1.03)",},
+          backgroundColor: "#f1f5f9",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-      />
+      >
+      </Box>
     </Box>
   );
 }

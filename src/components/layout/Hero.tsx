@@ -7,7 +7,7 @@ export default function Hero() {
     <Box
       sx={{
         position: 'relative',
-        backgroundImage: 'url(/hero1.webp)', 
+        backgroundImage: 'url(/images/workspaceImage.jpg)', 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: 500,

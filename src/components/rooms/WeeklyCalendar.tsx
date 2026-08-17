@@ -353,7 +353,7 @@ export default function WeeklyCalendar({
               }
 
               router.push(
-                `/profile?tab=reservations&reservationId=${info.event.id}`
+                `/user/profile?tab=reservations&reservationId=${info.event.id}`
               );
             }}
             eventDidMount={(info) => {
