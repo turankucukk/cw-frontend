@@ -41,6 +41,7 @@ export default function Navbar() {
   const isMenuOpen = Boolean(anchorEl);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
 
@@ -83,9 +84,8 @@ export default function Navbar() {
 
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    return `transition-colors text-sm font-semibold ${
-      isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
-    }`;
+    return `transition-colors text-sm font-semibold ${isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+      }`;
   };
 
   return (
@@ -103,31 +103,29 @@ export default function Navbar() {
           px: 2,
         }}
       >
-        <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-4">
+        <Box className="flex items-center justify-between w-full px-4 md:px-8">
           {/* LOGO */}
-          <Link
-            href="/"
-            style={{ textDecoration: "none", color: "#111827" }}
+          <Box
+            component="span"
+            style={{ color: "#111827" }}
             className="text-xl font-bold tracking-tight"
           >
             Desk<span style={{ color: "#2563eb" }}>Here</span>
-          </Link>
+          </Box>
 
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              ml: 6,
-              gap: 4,
+          {/* MERKEZ MENÜ (Sayfalar) */}
+          <Box 
+            sx={{ 
+              position: { md: "absolute" },
+              left: { md: "50%" },
+              transform: { md: "translateX(-50%)" },
+              display: { xs: "none", md: "flex" }, 
+              alignItems: "center", 
+              gap: 4 
             }}
           >
-            <Link href="/buildings" className={getLinkClass("/buildings")}>
-              Binalar
-            </Link>
-            <Link href="/rooms" className={getLinkClass("/rooms")}>
-              Odalar
-            </Link>
-
+            <Link href="/" className={getLinkClass("/")}>Anasayfa</Link>
+            <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
             </Link>
@@ -137,28 +135,16 @@ export default function Navbar() {
             <Link href="/contact" className={getLinkClass("/contact")}>
               İletişim
             </Link>
-            {!loading && (role === "superadmin" || role === "manager") && (
+            {!loading && role === "superadmin" && (
               <Link href="/admin" className={getLinkClass("/admin")}>
                 Admin
               </Link>
             )}
           </Box>
 
-          {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
-          <Drawer
-            anchor="right"
-            open={drawerOpen}
-            onClose={toggleDrawer(false)}
-          >
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
             <Box sx={{ width: 280, p: 2 }} role="presentation">
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mb: 3,
-                }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   Menü
                 </Typography>
@@ -168,45 +154,33 @@ export default function Navbar() {
               </Box>
               <List>
                 <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleMobileNavigation("/buildings")}
-                  >
+                  <ListItemButton onClick={() => handleMobileNavigation("/")}> 
+                    <ListItemText primary="Anasayfa" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
                     <ListItemText primary="Binalar" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleMobileNavigation("/rooms")}
-                  >
-                    <ListItemText primary="Odalar" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleMobileNavigation("/services")}
-                  >
+                  <ListItemButton onClick={() => handleMobileNavigation("/services")}> 
                     <ListItemText primary="Servislerimiz" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleMobileNavigation("/about")}
-                  >
+                  <ListItemButton onClick={() => handleMobileNavigation("/about")}> 
                     <ListItemText primary="Hakkımızda" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleMobileNavigation("/contact")}
-                  >
+                  <ListItemButton onClick={() => handleMobileNavigation("/contact")}> 
                     <ListItemText primary="İletişim" />
                   </ListItemButton>
                 </ListItem>
-                {!loading && (role === "superadmin" || role === "manager") && (
+                {!loading && role === "superadmin" && (
                   <ListItem disablePadding>
-                    <ListItemButton
-                      onClick={() => handleMobileNavigation("/admin")}
-                    >
+                    <ListItemButton onClick={() => handleMobileNavigation("/admin")}> 
                       <ListItemText primary="Admin" />
                     </ListItemButton>
                   </ListItem>
@@ -223,8 +197,14 @@ export default function Navbar() {
                   <option value="tr">TR</option>
                 </select>
 
+             
+
+
                 {session ? (
                   <>
+
+
+                  
                     <Button
                       variant="outlined"
                       onClick={() => {
@@ -252,7 +232,7 @@ export default function Navbar() {
                         py: 1.25,
                         backgroundColor: "#ef4444",
                         color: "#ffffff",
-                        "&:hover": { backgroundColor: "#dc2626" },
+                        '&:hover': { backgroundColor: "#dc2626" },
                       }}
                     >
                       Çıkış Yap
@@ -283,7 +263,7 @@ export default function Navbar() {
                         borderRadius: "10px",
                         backgroundColor: "#2563eb",
                         color: "#ffffff",
-                        "&:hover": { backgroundColor: "#1d4ed8" },
+                        '&:hover': { backgroundColor: "#1d4ed8" },
                       }}
                     >
                       Kayıt ol
@@ -305,6 +285,8 @@ export default function Navbar() {
               <MenuIcon />
             </IconButton>
 
+                  
+
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <select
                 onChange={(e) => translatePage(e.target.value)}
@@ -315,6 +297,9 @@ export default function Navbar() {
                 <option value="tr">TR</option>
               </select>
             </Box>
+
+
+
 
             {session ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -393,11 +378,7 @@ export default function Navbar() {
                         marginTop: "2px",
                       }}
                     >
-                      {role === "superadmin"
-                        ? "Süper Yönetici"
-                        : role === "manager"
-                          ? "Yönetici"
-                          : "Kullanıcı"}
+                      {role === "superadmin" ? "Süper Yönetici" : "Kullanıcı"}
                     </div>
                   </Box>
 
@@ -506,6 +487,8 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
+
+
     </>
   );
 }

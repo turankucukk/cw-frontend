@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Box, Alert, Grid } from "@mui/material";
 import RoomCard from "./RoomCard";
@@ -61,7 +61,7 @@ export default function RoomList({
     <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={3}>
         {filteredRooms.map((room) => (
-          <Grid  key={room.id} size={{ xs: 12, sm: 6, md: 6 }}>
+          <Grid  key={room.id} size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
             <RoomCard room={room} />
           </Grid>
         ))}

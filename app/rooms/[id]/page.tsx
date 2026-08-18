@@ -66,7 +66,7 @@ setRoom(roomData);
   }, [roomId]);
 
   const handleClose = () => {
-    router.push("/rooms");
+    router.back();
   };
 
   const floorText =
