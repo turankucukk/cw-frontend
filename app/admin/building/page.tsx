@@ -273,10 +273,14 @@ export default function BuildingsPage() {
                 {building.floor_plan_url && (
                   <CardMedia
                     component="img"
-                    height="180"
                     image={building.floor_plan_url}
                     alt={building.name}
-                    sx={{ objectFit: "cover" }}
+                    sx={{
+                      width: "100%",
+                      height: 180,
+                      objectFit: "contain",
+                      bgcolor: "action.hover",
+                    }}
                   />
                 )}
 

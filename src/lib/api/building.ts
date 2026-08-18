@@ -91,9 +91,8 @@ export async function uploadBuildingImage(file: File): Promise<string | null> {
     const fileName = `building_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
     const filePath = `buildings/${fileName}`;
 
-    // Projendeki Supabase storage bucket adını buraya gir ('room-images' veya 'building-images')
     const { error: uploadError } = await supabase.storage
-      .from("room-images") 
+      .from("room_images")
       .upload(filePath, file);
 
     if (uploadError) {
@@ -101,7 +100,7 @@ export async function uploadBuildingImage(file: File): Promise<string | null> {
       return null;
     }
 
-    const { data } = supabase.storage.from("room-images").getPublicUrl(filePath);
+    const { data } = supabase.storage.from("room_images").getPublicUrl(filePath);
     return data.publicUrl;
   } catch (error: any) {
     console.error("Görsel yüklenirken beklenmeyen hata oluştu:", error.message);

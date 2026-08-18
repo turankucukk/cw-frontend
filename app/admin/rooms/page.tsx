@@ -26,6 +26,7 @@ import {
   Stack,
   Checkbox,
   FormControlLabel,
+  ButtonBase,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
@@ -53,6 +54,33 @@ import {
   Room,
   Building,
 } from "../../../src/lib/api/rooms";
+
+// Kart üzerindeki aksiyon butonları (QR, Kroki, Bakıma Al, Düzenle, Sil)
+// hepsi aynı sabit boyutta, ikon üstte + etiket altta şeklinde görünür.
+const actionButtonSx = (color: string) => ({
+  display: "flex",
+  flexDirection: "column" as const,
+  alignItems: "center",
+  justifyContent: "flex-start",
+  gap: 0.25,
+  width: 60,
+  minHeight: 52,
+  px: 0.5,
+  py: 0.75,
+  borderRadius: 1.5,
+  border: "1px solid",
+  borderColor: color,
+  color,
+  "&:hover": {
+    bgcolor: "action.hover",
+  },
+});
+
+const actionLabelSx = {
+  fontSize: "0.62rem",
+  lineHeight: 1.1,
+  textAlign: "center" as const,
+};
 
 export default function RoomsPage() {
   const router = useRouter();
@@ -475,85 +503,70 @@ export default function RoomsPage() {
                 <CardActions
                   sx={{
                     display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    justifyContent: "space-between",
-                    alignItems: { xs: "stretch", sm: "center" },
+                    flexDirection: "column",
+                    alignItems: "stretch",
                     px: 2,
                     pb: 2,
                     pt: 0,
-                    gap: 1.5,
+                    gap: 1,
                   }}
                 >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: "bold",
-                      textAlign: { xs: "center", sm: "left" },
-                    }}
-                    color="primary"
-                  >
-                    {room.price ?? 0} TL
-                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <Chip
+                      label={`${room.price ?? 0} TL`}
+                      color="primary"
+                      sx={{ fontWeight: "bold", fontSize: "0.9rem" }}
+                    />
+                  </Box>
                   <Box
                     sx={{
                       display: "flex",
-                      gap: 1,
-                      width: { xs: "100%", sm: "auto" },
-                      flexWrap: "wrap",
+                      justifyContent: "center",
+                      gap: 0.75,
                     }}
                   >
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<QRCodeIcon />}
+                    <ButtonBase
                       onClick={() => handleOpenQr(room)}
-                      fullWidth
+                      sx={actionButtonSx("primary.main")}
                     >
-                      QR Kodu
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<GridOnIcon />}
-                      onClick={() => router.push(`/admin/rooms/${room.id}/layout`)}
-                      fullWidth
+                      <QRCodeIcon fontSize="small" />
+                      <Typography sx={actionLabelSx}>QR Kodu</Typography>
+                    </ButtonBase>
+                    <ButtonBase
+                      onClick={() =>
+                        router.push(`/admin/rooms/${room.id}/layout`)
+                      }
                       data-testid={`room-kroki-${room.id}`}
+                      sx={actionButtonSx("text.secondary")}
                     >
-                      Kroki
-                    </Button>
+                      <GridOnIcon fontSize="small" />
+                      <Typography sx={actionLabelSx}>Kroki</Typography>
+                    </ButtonBase>
                     {can(role as any, "rooms.maintenance") && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="warning"
-                        startIcon={<BuildIcon />}
+                      <ButtonBase
                         onClick={() => handleToggleMaintenance(room)}
-                        fullWidth
+                        sx={actionButtonSx("warning.main")}
                       >
-                        {room.isActive ? "Bakıma Al" : "Bakımdan Çıkar"}
-                      </Button>
+                        <BuildIcon fontSize="small" />
+                        <Typography sx={actionLabelSx}>
+                          {room.isActive ? "Bakıma Al" : "Bakımdan Çıkar"}
+                        </Typography>
+                      </ButtonBase>
                     )}
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="info"
-                      startIcon={<EditIcon />}
+                    <ButtonBase
                       onClick={() => handleOpenEdit(room)}
-                      fullWidth
+                      sx={actionButtonSx("info.main")}
                     >
-                      Düzenle
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      startIcon={<DeleteIcon />}
+                      <EditIcon fontSize="small" />
+                      <Typography sx={actionLabelSx}>Düzenle</Typography>
+                    </ButtonBase>
+                    <ButtonBase
                       onClick={() => handleDeleteRoom(room.id)}
-                      fullWidth
+                      sx={actionButtonSx("error.main")}
                     >
-                      Sil
-                    </Button>
+                      <DeleteIcon fontSize="small" />
+                      <Typography sx={actionLabelSx}>Sil</Typography>
+                    </ButtonBase>
                   </Box>
                 </CardActions>
               </Card>
