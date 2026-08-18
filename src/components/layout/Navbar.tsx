@@ -103,20 +103,29 @@ export default function Navbar() {
           px: 2,
         }}
       >
-        <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-4">
+        <Box className="flex items-center justify-between w-full px-4 md:px-8">
           {/* LOGO */}
-          <Link
-            href="/"
-            style={{ textDecoration: "none", color: "#111827" }}
+          <Box
+            component="span"
+            style={{ color: "#111827" }}
             className="text-xl font-bold tracking-tight"
           >
             Desk<span style={{ color: "#2563eb" }}>Here</span>
-          </Link>
+          </Box>
 
-          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
+          {/* MERKEZ MENÜ (Sayfalar) */}
+          <Box 
+            sx={{ 
+              position: { md: "absolute" },
+              left: { md: "50%" },
+              transform: { md: "translateX(-50%)" },
+              display: { xs: "none", md: "flex" }, 
+              alignItems: "center", 
+              gap: 4 
+            }}
+          >
+            <Link href="/" className={getLinkClass("/")}>Anasayfa</Link>
             <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
-            <Link href="/rooms" className={getLinkClass("/rooms")}>Odalar</Link>
-
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
             </Link>
@@ -145,13 +154,13 @@ export default function Navbar() {
               </Box>
               <List>
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
-                    <ListItemText primary="Binalar" />
+                  <ListItemButton onClick={() => handleMobileNavigation("/")}> 
+                    <ListItemText primary="Anasayfa" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleMobileNavigation("/rooms")}> 
-                    <ListItemText primary="Odalar" />
+                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
+                    <ListItemText primary="Binalar" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>

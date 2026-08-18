@@ -60,7 +60,7 @@ export default function RoomPage() {
   }, [roomId]);
 
   const handleClose = () => {
-    router.push("/rooms");
+    router.back();
   };
 
   const floorText =
