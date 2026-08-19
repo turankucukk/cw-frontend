@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import {
@@ -8,6 +9,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Container,
   Stack,
   Typography,
@@ -44,6 +46,24 @@ const values = [
 ];
 
 export default function AboutPage() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    try {
+      // Gelecekte Supabase'den veri çekme işlemi buraya eklenecek
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <>
       <Navbar />
