@@ -86,7 +86,7 @@ export default function RoomDisplayPage() {
           .from("space")
           .select("id, name, qr")
           .eq("id", Number(roomId))
-          .single(),
+          .maybeSingle(),
         supabase
           .from("reservation")
           .select("id, space_id, start_time, end_time, status")
@@ -100,6 +100,14 @@ export default function RoomDisplayPage() {
         console.error("Oda alınamadı:", spaceResult.error);
         setErrorMessage("Oda bilgileri alınamadı.");
         setSpace(null);
+        setLoading(false);
+        return;
+      }
+
+      if (!spaceResult.data) {
+        setErrorMessage("Oda bulunamadı.");
+        setSpace(null);
+        setReservations([]);
         setLoading(false);
         return;
       }
@@ -122,19 +130,19 @@ export default function RoomDisplayPage() {
 
   const timeText = currentTime
     ? currentTime.toLocaleTimeString("tr-TR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
     : "--:--:--";
 
   const dateText = currentTime
     ? currentTime.toLocaleDateString("tr-TR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        weekday: "long",
-      })
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      weekday: "long",
+    })
     : "";
 
   const now = currentTime?.getTime() ?? 0;
@@ -143,15 +151,15 @@ export default function RoomDisplayPage() {
   );
   const activeReservation = currentTime
     ? usableReservations.find(
-        (reservation) =>
-          new Date(reservation.start_time).getTime() <= now &&
-          new Date(reservation.end_time).getTime() > now
-      )
+      (reservation) =>
+        new Date(reservation.start_time).getTime() <= now &&
+        new Date(reservation.end_time).getTime() > now
+    )
     : undefined;
   const nextReservation = currentTime
     ? usableReservations.find(
-        (reservation) => new Date(reservation.start_time).getTime() > now
-      )
+      (reservation) => new Date(reservation.start_time).getTime() > now
+    )
     : undefined;
 
   const formatReservationTime = (reservation: Reservation) => {
@@ -224,7 +232,7 @@ export default function RoomDisplayPage() {
               <Typography sx={{ color: "#6b7280", mt: 0.25 }}>
                 {loading
                   ? "Oda yükleniyor..."
-                  : space?.name ?? `Oda ${roomId}`}
+                  : space?.name ?? "Oda bulunamadı"}
               </Typography>
             </Box>
           </Stack>

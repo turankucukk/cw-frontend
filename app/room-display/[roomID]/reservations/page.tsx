@@ -69,7 +69,7 @@ export default function RoomReservationsPage() {
                     .from("space")
                     .select("id, name")
                     .eq("id", Number(roomId))
-                    .single(),
+                    .maybeSingle(),
 
                 supabase
                     .from("reservation")
@@ -82,6 +82,10 @@ export default function RoomReservationsPage() {
 
             if (spaceResult.error) {
                 console.error("Oda bilgisi alınamadı:", spaceResult.error);
+                setErrorMessage("Oda bilgileri alınamadı.");
+            } else if (!spaceResult.data) {
+                setSpace(null);
+                setErrorMessage("Oda bulunamadı.");
             } else {
                 setSpace(spaceResult.data);
             }
@@ -115,7 +119,6 @@ export default function RoomReservationsPage() {
         weekday: "long",
     });
 
-    // BURAYA EKLE
     const START_HOUR = 8;
     const END_HOUR = 22;
 
