@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip } from "@mui/material";
+import { Box, Typography, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Button } from "@mui/material";
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "-";
@@ -37,12 +37,13 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
               <TableCell sx={{ fontWeight: 600 }}>Ödeme Yöntemi</TableCell>
               <TableCell sx={{ fontWeight: 600 }} align="right">Tutar</TableCell>
               <TableCell sx={{ fontWeight: 600 }} align="center">Durum</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="center">İşlem</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {payments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 3, color: "text.secondary" }}>
                   Ödeme geçmişiniz bulunmamaktadır.
                 </TableCell>
               </TableRow>
@@ -62,6 +63,16 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                   </TableCell>
                   <TableCell align="center">
                     {getStatusChip(payment.status)}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button 
+                      href={`/invoice/${payment.reservation_id}`}
+                      variant="outlined" 
+                      size="small" 
+                      sx={{ textTransform: "none", borderRadius: 2 }}
+                    >
+                      Faturayı Gör
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

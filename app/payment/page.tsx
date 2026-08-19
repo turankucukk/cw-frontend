@@ -325,9 +325,7 @@ if (roomCheckError || !roomCheck?.isActive) {
       );
 
       setTimeout(() => {
-        router.push(
-          `/rooms/${room.id}#weekly-calendar`
-        );
+        router.push(`/invoice/${reservation.id}`);
       }, 800);
     } catch (err) {
       console.error(
