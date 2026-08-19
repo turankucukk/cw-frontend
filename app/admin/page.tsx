@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PeopleIcon from "@mui/icons-material/People";
 import PersonIcon from "@mui/icons-material/Person";
@@ -8,34 +8,114 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import { useUserRole } from "@/src/hooks/useUserRole";
 import { Box, Typography, Card, CircularProgress } from "@mui/material";
+import { createClient } from "@/src/utils/supabase/client";
+import dayjs from "dayjs";
+import { BarChart } from "@mui/x-charts/BarChart";
 
-const MOCK_STATS = {
-  totalUsers: 137,
-  activeUsers: 42,
-  totalRooms: 8,
-  occupiedNow: 3,
-  todayBookings: 19,
-  occupancyRate: 0.68,
+type Stats = {
+  totalUsers: number;
+  activeUsers: number;
+  totalRooms: number;
+  occupiedNow: number;
+  todayBookings: number;
+  occupancyRate: number;
+  weeklyData: { day: string; count: number }[];
 };
-
-const KPI_CARDS = [
-  { label: "Toplam Kullanıcı", value: MOCK_STATS.totalUsers, icon: <PeopleIcon />, color: "#2563eb" },
-  { label: "Aktif Kullanıcı", value: MOCK_STATS.activeUsers, icon: <PersonIcon />, color: "#06b6d4" },
-  { label: "Toplam Oda", value: MOCK_STATS.totalRooms, icon: <MeetingRoomIcon />, color: "#10b981" },
-  { label: "Bugünkü Rezervasyon", value: MOCK_STATS.todayBookings, icon: <EventAvailableIcon />, color: "#f59e0b" },
-];
 
 export default function AdminDashboardPage() {
   const { role, loading } = useUserRole();
   const router = useRouter();
 
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
   useEffect(() => {
-    if (!loading && role !== "superadmin") {
+    if (!loading && role !== "superadmin" && role !== "manager") {
       router.push("/");
     }
   }, [role, loading, router]);
 
-  if (loading) {
+  useEffect(() => {
+    if (loading || (role !== "superadmin" && role !== "manager")) return;
+
+    const fetchStats = async () => {
+      setStatsLoading(true);
+      const supabase = createClient();
+      const now = dayjs();
+      const todayStart = now.startOf("day").toISOString();
+      const todayEnd = now.endOf("day").toISOString();
+      const thirtyDaysAgo = now.subtract(30, "day").toISOString();
+      const sevenDaysAgo = now.subtract(6, "day").startOf("day").toISOString();
+      const nowIso = now.toISOString();
+
+      const [
+        { count: totalUsers },
+        { count: totalRooms },
+        { data: recentReservations },
+        { count: todayBookings },
+        { data: occupiedRows },
+        { data: weeklyRows },
+      ] = await Promise.all([
+        supabase.from("user").select("id", { count: "exact", head: true }),
+        supabase.from("space").select("id", { count: "exact", head: true }).eq("isActive", true),
+        supabase
+          .from("reservation")
+          .select("user_id")
+          .eq("status", "confirmed")
+          .gte("start_time", thirtyDaysAgo),
+        supabase
+          .from("reservation")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "confirmed")
+          .gte("start_time", todayStart)
+          .lte("start_time", todayEnd),
+        supabase
+          .from("reservation")
+          .select("id")
+          .eq("status", "confirmed")
+          .lte("start_time", nowIso)
+          .gte("end_time", nowIso),
+        supabase
+          .from("reservation")
+          .select("start_time")
+          .eq("status", "confirmed")
+          .gte("start_time", sevenDaysAgo),
+      ]);
+
+      const activeUsers = new Set((recentReservations ?? []).map((r) => r.user_id)).size;
+      const occupiedNow = occupiedRows?.length ?? 0;
+      const roomCount = totalRooms ?? 0;
+      const occupancyRate = roomCount > 0 ? occupiedNow / roomCount : 0;
+
+      const dayCounts: Record<string, number> = {};
+      for (let i = 0; i < 7; i++) {
+        const label = now.subtract(6 - i, "day").format("DD.MM");
+        dayCounts[label] = 0;
+      }
+      (weeklyRows ?? []).forEach((r) => {
+        const label = dayjs(r.start_time).format("DD.MM");
+        if (dayCounts[label] !== undefined) {
+          dayCounts[label] += 1;
+        }
+      });
+      const weeklyData = Object.entries(dayCounts).map(([day, count]) => ({ day, count }));
+
+      setStats({
+        totalUsers: totalUsers ?? 0,
+        activeUsers,
+        totalRooms: roomCount,
+        occupiedNow,
+        todayBookings: todayBookings ?? 0,
+        occupancyRate,
+        weeklyData,
+      });
+      setStatsLoading(false);
+    };
+
+    fetchStats();
+  }, [loading, role]);
+
+  if (loading || statsLoading || !stats) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
         <CircularProgress size={40} sx={{ color: "#2563eb" }} />
@@ -43,9 +123,16 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (role !== "superadmin") {
+  if (role !== "superadmin" && role !== "manager") {
     return null;
   }
+
+  const KPI_CARDS = [
+    { label: "Toplam Kullanıcı", value: stats.totalUsers, icon: <PeopleIcon />, color: "#2563eb" },
+    { label: "Aktif Kullanıcı", value: stats.activeUsers, icon: <PersonIcon />, color: "#06b6d4" },
+    { label: "Toplam Oda", value: stats.totalRooms, icon: <MeetingRoomIcon />, color: "#10b981" },
+    { label: "Bugünkü Rezervasyon", value: stats.todayBookings, icon: <EventAvailableIcon />, color: "#f59e0b" },
+  ];
 
   return (
     <Box sx={{ width: "100%", overflowX: "hidden" }}>
@@ -78,9 +165,9 @@ export default function AdminDashboardPage() {
         sx={{ 
           display: "grid", 
           gridTemplateColumns: {
-            xs: "1fr", // Mobilde tek kolon
-            sm: "repeat(2, 1fr)", // Tabletlerde 2 kolon
-            lg: "repeat(4, 1fr)" // Masaüstünde 4 kolon
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            lg: "repeat(4, 1fr)"
           }, 
           gap: { xs: 2, sm: 2.5 }, 
           mb: { xs: 2.5, sm: 3 } 
@@ -168,7 +255,7 @@ export default function AdminDashboardPage() {
 
           <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
             <Typography sx={{ fontSize: { xs: "28px", sm: "32px" }, fontWeight: 700, color: "#111827" }}>
-              %{Math.round(MOCK_STATS.occupancyRate * 100)}
+              %{Math.round(stats.occupancyRate * 100)}
             </Typography>
 
             <Box 
@@ -183,14 +270,14 @@ export default function AdminDashboardPage() {
                 fontWeight: 600 
               }}
             >
-              {MOCK_STATS.occupiedNow} / {MOCK_STATS.totalRooms} oda dolu
+              {stats.occupiedNow} / {stats.totalRooms} oda dolu
             </Box>
           </Box>
           
           {/* Progress Bar */}
           <Box sx={{ width: "100%", height: "8px", backgroundColor: "#f3f4f6", borderRadius: "4px", overflow: "hidden" }}>
             <Box sx={{ 
-              width: `${MOCK_STATS.occupancyRate * 100}%`, 
+              width: `${stats.occupancyRate * 100}%`, 
               height: "100%", 
               backgroundColor: "#2563eb",
               borderRadius: "4px",
@@ -214,12 +301,19 @@ export default function AdminDashboardPage() {
             variant="h3" 
             sx={{ fontSize: "15px", fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            Doluluk Grafiği
+            Son 7 Gün Rezervasyon
           </Typography>
 
-          <Typography sx={{ color: "#6b7280", fontSize: "13px" }}>
-            Grafik burada yer alacak — Recharts veya mui-charts entegrasyonu için alan hazırlandı.
-          </Typography>
+          <BarChart
+            dataset={stats.weeklyData}
+            xAxis={[{ dataKey: "day", scaleType: "band", disableLine: true, disableTicks: true }]}
+            yAxis={[{ disableLine: true, disableTicks: true }]}
+            series={[{ dataKey: "count", label: "Rezervasyon", color: "#2563eb" }]}
+            height={140}
+            borderRadius={6}
+            margin={{ left: 10, right: 10, top: 10, bottom: 20 }}
+            hideLegend
+          />
         </Card>
 
       </Box>

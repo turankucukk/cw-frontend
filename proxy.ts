@@ -50,7 +50,7 @@ export async function proxy(request: NextRequest) {
       ? can(role, 'rooms.view')
       : pathname.startsWith('/admin/reports')
       ? can(role, 'reports.view')
-      : role === 'superadmin' // /admin genel bakış — app/admin/page.tsx'teki mevcut kontrolle aynı
+      : (role === 'superadmin' || role === 'manager') // /admin genel bakış
 
     if (!allowed) {
       return NextResponse.redirect(new URL('/', request.url))

@@ -55,8 +55,11 @@ export default function AboutSection() {
         
       </Box>
 
-      {/* Görsel alanı */}
+      {/* Görsel kısmı */}
+      
       <Box
+        component="img"
+        src="/images/toplantı.webp"
         sx={{
           width: { xs: "100%", md: 450 },
           height: 320,
@@ -71,9 +74,6 @@ export default function AboutSection() {
           justifyContent: "center",
         }}
       >
-        <Typography color="text.secondary">
-          Workspace Image
-        </Typography>
       </Box>
     </Box>
   );

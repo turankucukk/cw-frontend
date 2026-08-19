@@ -4,13 +4,22 @@
 import { Card, CardMedia, CardContent, CardActions, Typography, Chip, Stack, Box, Button } from '@mui/material';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import type { Room } from '../../lib/api/rooms';
 import { useRouter } from 'next/navigation';  
 
 export default function RoomCard({ room }: { room: Room }) {
-const router = useRouter();
+  const router = useRouter();
+  const isUnderMaintenance = !room.isActive;
+
+  const goToRoom = () => {
+    if (isUnderMaintenance) return;
+    router.push(`/rooms/${room.id}`);
+  };
+
   return (
     <Card
+      onClick={goToRoom}
       sx={{
         borderRadius: 3,
         border: '1px solid',
@@ -22,10 +31,18 @@ const router = useRouter();
         height: 480,
         display: 'flex',
         flexDirection: 'column',
-        '&:hover': {
-          transform: 'translateY(-3px)',
-          boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
-        },
+        position: 'relative',
+        cursor: isUnderMaintenance ? 'default' : 'pointer',
+        ...(isUnderMaintenance && {
+          opacity: 0.65,
+          filter: 'grayscale(0.4)',
+        }),
+        '&:hover': isUnderMaintenance
+          ? {}
+          : {
+              transform: 'translateY(-3px)',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+            },
       }}
     >
       {room.room_images && room.room_images.length > 0 ? (
@@ -56,9 +73,10 @@ const router = useRouter();
             {room.name}
           </Typography>
           <Chip
-            label={room.isActive ? 'Aktif' : 'Pasif'}
+            icon={isUnderMaintenance ? <BuildRoundedIcon sx={{ fontSize: 16 }} /> : undefined}
+            label={isUnderMaintenance ? 'Bakımda' : 'Aktif'}
             size="small"
-            color={room.isActive ? 'success' : 'default'}
+            color={isUnderMaintenance ? 'warning' : 'success'}
             sx={{ flexShrink: 0, ml: 1 }}
           />
         </Box>
@@ -94,11 +112,14 @@ const router = useRouter();
           fullWidth
           variant="contained"
           disableElevation
-          startIcon={<EventAvailableIcon />}
-          onClick={() => router.push(`/rooms/${room.id}`)}
-
+          disabled={isUnderMaintenance}
+          startIcon={isUnderMaintenance ? <BuildRoundedIcon /> : <EventAvailableIcon />}
+          onClick={(e) => {
+            e.stopPropagation(); // kart onClick'i ikinci kez tetiklemesin
+            goToRoom();
+          }}
         >
-          Rezerve Et
+          {isUnderMaintenance ? 'Bakımda' : 'Rezerve Et'}
         </Button>
       </CardActions>
     </Card>

@@ -95,7 +95,7 @@ export default function BuildingsPage() {
             {buildings.map((building) => (
               <Grid size={{ xs: 12, sm: 6 }} key={building.id}>
                 <Card
-                  onClick={() => router.push(`/rooms?buildingId=${building.id}`)}
+                  onClick={() => router.push(`/buildings/${building.id}`)}
                   sx={{
                     borderRadius: 4,
                     overflow: "hidden",

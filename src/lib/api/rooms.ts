@@ -16,6 +16,31 @@ export interface RoomImage {
   created_at?: string;
 }
 
+export type RoomLayoutItemType =
+  | "table"
+  | "chair"
+  | "screen"
+  | "door"
+  | "window"
+  | "whiteboard";
+
+export interface RoomLayoutItem {
+  id: string;
+  type: RoomLayoutItemType;
+  label?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface RoomLayout {
+  version: 1;
+  canvasWidth: number;
+  canvasHeight: number;
+  items: RoomLayoutItem[];
+}
+
 export interface Room {
   id?: number;
   name: string;
@@ -32,6 +57,7 @@ export interface Room {
   parentSpace_id?: number | null;
   qr?: string | null;
   room_images?: RoomImage[];
+  layout_data?: RoomLayout | null;
 }
 
 export type RoomDetails = Room;
@@ -190,6 +216,25 @@ export async function updateRoom(id: number, roomData: Partial<Omit<Room, "room_
     return { success: true, data };
   } catch (error: any) {
     console.error("Oda güncellenirken hata oluştu:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateRoomLayout(id: number, layout: RoomLayout) {
+  const supabase = createClient();
+  try {
+    const { data, error } = await supabase
+      .from("space")
+      .update({ layout_data: layout })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Oda krokisi kaydedilirken hata oluştu:", error.message);
     return { success: false, error: error.message };
   }
 }

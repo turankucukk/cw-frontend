@@ -7,7 +7,7 @@ export default function Hero() {
     <Box
       sx={{
         position: 'relative',
-        backgroundImage: 'url(/hero1.webp)', 
+        backgroundImage: 'url(/images/workspaceImage.jpg)', 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: 500,
@@ -48,12 +48,6 @@ export default function Hero() {
             Öğrenciler ve mühendisler için tasarlanmış uygun toplantı odalarını
             gör, müsait saatleri kontrol et ve hemen rezervasyon yap.
           </Typography>
-          <Stack direction="row" spacing={2}>
-            <Button component={Link} href="/rooms" variant="contained" size="large">
-              Odaları gör
-            </Button>
-            
-          </Stack>
         </Box>
       </Box>
     </Box>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Box, Card, Typography, Tabs, Tab, Divider, CircularProgress } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import EventNoteIcon from "@mui/icons-material/EventNote";
@@ -38,7 +39,10 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+
   const [value, setValue] = useState(0);
   const { role, loading: roleLoading } = useUserRole();
   const { userData, reservations, payments, loading: profileLoading, setUserData } = useProfileData();
@@ -46,6 +50,18 @@ export default function ProfilePage() {
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  useEffect(() => {
+    if (tabParam === "reservations") {
+      setValue(2);
+    } else if (tabParam === "payments") {
+      setValue(3);
+    } else if (tabParam === "personal") {
+      setValue(1);
+    } else if (tabParam === "dashboard" || !tabParam) {
+      setValue(0);
+    }
+  }, [tabParam]);
 
   if (roleLoading || profileLoading) {
     return (
@@ -133,5 +149,17 @@ export default function ProfilePage() {
         </Box>
       </Card>
     </Box>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <CircularProgress />
+      </Box>
+    }>
+      <ProfileContent />
+    </Suspense>
   );
 }

@@ -41,22 +41,10 @@ export default function RoomsSection() {
     <>
       <Navbar />
       <Box sx={{ px: { xs: 3, md: 8 }, mt: { xs: 2, md: 10 } }}>
-        <GlassCard sx={{mt:{xs:10 , md:3}}}>
-          <FilterBar
-            search={search}
-            onSearchChange={setSearch}
-            buildings={buildings}
-            selectedBuildingId={selectedBuildingId}
-            onBuildingChange={setSelectedBuildingId}
-            minCapacity={minCapacity}
-            onCapacityChange={setMinCapacity}
-            selectedFeatures={selectedFeatures}
-            onFeaturesChange={setSelectedFeatures}
-          />
-        </GlassCard>
 
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, py: 2 }}>
-          <Box sx={{ flex: { md: '0 0 55%' } }}>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, py: 2 }}>
+          <Box sx={{ flex: 1 }}>
             <GlassCard>
               <RoomList
                 rooms={rooms}
@@ -65,11 +53,6 @@ export default function RoomsSection() {
                 minCapacity={minCapacity}
                 selectedFeatures={selectedFeatures}
               />
-            </GlassCard>
-          </Box>
-          <Box sx={{ flex: { md: '0 0 40%' }, display: 'flex', justifyContent: 'center' }}>
-            <GlassCard>
-              <BuildingFloorPlan />
             </GlassCard>
           </Box>
         </Box>

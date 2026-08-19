@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+
 import {
   Box,
   AppBar,
@@ -12,7 +13,14 @@ import {
   IconButton,
   ListItemIcon,
   Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Typography,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import { createClient } from "@/src/utils/supabase/client";
@@ -31,6 +39,8 @@ export default function Navbar() {
   // Profil Menüsü State'i
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -44,6 +54,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     handleMenuClose();
+    setDrawerOpen(false);
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
@@ -57,13 +68,20 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
-  // Kullanıcının e-posta adresinden ilk harfini alarak geçici bir avatar oluşturmak için:
+  const toggleDrawer = (open: boolean) => () => {
+    setDrawerOpen(open);
+  };
+
+  const handleMobileNavigation = (path: string) => {
+    setDrawerOpen(false);
+    router.push(path);
+  };
+
   const userInitial = session?.user?.email
     ? session.user.email[0].toUpperCase()
     : "U";
   const userAvatarUrl = session?.user?.user_metadata?.avatar_url || "";
 
-  // Menü linklerinin aktiflik durumunu kontrol eden fonksiyon
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
     return `transition-colors text-sm font-semibold ${isActive ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
@@ -85,21 +103,29 @@ export default function Navbar() {
           px: 2,
         }}
       >
-        <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-4">
+        <Box className="flex items-center justify-between w-full px-4 md:px-8">
           {/* LOGO */}
-          <Link
-            href="/"
-            style={{ textDecoration: "none", color: "#111827" }}
+          <Box
+            component="span"
+            style={{ color: "#111827" }}
             className="text-xl font-bold tracking-tight"
           >
             Desk<span style={{ color: "#2563eb" }}>Here</span>
-          </Link>
+          </Box>
 
-          {/* DİNAMİK AKTİF LİNKLER */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
-            <Link href="/locations" className={getLinkClass("/locations")}>Konumlar</Link>
+          {/* MERKEZ MENÜ (Sayfalar) */}
+          <Box 
+            sx={{ 
+              position: { md: "absolute" },
+              left: { md: "50%" },
+              transform: { md: "translateX(-50%)" },
+              display: { xs: "none", md: "flex" }, 
+              alignItems: "center", 
+              gap: 4 
+            }}
+          >
+            <Link href="/" className={getLinkClass("/")}>Anasayfa</Link>
             <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
-
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
             </Link>
@@ -116,21 +142,165 @@ export default function Navbar() {
             )}
           </Box>
 
-          {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
+          <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
+            <Box sx={{ width: 280, p: 2 }} role="presentation">
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Menü
+                </Typography>
+                <IconButton onClick={toggleDrawer(false)}>
+                  <MenuIcon />
+                </IconButton>
+              </Box>
+              <List>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/")}> 
+                    <ListItemText primary="Anasayfa" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
+                    <ListItemText primary="Binalar" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/services")}> 
+                    <ListItemText primary="Servislerimiz" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/about")}> 
+                    <ListItemText primary="Hakkımızda" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleMobileNavigation("/contact")}> 
+                    <ListItemText primary="İletişim" />
+                  </ListItemButton>
+                </ListItem>
+                {!loading && role === "superadmin" && (
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMobileNavigation("/admin")}> 
+                      <ListItemText primary="Admin" />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+              </List>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <select
+                  onChange={(e) => translatePage(e.target.value)}
+                  defaultValue="tr"
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="en">EN</option>
+                  <option value="tr">TR</option>
+                </select>
+
+             
+
+
+                {session ? (
+                  <>
+
+
+                  
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        router.push("/user/profile");
+                      }}
+                      sx={{
+                        textTransform: "none",
+                        justifyContent: "flex-start",
+                        borderRadius: "10px",
+                        px: 2,
+                        py: 1.25,
+                        color: "#111827",
+                      }}
+                    >
+                      Profilim
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleLogout}
+                      sx={{
+                        textTransform: "none",
+                        borderRadius: "10px",
+                        px: 2,
+                        py: 1.25,
+                        backgroundColor: "#ef4444",
+                        color: "#ffffff",
+                        '&:hover': { backgroundColor: "#dc2626" },
+                      }}
+                    >
+                      Çıkış Yap
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="text"
+                      component={Link}
+                      href="/login"
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{
+                        textTransform: "none",
+                        justifyContent: "flex-start",
+                        color: "#111827",
+                      }}
+                    >
+                      Giriş
+                    </Button>
+                    <Button
+                      variant="contained"
+                      component={Link}
+                      href="/register"
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{
+                        textTransform: "none",
+                        borderRadius: "10px",
+                        backgroundColor: "#2563eb",
+                        color: "#ffffff",
+                        '&:hover': { backgroundColor: "#1d4ed8" },
+                      }}
+                    >
+                      Kayıt ol
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Drawer>
+
           <Box
             sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2.5 }}
           >
-            {/* Dil Seçici */}
-            <select
-              onChange={(e) => translatePage(e.target.value)}
-              defaultValue="tr"
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            <IconButton
+              aria-label="menu"
+              onClick={toggleDrawer(true)}
+              sx={{ display: { xs: "flex", md: "none" }, color: "#111827" }}
             >
-              <option value="en">EN</option>
-              <option value="tr">TR</option>
-            </select>
+              <MenuIcon />
+            </IconButton>
 
-            {/* Giriş Durumuna Göre Değişen Alan */}
+                  
+
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+              <select
+                onChange={(e) => translatePage(e.target.value)}
+                defaultValue="tr"
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-white font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              >
+                <option value="en">EN</option>
+                <option value="tr">TR</option>
+              </select>
+            </Box>
+
+
+
+
             {session ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 {/* Profil Resmi Butonu */}
@@ -317,6 +487,8 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
+
+
     </>
   );
 }
