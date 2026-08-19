@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography, Button, Container, Divider, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Box, Typography, Button, Container, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import PrintIcon from "@mui/icons-material/Print";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
@@ -51,21 +51,21 @@ export default function InvoiceClient({ reservation }: { reservation: any }) {
               </Box>
             </Box>
 
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-              <Grid xs={12} sm={6}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 3, mb: 3 }}>
+              <Box sx={{ flex: 1 }}>
                 <Typography variant="overline" sx={{ color: "#94a3b8", fontWeight: 600, lineHeight: 1 }}>Kime (Müşteri):</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600, color: "#0f172a", mt: 0.5 }}>{fullName}</Typography>
                 {user?.email && <Typography variant="body2" sx={{ color: "#64748b" }}>{user.email}</Typography>}
-              </Grid>
-              <Grid xs={12} sm={6} sx={{ textAlign: { xs: "left", sm: "right" } }}>
+              </Box>
+              <Box sx={{ flex: 1, textAlign: { xs: "left", sm: "right" } }}>
                 <Typography variant="overline" sx={{ color: "#94a3b8", fontWeight: 600, lineHeight: 1 }}>Ödeme Durumu:</Typography>
                 <Box sx={{ mt: 0.5 }}>
                   <Typography variant="body2" sx={{ display: "inline-block", px: 1.5, py: 0.5, bgcolor: "#dcfce7", color: "#166534", borderRadius: 1, fontWeight: 600 }}>
                     ÖDENDİ
                   </Typography>
                 </Box>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
 
             <TableContainer sx={{ mb: 3 }}>
               <Table>
