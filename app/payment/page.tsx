@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 
 import { createClient } from "@/src/utils/supabase/client";
+
 import {
   getRoomById,
   type RoomDetails,
@@ -27,6 +28,7 @@ function PaymentContent() {
   const roomId = Number(searchParams.get("roomId"));
   const start = searchParams.get("start");
   const end = searchParams.get("end");
+
   const participants = Number(
     searchParams.get("participants") ?? "1"
   );
@@ -35,19 +37,25 @@ function PaymentContent() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+
+  const [timeLeft, setTimeLeft] = useState(300);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
+
     const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      setTimeLeft((prev) => prev - 1);
     }, 1000);
+
     return () => clearInterval(timer);
   }, [timeLeft]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  const timeFormatted =
+    `${String(minutes).padStart(2, "0")}:` +
+    `${String(seconds).padStart(2, "0")}`;
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -70,6 +78,7 @@ function PaymentContent() {
         setRoom(roomData);
       } catch (err) {
         console.error("Oda bilgileri alınamadı:", err);
+
         setError("Oda bilgileri alınamadı.");
         toast.error("Oda bilgileri alınamadı.");
       } finally {
@@ -96,14 +105,24 @@ function PaymentContent() {
 
     const hourlyPrice = room.price ?? 0;
 
-    return Math.max(0, durationHours * hourlyPrice);
+    return Math.max(
+      0,
+      durationHours * hourlyPrice
+    );
   };
 
   const totalPrice = calculateTotalPrice();
 
   const handlePayment = async () => {
     if (timeLeft <= 0) {
-      setError("Ödeme süreniz (5 dakika) doldu. Lütfen baştan rezervasyon yapın.");
+      setError(
+        "Ödeme süreniz (5 dakika) doldu. Lütfen baştan rezervasyon yapın."
+      );
+
+      toast.error(
+        "Ödeme süreniz doldu."
+      );
+
       return;
     }
 
@@ -114,8 +133,14 @@ function PaymentContent() {
     }
 
     if (!start || !end) {
-      setError("Rezervasyon tarih ve saat bilgileri eksik.");
-      toast.error("Rezervasyon tarih ve saat bilgileri eksik.");
+      setError(
+        "Rezervasyon tarih ve saat bilgileri eksik."
+      );
+
+      toast.error(
+        "Rezervasyon tarih ve saat bilgileri eksik."
+      );
+
       return;
     }
 
@@ -142,11 +167,17 @@ function PaymentContent() {
       if (authError) {
         console.error(
           "Auth hatası:",
-          JSON.stringify(authError, null, 2)
+          authError
         );
 
-        setError("Kullanıcı bilgileri alınamadı.");
-        toast.error("Kullanıcı bilgileri alınamadı.");
+        setError(
+          "Kullanıcı bilgileri alınamadı."
+        );
+
+        toast.error(
+          "Kullanıcı bilgileri alınamadı."
+        );
+
         setPaying(false);
         return;
       }
@@ -176,11 +207,17 @@ function PaymentContent() {
       if (dbUserError || !dbUser) {
         console.error(
           "Public user bulunamadı:",
-          JSON.stringify(dbUserError, null, 2)
+          dbUserError
         );
 
-        setError("Kullanıcı profiliniz bulunamadı.");
-        toast.error("Kullanıcı profiliniz bulunamadı.");
+        setError(
+          "Kullanıcı profiliniz bulunamadı."
+        );
+
+        toast.error(
+          "Kullanıcı profiliniz bulunamadı."
+        );
+
         setPaying(false);
         return;
       }
@@ -191,7 +228,13 @@ function PaymentContent() {
       } = await supabase
         .from("reservation")
         .select(
-          "id, space_id, start_time, end_time, status"
+          `
+          id,
+          space_id,
+          start_time,
+          end_time,
+          status
+          `
         )
         .eq("space_id", room.id!)
         .lt("start_time", end)
@@ -201,11 +244,11 @@ function PaymentContent() {
       if (conflictError) {
         console.error(
           "Müsaitlik kontrol hatası:",
-          JSON.stringify(conflictError, null, 2)
+          conflictError
         );
 
         setError(
-          `Oda müsaitliği kontrol edilemedi: ${conflictError.message}`
+          "Oda müsaitliği kontrol edilemedi."
         );
 
         toast.error(
@@ -216,7 +259,10 @@ function PaymentContent() {
         return;
       }
 
-      if (conflicts && conflicts.length > 0) {
+      if (
+        conflicts &&
+        conflicts.length > 0
+      ) {
         setError(
           "Seçtiğiniz saat aralığı artık müsait değil. Lütfen başka bir saat seçin."
         );
@@ -230,22 +276,42 @@ function PaymentContent() {
       }
 
       const {
-  data: roomCheck,
-  error: roomCheckError,
-} = await supabase
-  .from("space")
-  .select("isActive")
-  .eq("id", room.id!)
-  .single();
+        data: roomCheck,
+        error: roomCheckError,
+      } = await supabase
+        .from("space")
+        .select("isActive")
+        .eq("id", room.id!)
+        .single();
 
-if (roomCheckError || !roomCheck?.isActive) {
-  setError(
-    "Bu oda artık müsait değil (bakıma alınmış olabilir). Lütfen başka bir oda seçin."
-  );
+      if (
+        roomCheckError ||
+        !roomCheck?.isActive
+      ) {
+        setError(
+          "Bu oda artık müsait değil. Bakımda olabilir."
+        );
 
-  setPaying(false);
-  return;
-}
+        toast.error(
+          "Bu oda artık rezervasyona açık değil."
+        );
+
+        setPaying(false);
+        return;
+      }
+
+      const needsApproval =
+        room.needsApproval === true;
+
+      const reservationStatus =
+        needsApproval
+          ? "pending"
+          : "confirmed";
+
+      const paymentStatus =
+        needsApproval
+          ? "pending"
+          : "paid";
 
       const {
         data: reservation,
@@ -259,7 +325,7 @@ if (roomCheckError || !roomCheck?.isActive) {
           end_time: end,
           participant_count: participants,
           total_price: totalPrice,
-          status: room?.needsApproval ? "pending" : "confirmed",
+          status: reservationStatus,
         })
         .select()
         .single();
@@ -267,11 +333,7 @@ if (roomCheckError || !roomCheck?.isActive) {
       if (reservationError) {
         console.error(
           "Rezervasyon oluşturma hatası:",
-          JSON.stringify(
-            reservationError,
-            null,
-            2
-          )
+          reservationError
         );
 
         setError(
@@ -286,25 +348,36 @@ if (roomCheckError || !roomCheck?.isActive) {
         return;
       }
 
-      const { error: paymentError } = await supabase
+      const {
+        error: paymentError,
+      } = await supabase
         .from("payment")
         .insert({
           reservation_id: reservation.id,
-          transactionID: `DEMO-${Date.now()}`,
+
+          transactionID:
+            `DEMO-${Date.now()}`,
+
           amount: totalPrice,
-          status: "paid",
-          paid_at: new Date().toISOString(),
+
+          status: paymentStatus,
+
+          paid_at:
+            needsApproval
+              ? null
+              : new Date().toISOString(),
+
           payment_method: "demo",
         });
 
       if (paymentError) {
         console.error(
           "Payment kayıt hatası:",
-          JSON.stringify(paymentError, null, 2)
+          paymentError
         );
 
         setError(
-          "Ödeme kaydedilemedi (Veritabanı yetki/RLS hatası olabilir)."
+          "Ödeme kaydedilemedi."
         );
 
         toast.error(
@@ -316,13 +389,19 @@ if (roomCheckError || !roomCheck?.isActive) {
       }
 
       console.log(
-        "Rezervasyon başarıyla oluşturuldu:",
+        "Rezervasyon oluşturuldu:",
         reservation
       );
 
-      toast.success(
-        "Ödemeniz alındı ve rezervasyon oluşturuldu."
-      );
+      if (needsApproval) {
+        toast.success(
+          "Oda rezervasyonu için ödemeniz beklemeye alındı."
+        );
+      } else {
+        toast.success(
+          "Ödemeniz alındı. Rezervasyonunuz onaylandı."
+        );
+      }
 
       setTimeout(() => {
         router.push(`/invoice/${reservation.id}`);
@@ -404,7 +483,10 @@ if (roomCheckError || !roomCheck?.isActive) {
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert
+            severity="error"
+            sx={{ mb: 3 }}
+          >
             {error}
           </Alert>
         )}
@@ -492,14 +574,32 @@ if (roomCheckError || !roomCheck?.isActive) {
               </Typography>
             </Box>
 
+            {room.needsApproval && (
+              <Alert
+                severity="info"
+                sx={{ mb: 3 }}
+              >
+                Bu oda yönetici onayı gerektiriyor.
+                Ödeme işleminiz rezervasyon onaylanana
+                kadar beklemede tutulacaktır.
+              </Alert>
+            )}
+
             <Box
               sx={{
-                borderTop: "1px solid #dddddd",
-                borderBottom: "1px solid #dddddd",
+                borderTop:
+                  "1px solid #dddddd",
+
+                borderBottom:
+                  "1px solid #dddddd",
+
                 py: 3,
                 mb: 4,
+
                 display: "flex",
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
+
                 alignItems: "center",
               }}
             >
@@ -509,7 +609,9 @@ if (roomCheckError || !roomCheck?.isActive) {
                   fontSize: 17,
                 }}
               >
-                Ödenecek Tutar
+                {room.needsApproval
+                  ? "Beklemeye Alınacak Tutar"
+                  : "Ödenecek Tutar"}
               </Typography>
 
               <Typography
@@ -525,8 +627,13 @@ if (roomCheckError || !roomCheck?.isActive) {
             </Box>
 
             {timeLeft <= 0 && (
-              <Alert severity="warning" sx={{ mb: 3 }}>
-                Ödeme süreniz doldu. Güvenlik gereği işlemi baştan başlatmalısınız.
+              <Alert
+                severity="warning"
+                sx={{ mb: 3 }}
+              >
+                Ödeme süreniz doldu. Güvenlik
+                gereği işlemi baştan
+                başlatmalısınız.
               </Alert>
             )}
 
@@ -534,7 +641,10 @@ if (roomCheckError || !roomCheck?.isActive) {
               fullWidth
               variant="contained"
               size="large"
-              disabled={paying || timeLeft <= 0}
+              disabled={
+                paying ||
+                timeLeft <= 0
+              }
               onClick={handlePayment}
               sx={{
                 py: 1.5,
@@ -556,6 +666,8 @@ if (roomCheckError || !roomCheck?.isActive) {
                 />
               ) : timeLeft <= 0 ? (
                 "Süre Doldu"
+              ) : room.needsApproval ? (
+                `Ödemeyi Beklemeye Al (${timeFormatted})`
               ) : (
                 `Ödemeyi Onayla (${timeFormatted})`
               )}
@@ -583,7 +695,15 @@ export default function PaymentPage() {
   return (
     <Suspense
       fallback={
-        <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f5f6f8" }}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f5f6f8",
+          }}
+        >
           <CircularProgress />
         </Box>
       }

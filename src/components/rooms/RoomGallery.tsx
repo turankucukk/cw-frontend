@@ -4,14 +4,10 @@ import { useState } from "react";
 
 import {
   Box,
-  Button,
-  Dialog,
   IconButton,
   Typography,
 } from "@mui/material";
 
-import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
@@ -24,7 +20,6 @@ export default function RoomGallery({
   images,
   roomName,
 }: RoomGalleryProps) {
-  const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (!images || images.length === 0) {
@@ -34,10 +29,10 @@ export default function RoomGallery({
           width: "100%",
           height: {
             xs: 260,
-            md: 480,
+            md: 520,
           },
           backgroundColor: "#f3f4f6",
-          borderRadius: "16px",
+          borderRadius: "18px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -49,11 +44,6 @@ export default function RoomGallery({
       </Box>
     );
   }
-
-  const openImage = (index: number) => {
-    setSelectedIndex(index);
-    setOpen(true);
-  };
 
   const handlePrevious = () => {
     setSelectedIndex((prev) =>
@@ -67,272 +57,124 @@ export default function RoomGallery({
     );
   };
 
-  const mainImage = images[0];
-  const secondImage = images[1];
-  const thirdImage = images[2];
-
   return (
-    <>
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        height: {
+          xs: 300,
+          sm: 420,
+          md: 560,
+          lg: 650,
+        },
+        overflow: "hidden",
+        borderRadius: "18px",
+        backgroundColor: "#f3f4f6",
+      }}
+    >
       <Box
+        component="img"
+        src={images[selectedIndex]}
+        alt={`${roomName} fotoğraf ${selectedIndex + 1}`}
         sx={{
-          position: "relative",
           width: "100%",
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            md: "2fr 1fr",
-          },
-          gap: "8px",
-          height: {
-            xs: "auto",
-            md: "520px",
-          },
-          overflow: "hidden",
-          borderRadius: "18px",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          transition: "0.3s ease",
         }}
-      >
-        <Box
-          component="img"
-          src={mainImage}
-          alt={`${roomName} ana fotoğraf`}
-          onClick={() => openImage(0)}
-          sx={{
-            width: "100%",
-            height: {
-              xs: "280px",
-              md: "520px",
-            },
-            objectFit: "cover",
-            cursor: "pointer",
-            transition: "0.25s ease",
+      />
 
-            "&:hover": {
-              filter: "brightness(0.92)",
-            },
-          }}
-        />
-
-        <Box
-          sx={{
-            display: {
-              xs: "none",
-              md: "grid",
-            },
-            gridTemplateRows: "1fr 1fr",
-            gap: "8px",
-            minWidth: 0,
-          }}
-        >
-          {secondImage ? (
-            <Box
-              component="img"
-              src={secondImage}
-              alt={`${roomName} fotoğraf 2`}
-              onClick={() => openImage(1)}
-              sx={{
-                width: "100%",
-                height: "100%",
-                minHeight: 0,
-                objectFit: "cover",
-                cursor: "pointer",
-                transition: "0.25s ease",
-
-                "&:hover": {
-                  filter: "brightness(0.92)",
-                },
-              }}
-            />
-          ) : (
-            <Box sx={{ backgroundColor: "#f3f4f6" }} />
-          )}
-
-          <Box
-            sx={{
-              position: "relative",
-              minHeight: 0,
-              overflow: "hidden",
-            }}
-          >
-            {thirdImage ? (
-              <Box
-                component="img"
-                src={thirdImage}
-                alt={`${roomName} fotoğraf 3`}
-                onClick={() => openImage(2)}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  cursor: "pointer",
-                  transition: "0.25s ease",
-
-                  "&:hover": {
-                    filter: "brightness(0.92)",
-                  },
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "#f3f4f6",
-                }}
-              />
-            )}
-
-            <Button
-              onClick={() => openImage(0)}
-              startIcon={<GridViewRoundedIcon />}
-              variant="contained"
-              sx={{
-                position: "absolute",
-                right: 16,
-                bottom: 16,
-                backgroundColor: "#ffffff",
-                color: "#171717",
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: "10px",
-                px: 2,
-                boxShadow:
-                  "0 3px 12px rgba(0,0,0,0.15)",
-
-                "&:hover": {
-                  backgroundColor: "#f3f4f6",
-                },
-              }}
-            >
-              Tüm fotoğrafları görüntüle
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="lg"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: {
-              backgroundColor: "transparent",
-              boxShadow: "none",
-              overflow: "visible",
-              borderRadius: "16px",
-            },
-          },
-        }}
-      >
-        <Box
-          sx={{
-            position: "relative",
-            width: "100%",
-            height: {
-              xs: "55vh",
-              sm: "65vh",
-              md: "75vh",
-            },
-            borderRadius: "16px",
-            overflow: "hidden",
-            backgroundColor: "#ffffff",
-          }}
-        >
-          <Box
-            component="img"
-            src={images[selectedIndex]}
-            alt={`${roomName} fotoğraf ${selectedIndex + 1}`}
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            }}
-          />
-
+      {images.length > 1 && (
+        <>
           <IconButton
-            onClick={() => setOpen(false)}
+            onClick={handlePrevious}
             sx={{
               position: "absolute",
-              top: 16,
-              right: 16,
-              zIndex: 5,
+              left: {
+                xs: 12,
+                md: 28,
+              },
+              top: "50%",
+              transform: "translateY(-50%)",
+
+              width: {
+                xs: 44,
+                md: 58,
+              },
+
+              height: {
+                xs: 44,
+                md: 58,
+              },
+
+              backgroundColor: "rgba(20, 25, 55, 0.65)",
               color: "#ffffff",
-              backgroundColor: "rgba(0,0,0,0.55)",
 
               "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.8)",
+                backgroundColor: "rgba(20, 25, 55, 0.85)",
               },
             }}
           >
-            <CloseRoundedIcon />
+            <ArrowBackIosNewRoundedIcon />
           </IconButton>
 
-          {images.length > 1 && (
-            <IconButton
-              onClick={handlePrevious}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: 16,
-                transform: "translateY(-50%)",
-                zIndex: 5,
-                width: 50,
-                height: 50,
-                color: "#ffffff",
-                backgroundColor: "rgba(0,0,0,0.5)",
-
-                "&:hover": {
-                  backgroundColor: "rgba(0,0,0,0.8)",
-                },
-              }}
-            >
-              <ArrowBackIosNewRoundedIcon />
-            </IconButton>
-          )}
-
-          {images.length > 1 && (
-            <IconButton
-              onClick={handleNext}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                right: 16,
-                transform: "translateY(-50%)",
-                zIndex: 5,
-                width: 50,
-                height: 50,
-                color: "#ffffff",
-                backgroundColor: "rgba(0,0,0,0.5)",
-
-                "&:hover": {
-                  backgroundColor: "rgba(0,0,0,0.8)",
-                },
-              }}
-            >
-              <ArrowForwardIosRoundedIcon />
-            </IconButton>
-          )}
-
-          <Typography
+          <IconButton
+            onClick={handleNext}
             sx={{
               position: "absolute",
-              left: "50%",
-              bottom: 16,
-              transform: "translateX(-50%)",
+              right: {
+                xs: 12,
+                md: 28,
+              },
+              top: "50%",
+              transform: "translateY(-50%)",
+
+              width: {
+                xs: 44,
+                md: 58,
+              },
+
+              height: {
+                xs: 44,
+                md: 58,
+              },
+
+              backgroundColor: "rgba(20, 25, 55, 0.65)",
               color: "#ffffff",
-              backgroundColor: "rgba(0,0,0,0.55)",
-              px: 1.5,
-              py: 0.5,
-              borderRadius: "8px",
-              fontSize: 14,
+
+              "&:hover": {
+                backgroundColor: "rgba(20, 25, 55, 0.85)",
+              },
             }}
           >
-            {selectedIndex + 1} / {images.length}
-          </Typography>
-        </Box>
-      </Dialog>
-    </>
+            <ArrowForwardIosRoundedIcon />
+          </IconButton>
+        </>
+      )}
+
+      {images.length > 1 && (
+        <Typography
+          sx={{
+            position: "absolute",
+            bottom: 18,
+            left: "50%",
+            transform: "translateX(-50%)",
+
+            color: "#ffffff",
+            backgroundColor: "rgba(0,0,0,0.5)",
+
+            px: 1.5,
+            py: 0.6,
+
+            borderRadius: "8px",
+            fontSize: 14,
+          }}
+        >
+          {selectedIndex + 1} / {images.length}
+        </Typography>
+      )}
+    </Box>
   );
 }
