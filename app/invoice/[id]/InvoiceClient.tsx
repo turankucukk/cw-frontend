@@ -11,13 +11,52 @@ export default function InvoiceClient({ reservation }: { reservation: any }) {
   const user = Array.isArray(reservation.user) ? reservation.user[0] : reservation.user;
   const space = Array.isArray(reservation.space) ? reservation.space[0] : reservation.space;
 
-  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
-  const formatTime = (dateStr: string) => new Date(dateStr).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" });
+  const formatTime = (dateStr: string) =>
+    new Date(dateStr).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
+
+  const paymentStatus =
+    reservation.status === "confirmed"
+      ? { label: "ÖDENDİ", bgcolor: "#dcfce7", color: "#166534" }
+      : reservation.status === "cancelled"
+      ? { label: "İPTAL EDİLDİ", bgcolor: "#fee2e2", color: "#991b1b" }
+      : { label: "ONAY BEKLENİYOR", bgcolor: "#fef9c3", color: "#854d0e" };
 
   const invoiceDate = formatDate(reservation.created_at || new Date().toISOString());
   const invoiceNumber = `INV-${new Date(reservation.created_at || new Date()).getFullYear()}${(reservation.id).toString().padStart(5, '0')}`;
   
   const fullName = `${user?.name || ""} ${user?.surname || ""}`.trim() || user?.email || "Bilinmeyen Müşteri";
+
+  if (reservation.status !== "confirmed") {
+    return (
+      <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "#f1f5f9" }}>
+        <Navbar />
+        <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
+          <Paper elevation={0} sx={{ p: 4, borderRadius: 4, textAlign: "center", maxWidth: 420, boxShadow: "0 10px 40px rgba(0,0,0,0.05)" }}>
+            <Typography
+              variant="body2"
+              sx={{ display: "inline-block", px: 1.5, py: 0.5, bgcolor: paymentStatus.bgcolor, color: paymentStatus.color, borderRadius: 1, fontWeight: 600, mb: 2 }}
+            >
+              {paymentStatus.label}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: "#0f172a", mb: 1 }}>
+              {reservation.status === "cancelled" ? "Fatura oluşturulmadı" : "Fatura henüz hazır değil"}
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#64748b", mb: 3 }}>
+              {reservation.status === "cancelled"
+                ? "Bu rezervasyon reddedildiği için fatura oluşturulmamıştır."
+                : "Rezervasyonunuz yönetici onayı bekliyor. Onaylandığında faturanız burada görüntülenebilecek ve size bildirim gönderilecek."}
+            </Typography>
+            <Button component={Link} href="/user/profile?tab=payments" startIcon={<ArrowBackIcon />} sx={{ color: "text.secondary" }}>
+              Ödemelere Dön
+            </Button>
+          </Paper>
+        </Box>
+        <Footer />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "#f1f5f9" }}>
@@ -60,8 +99,8 @@ export default function InvoiceClient({ reservation }: { reservation: any }) {
               <Box sx={{ flex: 1, textAlign: { xs: "left", sm: "right" } }}>
                 <Typography variant="overline" sx={{ color: "#94a3b8", fontWeight: 600, lineHeight: 1 }}>Ödeme Durumu:</Typography>
                 <Box sx={{ mt: 0.5 }}>
-                  <Typography variant="body2" sx={{ display: "inline-block", px: 1.5, py: 0.5, bgcolor: "#dcfce7", color: "#166534", borderRadius: 1, fontWeight: 600 }}>
-                    ÖDENDİ
+                  <Typography variant="body2" sx={{ display: "inline-block", px: 1.5, py: 0.5, bgcolor: paymentStatus.bgcolor, color: paymentStatus.color, borderRadius: 1, fontWeight: 600 }}>
+                    {paymentStatus.label}
                   </Typography>
                 </Box>
               </Box>

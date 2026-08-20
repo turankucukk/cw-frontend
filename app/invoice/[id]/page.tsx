@@ -24,7 +24,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const { data: reservation, error } = await supabase
     .from("reservation")
     .select(`
-      id, start_time, end_time, total_price, created_at,
+      id, start_time, end_time, total_price, created_at, status,
       space:space_id (name, price),
       user:user_id (name, surname, email)
     `)

@@ -19,14 +19,17 @@ import {
   ListItemButton,
   ListItemText,
   Typography,
+  Badge,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
+import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import { createClient } from "@/src/utils/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { translatePage } from "../../services/translateService";
 import { useUserRole } from "@/src/hooks/useUserRole";
+import { useNotifications } from "@/src/hooks/useNotifications";
 import FeedbackOutlinedIcon from "@mui/icons-material/FeedbackOutlined";
 
 export default function Navbar() {
@@ -40,6 +43,25 @@ export default function Navbar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Bildirim Menüsü State'i
+  const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null);
+  const isNotifMenuOpen = Boolean(notifAnchorEl);
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+
+  const handleNotifOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setNotifAnchorEl(event.currentTarget);
+  };
+
+  const handleNotifClose = () => {
+    setNotifAnchorEl(null);
+  };
+
+  const handleNotifClick = (notif: { id: number; link: string | null; is_read: boolean }) => {
+    if (!notif.is_read) markAsRead(notif.id);
+    handleNotifClose();
+    if (notif.link) router.push(notif.link);
+  };
 
 
   useEffect(() => {
@@ -302,7 +324,76 @@ export default function Navbar() {
 
 
             {session ? (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                {/* Bildirim Zili */}
+                <IconButton onClick={handleNotifOpen} sx={{ color: "#4b5563" }}>
+                  <Badge badgeContent={unreadCount} color="error">
+                    <NotificationsNoneRoundedIcon />
+                  </Badge>
+                </IconButton>
+
+                <Menu
+                  anchorEl={notifAnchorEl}
+                  open={isNotifMenuOpen}
+                  onClose={handleNotifClose}
+                  transformOrigin={{ horizontal: "right", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                  slotProps={{
+                    paper: {
+                      elevation: 0,
+                      sx: {
+                        overflow: "visible",
+                        filter: "drop-shadow(0px 4px 20px rgba(0,0,0,0.08))",
+                        mt: 1.5,
+                        borderRadius: "16px",
+                        width: "320px",
+                        maxHeight: "70vh",
+                        border: "1px solid #f3f4f6",
+                        padding: "4px",
+                      },
+                    },
+                  }}
+                >
+                  <Box sx={{ px: 2, py: 1.25 }}>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 700, color: "#111827" }}>
+                      Bildirimler
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ borderColor: "#f3f4f6" }} />
+
+                  {notifications.length === 0 ? (
+                    <Box sx={{ px: 2, py: 3, textAlign: "center" }}>
+                      <Typography sx={{ fontSize: "13px", color: "#9ca3af" }}>
+                        Henüz bildiriminiz yok.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    notifications.map((notif) => (
+                      <MenuItem
+                        key={notif.id}
+                        onClick={() => handleNotifClick(notif)}
+                        sx={{
+                          py: 1.25,
+                          px: 2,
+                          borderRadius: "8px",
+                          whiteSpace: "normal",
+                          alignItems: "flex-start",
+                          bgcolor: notif.is_read ? "transparent" : "rgba(37,99,235,0.06)",
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ fontSize: "13px", fontWeight: notif.is_read ? 500 : 700, color: "#111827" }}>
+                            {notif.message}
+                          </Typography>
+                          <Typography sx={{ fontSize: "11px", color: "#9ca3af", mt: 0.25 }}>
+                            {new Date(notif.created_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    ))
+                  )}
+                </Menu>
+
                 {/* Profil Resmi Butonu */}
                 <IconButton
                   onClick={handleMenuOpen}

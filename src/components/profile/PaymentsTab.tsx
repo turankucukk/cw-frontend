@@ -5,7 +5,7 @@ import { Box, Typography, Card, Table, TableBody, TableCell, TableContainer, Tab
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
-  return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
 };
 
 const getStatusChip = (status: string) => {
@@ -16,6 +16,8 @@ const getStatusChip = (status: string) => {
       return <Chip label="İade Edildi" color="default" size="small" />;
     case "pending":
       return <Chip label="Bekliyor" color="warning" size="small" />;
+    case "cancelled":
+      return <Chip label="Reddedildi" color="default" size="small" />;
     default:
       return <Chip label={status} size="small" />;
   }
@@ -65,14 +67,20 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                     {getStatusChip(payment.status)}
                   </TableCell>
                   <TableCell align="center">
-                    <Button 
-                      href={`/invoice/${payment.reservation_id}`}
-                      variant="outlined" 
-                      size="small" 
-                      sx={{ textTransform: "none", borderRadius: 2 }}
-                    >
-                      Faturayı Gör
-                    </Button>
+                    {payment.status === "paid" ? (
+                      <Button
+                        href={`/invoice/${payment.reservation_id}`}
+                        variant="outlined"
+                        size="small"
+                        sx={{ textTransform: "none", borderRadius: 2 }}
+                      >
+                        Faturayı Gör
+                      </Button>
+                    ) : (
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        {payment.status === "cancelled" ? "Reddedildi" : "Onaylandığında görünecek"}
+                      </Typography>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

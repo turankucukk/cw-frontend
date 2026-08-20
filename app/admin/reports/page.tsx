@@ -25,6 +25,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
+import { toAppTz, appTzDayBoundary } from "@/src/lib/date";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -196,8 +197,8 @@ const fetchDetailedReport = async () => {
     `
     )
     .eq("status", "confirmed")
-.gte("start_time", from.startOf("day").toISOString())
-.lte("end_time", to.endOf("day").toISOString())
+.gte("start_time", appTzDayBoundary(from, "start").toISOString())
+.lte("end_time", appTzDayBoundary(to, "end").toISOString())
 .order("start_time", { ascending: true });
 
   if (error) {
@@ -214,8 +215,8 @@ const fetchDetailedReport = async () => {
     user_name: r.user ? `${r.user.name ?? ""} ${r.user.surname ?? ""}`.trim() : "-",
     start_raw: r.start_time,
     end_raw: r.end_time,
-    start: dayjs(r.start_time).format("DD.MM.YYYY HH:mm"),
-    end: dayjs(r.end_time).format("DD.MM.YYYY HH:mm"),
+    start: toAppTz(r.start_time).format("DD.MM.YYYY HH:mm"),
+    end: toAppTz(r.end_time).format("DD.MM.YYYY HH:mm"),
     price: r.total_price ?? 0,
   }));
 
@@ -254,7 +255,7 @@ const fetchDetailedReport = async () => {
     Pzt: 0, Sal: 0, Çar: 0, Per: 0, Cum: 0, Cmt: 0, Paz: 0,
   };
   formatted.forEach((r) => {
-    const dayIndex = dayjs(r.start_raw).day(); // 0=Paz
+    const dayIndex = toAppTz(r.start_raw).day(); // 0=Paz
     const label = WEEKDAY_LABELS[dayIndex];
     weekdayCounts[label] = (weekdayCounts[label] || 0) + 1;
   });
@@ -278,11 +279,11 @@ const fetchDetailedReport = async () => {
   setTopUsers(topUsersArr);
 
   // ── Günlük doluluk oranı (mesai saatine göre) ──
-  const dayCount = to.startOf("day").diff(from.startOf("day"), "day") + 1;
+  const dayCount = appTzDayBoundary(to, "start").diff(appTzDayBoundary(from, "start"), "day") + 1;
   const occupancyByDate: Record<string, Record<string, number>> = {};
 
   for (let i = 0; i < dayCount; i++) {
-    const dateKey = from.add(i, "day").format("DD.MM");
+    const dateKey = appTzDayBoundary(from, "start").add(i, "day").format("DD.MM");
     occupancyByDate[dateKey] = {};
     rooms.forEach((rm) => {
       occupancyByDate[dateKey][`room_${rm.id}`] = 0;
@@ -290,7 +291,7 @@ const fetchDetailedReport = async () => {
   }
 
   formatted.forEach((r) => {
-    const dateKey = dayjs(r.start_raw).format("DD.MM");
+    const dateKey = toAppTz(r.start_raw).format("DD.MM");
     const hours = dayjs(r.end_raw).diff(dayjs(r.start_raw), "hour", true);
     const roomKey = `room_${r.space_id}`;
     if (!occupancyByDate[dateKey]) occupancyByDate[dateKey] = {};
