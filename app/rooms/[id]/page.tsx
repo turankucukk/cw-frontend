@@ -301,7 +301,6 @@ export default function RoomPage() {
                 <WeeklyCalendar
   roomId={room.id!}
   roomCapacity={room.capacity}
-  roomPrice={room.price ?? 0}
   maintenanceStart={(room as any).maintenance_start ?? null}
   maintenanceEnd={(room as any).maintenance_end ?? null}
 />

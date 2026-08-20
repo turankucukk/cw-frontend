@@ -20,6 +20,7 @@ import { can } from "@/src/lib/permissions";
 import { createClient } from "@/src/utils/supabase/client";
 import dayjs from "dayjs";
 import { useToast } from "@/src/contexts/toastcontext";
+import { useMediaQuery, useTheme, Stack } from "@mui/material";
 
 type PendingReservation = {
   id: number;
@@ -40,6 +41,8 @@ export default function ApprovalsPage() {
   const [rows, setRows] = useState<PendingReservation[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (!loading && !can(role as any, "approvals.manage")) {
@@ -141,10 +144,68 @@ export default function ApprovalsPage() {
         Onay gerektiren odalara yapılan rezervasyonları burada onaylayabilir veya reddedebilirsiniz.
       </Typography>
 
-      {rows.length === 0 ? (
+            {rows.length === 0 ? (
         <Card sx={{ p: 4, textAlign: "center", borderRadius: 3, border: "1px solid #E2E8F0" }}>
           <Typography sx={{ color: "text.secondary" }}>Şu anda onay bekleyen rezervasyon yok.</Typography>
         </Card>
+      ) : isMobile ? (
+        <Stack spacing={2}>
+          {rows.map((r) => (
+            <Card
+              key={r.id}
+              sx={{ p: 2.5, borderRadius: 3, border: "1px solid #E2E8F0" }}
+            >
+              <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{r.room}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {r.building}
+              </Typography>
+
+              <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, mb: 1.5 }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Kullanıcı</Typography>
+                  <Typography variant="body2">{r.user_name}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Katılımcı</Typography>
+                  <Typography variant="body2">{r.participant_count}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Başlangıç</Typography>
+                  <Typography variant="body2">{r.start_time}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Bitiş</Typography>
+                  <Typography variant="body2">{r.end_time}</Typography>
+                </Box>
+              </Box>
+
+              <Typography sx={{ fontWeight: 700, mb: 2 }}>{r.total_price} TL</Typography>
+
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  disabled={processingId === r.id}
+                  onClick={() => handleDecision(r.id, "confirmed")}
+                >
+                  Onayla
+                </Button>
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  disabled={processingId === r.id}
+                  onClick={() => handleDecision(r.id, "cancelled")}
+                >
+                  Reddet
+                </Button>
+              </Box>
+            </Card>
+          ))}
+        </Stack>
       ) : (
         <Card sx={{ borderRadius: 3, border: "1px solid #E2E8F0", overflow: "hidden" }}>
           <Table>
