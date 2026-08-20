@@ -17,8 +17,9 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  useTheme,
+  Typography,
   useMediaQuery,
+  useTheme,
 } from "@mui/material";
 
 import { createClient } from "@/src/utils/supabase/client";
@@ -26,6 +27,7 @@ import { createClient } from "@/src/utils/supabase/client";
 type WeeklyCalendarProps = {
   roomId: number;
   roomCapacity: number;
+  roomPrice: number;
   maintenanceStart?: string | null;
   maintenanceEnd?: string | null;
 };
@@ -88,6 +90,7 @@ function getNextHour() {
 export default function WeeklyCalendar({
   roomId,
   roomCapacity,
+  roomPrice,
   maintenanceStart,
   maintenanceEnd,
 }: WeeklyCalendarProps) {
@@ -103,10 +106,41 @@ export default function WeeklyCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [participantCount, setParticipantCount] = useState(String(minParticipants));
+  const [participantCount, setParticipantCount] = useState(
+    String(minParticipants)
+  );
   const [reservations, setReservations] = useState<CalendarReservation[]>([]);
 
-  // ── Bakım aralığını kontrol eden yardımcı fonksiyon ──
+  const calculateDuration = () => {
+    if (!startTime || !endTime) return 0;
+
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    if (
+      Number.isNaN(startHour) ||
+      Number.isNaN(startMinute) ||
+      Number.isNaN(endHour) ||
+      Number.isNaN(endMinute)
+    ) {
+      return 0;
+    }
+
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+
+    const difference = endTotalMinutes - startTotalMinutes;
+
+    if (difference <= 0) {
+      return 0;
+    }
+
+    return difference / 60;
+  };
+
+  const duration = calculateDuration();
+  const totalPrice = duration * roomPrice;
+
   const isWithinMaintenance = (start: Date, end: Date): boolean => {
     if (!maintenanceStart) return false;
 
@@ -120,7 +154,6 @@ export default function WeeklyCalendar({
     return start < maintEnd && end > maintStart;
   };
 
-  // ── Takvimde turuncu arka plan olarak gösterilecek bakım bloğu ──
   const maintenanceBackgroundEvent: CalendarReservation[] = maintenanceStart
     ? [
         {
@@ -134,7 +167,9 @@ export default function WeeklyCalendar({
           backgroundColor: "#fb923c",
           borderColor: "#fb923c",
           textColor: "#ffffff",
-          extendedProps: { isMine: false },
+          extendedProps: {
+            isMine: false,
+          },
         },
       ]
     : [];
@@ -191,9 +226,15 @@ export default function WeeklyCalendar({
 
       const calendarEvents: CalendarReservation[] = (data ?? [])
         .filter((reservation) => {
-          if ((reservation.status === "confirmed" || reservation.status === "approved" || reservation.status === "pending") && isReservationExpired(reservation.start_time)) {
+          if (
+            (reservation.status === "confirmed" ||
+              reservation.status === "approved" ||
+              reservation.status === "pending") &&
+            isReservationExpired(reservation.start_time)
+          ) {
             return false;
           }
+
           return true;
         })
         .map((reservation) => {
@@ -329,7 +370,9 @@ export default function WeeklyCalendar({
       participantNumber < minParticipants ||
       participantNumber > roomCapacity
     ) {
-      alert(`Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`);
+      alert(
+        `Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`
+      );
       return;
     }
 
@@ -346,7 +389,9 @@ export default function WeeklyCalendar({
     }
 
     if (isWithinMaintenance(start, end)) {
-      alert("Seçtiğiniz saat aralığında oda bakımdadır. Lütfen başka bir saat seçin.");
+      alert(
+        "Seçtiğiniz saat aralığında oda bakımdadır. Lütfen başka bir saat seçin."
+      );
       return;
     }
 
@@ -380,22 +425,59 @@ export default function WeeklyCalendar({
           borderRadius: 3,
           p: { xs: 1, md: 3 },
           overflowX: "auto",
+
           "& .fc-addReservation-button": {
             backgroundColor: "#175bb8 !important",
             borderColor: "#175bb8 !important",
             color: "#ffffff !important",
           },
+
           "& .fc-addReservation-button:hover": {
             backgroundColor: "#104a99 !important",
             borderColor: "#104a99 !important",
           },
+
+          "& .fc-toolbar": {
+            flexDirection: {
+              xs: "column",
+              sm: "row",
+            },
+            gap: {
+              xs: 1,
+              sm: 0,
+            },
+          },
+
+          "& .fc-toolbar-chunk": {
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          },
+
+          "& .fc-toolbar-title": {
+            fontSize: {
+              xs: "18px !important",
+              sm: "1.75em !important",
+            },
+          },
         }}
       >
-        <Box sx={{ minWidth: { xs: 300, md: 500, xl: "100%" } }}>
+        <Box
+          sx={{
+            minWidth: {
+              xs: 0,
+              md: 500,
+              xl: "100%",
+            },
+            width: "100%",
+          }}
+        >
           <FullCalendar
             key={isMobile ? "mobile-calendar" : "desktop-calendar"}
             plugins={[timeGridPlugin, interactionPlugin]}
+
             initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
+
             firstDay={1}
             allDaySlot={false}
             weekends={true}
@@ -411,6 +493,7 @@ export default function WeeklyCalendar({
                 click: handleAddReservation,
               },
             }}
+
             headerToolbar={
               isMobile
                 ? {
@@ -424,6 +507,7 @@ export default function WeeklyCalendar({
                     end: "addReservation timeGridWeek,timeGridDay",
                   }
             }
+
             slotLabelFormat={{
               hour: "2-digit",
               minute: "2-digit",
@@ -458,7 +542,12 @@ export default function WeeklyCalendar({
         </Box>
       </Box>
 
-      <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>
           Rezervasyon Oluştur
         </DialogTitle>
@@ -471,21 +560,40 @@ export default function WeeklyCalendar({
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
               slotProps={{
-                inputLabel: { shrink: true },
-                htmlInput: { min: formatDateForInput(new Date()) },
+                inputLabel: {
+                  shrink: true,
+                },
+                htmlInput: {
+                  min: formatDateForInput(new Date()),
+                },
               }}
               fullWidth
             />
 
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                },
+                gap: 2,
+              }}
+            >
               <TextField
                 label="Başlangıç"
                 type="time"
                 value={startTime}
-                onChange={(event) => handleStartTimeChange(event.target.value)}
+                onChange={(event) =>
+                  handleStartTimeChange(event.target.value)
+                }
                 slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { step: 300 },
+                  inputLabel: {
+                    shrink: true,
+                  },
+                  htmlInput: {
+                    step: 300,
+                  },
                 }}
                 fullWidth
               />
@@ -496,8 +604,12 @@ export default function WeeklyCalendar({
                 value={endTime}
                 onChange={(event) => setEndTime(event.target.value)}
                 slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { step: 300 },
+                  inputLabel: {
+                    shrink: true,
+                  },
+                  htmlInput: {
+                    step: 300,
+                  },
                 }}
                 fullWidth
               />
@@ -507,7 +619,9 @@ export default function WeeklyCalendar({
               label="Katılımcı sayısı"
               type="number"
               value={participantCount}
-              onChange={(event) => setParticipantCount(event.target.value)}
+              onChange={(event) =>
+                setParticipantCount(event.target.value)
+              }
               slotProps={{
                 htmlInput: {
                   min: minParticipants,
@@ -517,11 +631,90 @@ export default function WeeklyCalendar({
               helperText={`Min: ${minParticipants} | Max: ${roomCapacity}`}
               fullWidth
             />
+
+            <Box
+              sx={{
+                mt: 1,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: "#f5f7fa",
+                border: "1px solid #e1e5eb",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#666666" }}>
+                  Saatlik ücret
+                </Typography>
+
+                <Typography sx={{ fontWeight: 600 }}>
+                  {roomPrice.toLocaleString("tr-TR")} ₺
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#666666" }}>
+                  Süre
+                </Typography>
+
+                <Typography sx={{ fontWeight: 600 }}>
+                  {duration} saat
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  borderTop: "1px solid #d9dee5",
+                  mt: 1.5,
+                  pt: 1.5,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                  }}
+                >
+                  Toplam
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "#175bb8",
+                  }}
+                >
+                  {totalPrice.toLocaleString("tr-TR")} ₺
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={handleClose} sx={{ textTransform: "none" }}>
+          <Button
+            onClick={handleClose}
+            sx={{
+              textTransform: "none",
+            }}
+          >
             İptal
           </Button>
 
@@ -531,6 +724,7 @@ export default function WeeklyCalendar({
             sx={{
               textTransform: "none",
               backgroundColor: "#175bb8",
+
               "&:hover": {
                 backgroundColor: "#104a99",
               },
