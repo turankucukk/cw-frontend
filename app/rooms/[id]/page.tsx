@@ -317,6 +317,7 @@ export default function RoomPage() {
   roomId={room.id!}
   roomCapacity={room.capacity}
   maintenanceStart={(room as any).maintenance_start ?? null}
+  roomPrice={room.price ?? 0}
   maintenanceEnd={(room as any).maintenance_end ?? null}
 />
               </Box>
