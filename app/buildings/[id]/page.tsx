@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import { Alert, Box, Button, Chip, CircularProgress, Container, Stack, Typography } from "@mui/material";
@@ -15,13 +15,16 @@ import { formatFloor } from "@/src/lib/formatFloor";
 export default function BuildingRoomsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const buildingId = Number(params.id);
 
   const [building, setBuilding] = useState<Building | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedFloor, setSelectedFloor] = useState<string | null>(null);
+
+  // Seçili kat artık URL'den okunuyor (?floor=2 gibi)
+  const selectedFloor = searchParams.get("floor");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +62,17 @@ export default function BuildingRoomsPage() {
     ? rooms.filter((r) => r.floor === selectedFloor)
     : rooms;
 
+  const handleFloorSelect = (floor: string | null) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    if (floor === null) {
+      newParams.delete("floor");
+    } else {
+      newParams.set("floor", floor);
+    }
+    const query = newParams.toString();
+    router.push(`/buildings/${buildingId}${query ? `?${query}` : ""}`);
+  };
+
   return (
     <>
       <Navbar />
@@ -93,14 +107,14 @@ export default function BuildingRoomsPage() {
                   <Chip
                     label="Tüm Katlar"
                     color={selectedFloor === null ? "primary" : "default"}
-                    onClick={() => setSelectedFloor(null)}
+                    onClick={() => handleFloorSelect(null)}
                   />
                   {floors.map((floor) => (
                     <Chip
                       key={floor}
                       label={formatFloor(floor)}
                       color={selectedFloor === floor ? "primary" : "default"}
-                      onClick={() => setSelectedFloor(floor)}
+                      onClick={() => handleFloorSelect(floor)}
                     />
                   ))}
                 </Stack>

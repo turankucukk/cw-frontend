@@ -26,6 +26,8 @@ type WeeklyCalendarProps = {
   roomId: number;
   roomCapacity: number;
   roomPrice: number;
+  maintenanceStart?: string | null;
+  maintenanceEnd?: string | null;
 };
 
 type CalendarReservation = {
@@ -36,6 +38,7 @@ type CalendarReservation = {
   backgroundColor: string;
   borderColor: string;
   textColor: string;
+  display?: "background";
   extendedProps: {
     isMine: boolean;
   };
@@ -86,6 +89,8 @@ export default function WeeklyCalendar({
   roomId,
   roomCapacity,
   roomPrice,
+  maintenanceStart,
+  maintenanceEnd,
 }: WeeklyCalendarProps) {
   const router = useRouter();
 
@@ -129,6 +134,40 @@ export default function WeeklyCalendar({
 
   const duration = calculateDuration();
   const totalPrice = duration * roomPrice;
+
+  // ── Bakım aralığını kontrol eden yardımcı fonksiyon ──
+  const isWithinMaintenance = (start: Date, end: Date): boolean => {
+    if (!maintenanceStart) return false;
+
+    const maintStart = new Date(maintenanceStart);
+    const maintEnd = maintenanceEnd ? new Date(maintenanceEnd) : null;
+
+    // Süresiz (acil, bitiş yok) bakım: başlangıçtan sonrasının tamamı bloklu
+    if (!maintEnd) {
+      return end > maintStart;
+    }
+
+    return start < maintEnd && end > maintStart;
+  };
+
+  // ── Takvimde turuncu arka plan olarak gösterilecek bakım bloğu ──
+  const maintenanceBackgroundEvent: CalendarReservation[] = maintenanceStart
+    ? [
+        {
+          id: "maintenance-block",
+          title: "Bakımda",
+          start: maintenanceStart,
+          end:
+            maintenanceEnd ??
+            new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString(),
+          display: "background",
+          backgroundColor: "#fb923c",
+          borderColor: "#fb923c",
+          textColor: "#ffffff",
+          extendedProps: { isMine: false },
+        },
+      ]
+    : [];
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -221,6 +260,14 @@ export default function WeeklyCalendar({
   const handleDateClick = async (clickedDate: Date) => {
     if (clickedDate < new Date()) {
       alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+      return;
+    }
+
+    const finishDatePreview = new Date(clickedDate);
+    finishDatePreview.setHours(finishDatePreview.getHours() + 1);
+
+    if (isWithinMaintenance(clickedDate, finishDatePreview)) {
+      alert("Bu tarih aralığında oda bakımdadır, rezervasyon yapılamaz.");
       return;
     }
 
@@ -336,6 +383,11 @@ export default function WeeklyCalendar({
       return;
     }
 
+    if (isWithinMaintenance(start, end)) {
+      alert("Seçtiğiniz saat aralığında oda bakımdadır. Lütfen başka bir saat seçin.");
+      return;
+    }
+
     const supabase = createClient();
 
     const {
@@ -432,7 +484,7 @@ export default function WeeklyCalendar({
 
               info.el.style.cursor = isMine ? "pointer" : "default";
             }}
-            events={reservations}
+            events={[...reservations, ...maintenanceBackgroundEvent]}
           />
         </Box>
       </Box>

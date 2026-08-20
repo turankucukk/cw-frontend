@@ -65,6 +65,9 @@ export type RoomDetails = Room;
 export async function getRooms(): Promise<Room[]> {
   const supabase = createClient();
   try {
+    await activateDueMaintenance();
+    await releaseExpiredMaintenance();
+
     const { data, error } = await supabase
       .from("space")
       .select("*, room_images(*)")
@@ -77,6 +80,49 @@ export async function getRooms(): Promise<Room[]> {
     return [];
   }
 }
+
+// Bakım süresi dolmuş odaları otomatik olarak aktif hale getirir
+export async function releaseExpiredMaintenance(): Promise<void> {
+  const supabase = createClient();
+  const now = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("space")
+    .update({
+      isActive: true,
+      maintenance_type: null,
+      maintenance_start: null,
+      maintenance_end: null,
+      maintenance_reason: null,
+    })
+    .eq("isActive", false)
+    .not("maintenance_end", "is", null)
+    .lt("maintenance_end", now);
+
+  if (error) {
+    console.error("Süresi geçmiş bakımlar temizlenirken hata oluştu:", error.message);
+  }
+}
+
+// Başlangıç tarihi gelmiş planlı bakımları otomatik olarak devreye sokar (odayı pasif yapar)
+export async function activateDueMaintenance(): Promise<void> {
+  const supabase = createClient();
+  const now = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("space")
+    .update({ isActive: false })
+    .eq("isActive", true)
+    .eq("maintenance_type", "planli")
+    .not("maintenance_start", "is", null)
+    .lte("maintenance_start", now);
+
+  if (error) {
+    console.error("Zamanı gelen bakımlar devreye alınırken hata oluştu:", error.message);
+  }
+}
+
+
 
 export async function getRoomById(id: number | string): Promise<Room | null> {
   const supabase = createClient();

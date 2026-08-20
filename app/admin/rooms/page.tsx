@@ -44,7 +44,11 @@ import { can } from "@/src/lib/permissions";
 import QRCodeIcon from "@mui/icons-material/QrCode2";
 import { QRCodeCanvas } from "qrcode.react";
 
-// Supabase API servis fonksiyonları
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { Dayjs } from "dayjs";
+
 import {
   getRooms,
   addRoom,
@@ -55,8 +59,6 @@ import {
   Building,
 } from "../../../src/lib/api/rooms";
 
-// Kart üzerindeki aksiyon butonları (QR, Kroki, Bakıma Al, Düzenle, Sil)
-// hepsi aynı sabit boyutta, ikon üstte + etiket altta şeklinde görünür.
 const actionButtonSx = (color: string) => ({
   display: "flex",
   flexDirection: "column" as const,
@@ -82,6 +84,8 @@ const actionLabelSx = {
   textAlign: "center" as const,
 };
 
+const MIN_PLANNED_DAYS = 11; // 1.5 hafta
+
 export default function RoomsPage() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -92,7 +96,6 @@ export default function RoomsPage() {
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
 
-  // Mod kontrolü: "add" mi "edit" mi?
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
@@ -102,6 +105,19 @@ export default function RoomsPage() {
   const [featuresList, setFeaturesList] = useState<string[]>([]);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrRoom, setQrRoom] = useState<Room | null>(null);
+
+  // ── Bakıma alma dialogu state'leri ──
+  const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
+  const [maintenanceRoom, setMaintenanceRoom] = useState<Room | null>(null);
+  const [maintenanceType, setMaintenanceType] = useState<"acil" | "planli">("acil");
+  const [maintenanceStart, setMaintenanceStart] = useState<Dayjs | null>(
+    dayjs().add(MIN_PLANNED_DAYS, "day")
+  );
+  const [maintenanceEnd, setMaintenanceEnd] = useState<Dayjs | null>(
+    dayjs().add(MIN_PLANNED_DAYS + 1, "day")
+  );
+  const [maintenanceReason, setMaintenanceReason] = useState("");
+  const [maintenanceSubmitting, setMaintenanceSubmitting] = useState(false);
 
   const [roomForm, setRoomForm] = useState({
     name: "",
@@ -116,7 +132,6 @@ export default function RoomsPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Verileri Supabase'den Çek
   const fetchData = async () => {
     setLoading(true);
     const [roomsData, buildingsData] = await Promise.all([
@@ -138,7 +153,6 @@ export default function RoomsPage() {
     fetchData();
   }, []);
 
-  // YENİ EKLE MODALINI AÇ
   const handleOpenAdd = () => {
     setMode("add");
     setSelectedRoomId(null);
@@ -158,7 +172,6 @@ export default function RoomsPage() {
     setOpen(true);
   };
 
-  // DÜZENLE MODALINI AÇ
   const handleOpenEdit = (room: Room) => {
     setMode("edit");
     setSelectedRoomId(room.id ?? null);
@@ -192,7 +205,6 @@ export default function RoomsPage() {
     setRoomForm({ ...roomForm, [name]: value });
   };
 
-  // Dinamik Özellik Çipleri
   const handleAddFeature = () => {
     if (featureInput.trim() && !featuresList.includes(featureInput.trim())) {
       setFeaturesList([...featuresList, featureInput.trim()]);
@@ -204,7 +216,6 @@ export default function RoomsPage() {
     setFeaturesList(featuresList.filter((f) => f !== featureToDelete));
   };
 
-  // Dosya Seçimi
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
@@ -212,7 +223,6 @@ export default function RoomsPage() {
     }
   };
 
-  // ODA SİLME İŞLEMİ
   const handleDeleteRoom = async (id?: number) => {
     if (!id) return;
     if (
@@ -229,19 +239,44 @@ export default function RoomsPage() {
       }
     }
   };
-  // ODAYI BAKIMA ALMA
-  const handleToggleMaintenance = async (room: Room) => {
-    const newStatus = !room.isActive;
-    const confirmMsg = newStatus
-      ? "Bu odayı tekrar aktif hale getirmek istediğinize emin misiniz?"
-      : "Bu odayı bakıma almak istediğinize emin misiniz? Kullanıcılar bu odayı göremeyecek/rezerve edemeyecek.";
 
-    if (!confirm(confirmMsg)) return;
+  // ODAYI BAKIMA ALMA / BAKIMDAN ÇIKARMA
+  const handleToggleMaintenance = (room: Room) => {
+    if (!room.isActive) {
+      handleReactivateRoom(room);
+      return;
+    }
+
+    setMaintenanceRoom(room);
+    setMaintenanceType("acil");
+    setMaintenanceStart(dayjs().add(MIN_PLANNED_DAYS, "day"));
+    setMaintenanceEnd(dayjs().add(MIN_PLANNED_DAYS + 1, "day"));
+    setMaintenanceReason("");
+    setMaintenanceDialogOpen(true);
+  };
+
+  const handleMaintenanceTypeChange = (value: "acil" | "planli") => {
+    setMaintenanceType(value);
+    if (value === "planli") {
+      // Planlıya geçince tarih alanlarını 1.5 hafta sonrasına varsayılan ayarla
+      setMaintenanceStart(dayjs().add(MIN_PLANNED_DAYS, "day"));
+      setMaintenanceEnd(dayjs().add(MIN_PLANNED_DAYS + 1, "day"));
+    }
+  };
+
+  const handleReactivateRoom = async (room: Room) => {
+    if (!confirm("Bu odayı tekrar aktif hale getirmek istediğinize emin misiniz?")) return;
 
     const supabase = createClient();
     const { error } = await supabase
       .from("space")
-      .update({ isActive: newStatus })
+      .update({
+        isActive: true,
+        maintenance_type: null,
+        maintenance_start: null,
+        maintenance_end: null,
+        maintenance_reason: null,
+      })
       .eq("id", room.id);
 
     if (error) {
@@ -249,12 +284,141 @@ export default function RoomsPage() {
       return;
     }
 
-    showToast(
-      newStatus ? "Oda tekrar aktif edildi!" : "Oda bakıma alındı!",
-      newStatus ? "success" : "warning",
-    );
+    showToast("Oda tekrar aktif edildi!", "success");
     await fetchData();
   };
+
+  const handleCloseMaintenanceDialog = () => {
+    setMaintenanceDialogOpen(false);
+    setMaintenanceRoom(null);
+  };
+
+const handleConfirmMaintenance = async () => {
+  if (!maintenanceRoom) return;
+
+  // ── Tür bazlı başlangıç/bitiş belirleme ──
+  let effectiveStart: Dayjs;
+  let effectiveEnd: Dayjs | null;
+
+  if (maintenanceType === "acil") {
+    effectiveStart = dayjs();
+    effectiveEnd = null;
+  } else {
+    if (!maintenanceStart || !maintenanceEnd) {
+      showToast("Lütfen başlangıç ve bitiş tarihini seçin.", "warning");
+      return;
+    }
+
+    if (maintenanceEnd.isBefore(maintenanceStart)) {
+      showToast("Bitiş tarihi başlangıçtan sonra olmalıdır.", "warning");
+      return;
+    }
+
+    const minAllowedStart = dayjs().add(MIN_PLANNED_DAYS, "day");
+    if (maintenanceStart.isBefore(minAllowedStart)) {
+      showToast(
+        `Planlı bakım en az 1.5 hafta (${MIN_PLANNED_DAYS} gün) önceden girilmelidir. Acil ise "Acil" türünü seçin.`,
+        "warning"
+      );
+      return;
+    }
+
+    effectiveStart = maintenanceStart;
+    effectiveEnd = maintenanceEnd;
+  }
+
+  if (
+    !confirm(
+      `Bu odayı ${maintenanceType === "acil" ? "ACİL" : "PLANLI"} bakıma almak istediğinize emin misiniz? Bu tarih aralığındaki tüm rezervasyonlar iptal edilip iade edilecektir.`
+    )
+  ) {
+    return;
+  }
+
+  setMaintenanceSubmitting(true);
+  const supabase = createClient();
+
+  const { error: spaceError } = await supabase
+  .from("space")
+  .update({
+    // Acil bakım hemen odayı pasif yapar; planlı bakımda oda,
+    // bakım tarihi gelene kadar aktif kalır (otomatik kontrolle kapanacak)
+    isActive: maintenanceType === "acil" ? false : true,
+    maintenance_type: maintenanceType,
+    maintenance_start: effectiveStart.toISOString(),
+    maintenance_end: effectiveEnd ? effectiveEnd.toISOString() : null,
+    maintenance_reason: maintenanceReason || null,
+  })
+  .eq("id", maintenanceRoom.id);
+
+  if (spaceError) {
+    showToast("Bakıma alma hatası: " + spaceError.message, "error");
+    setMaintenanceSubmitting(false);
+    return;
+  }
+
+  let overlapQuery = supabase
+    .from("reservation")
+    .select("id, total_price")
+    .eq("space_id", maintenanceRoom.id)
+    .neq("status", "cancelled")
+    .gt("end_time", effectiveStart.toISOString());
+
+  if (effectiveEnd) {
+    overlapQuery = overlapQuery.lt("start_time", effectiveEnd.toISOString());
+  }
+
+  const { data: overlappingReservations, error: fetchError } = await overlapQuery;
+
+  if (fetchError) {
+    showToast("Rezervasyonlar kontrol edilirken hata oluştu: " + fetchError.message, "error");
+    setMaintenanceSubmitting(false);
+    return;
+  }
+
+  if (overlappingReservations && overlappingReservations.length > 0) {
+    const idsToCancel = overlappingReservations.map((r) => r.id);
+
+    const { error: cancelError } = await supabase
+      .from("reservation")
+      .update({
+        status: "cancelled",
+        is_refunded: true,
+        refunded_at: new Date().toISOString(),
+        refund_reason: "Oda bakıma alındığı için rezervasyon iptal edildi, ücret iade edildi.",
+      })
+      .in("id", idsToCancel);
+
+    if (cancelError) {
+      showToast("Rezervasyonlar iptal edilirken hata oluştu: " + cancelError.message, "error");
+      setMaintenanceSubmitting(false);
+      return;
+    }
+
+    const { error: paymentUpdateError } = await supabase
+      .from("payment")
+      .update({ status: "refunded" })
+      .in("reservation_id", idsToCancel);
+
+    if (paymentUpdateError) {
+      console.error("Ödeme kayıtları güncellenirken hata oluştu:", paymentUpdateError.message);
+    }
+
+    // TODO (Faz 7): Bu rezervasyonların sahiplerine "iptal edildi, iade edildi" maili gönderilecek
+    showToast(
+      `Oda bakıma alındı. ${idsToCancel.length} rezervasyon iptal edilip iade edildi.`,
+      "warning"
+    );
+  } else {
+    showToast("Oda bakıma alındı.", "warning");
+  }
+
+  setMaintenanceSubmitting(false);
+  setMaintenanceDialogOpen(false);
+  setMaintenanceRoom(null);
+  await fetchData();
+};
+
 
   const handleOpenQr = (room: Room) => {
     setQrRoom(room);
@@ -273,11 +437,9 @@ export default function RoomsPage() {
     link.click();
   };
 
-  // FORM GÖNDERİMİ (EKLE VEYA GÜNCELLE)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Yeni Ekleme Modundaysak Fotoğraf Yüklemek Zorunludur
     if (mode === "add" && selectedFiles.length === 0) {
       showToast("Lütfen en az bir oda fotoğrafı yükleyiniz!", "warning");
       return;
@@ -332,7 +494,6 @@ export default function RoomsPage() {
       disableGutters
       sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 4 } }}
     >
-      {/* Üst Başlık */}
       <Box
         sx={{
           mb: 4,
@@ -364,7 +525,6 @@ export default function RoomsPage() {
         </Button>
       </Box>
 
-      {/* Yükleniyor veya Liste */}
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
@@ -451,12 +611,13 @@ export default function RoomsPage() {
                   </Box>
 
                   <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 1 }}
-                  >
-                    Kat: {room.floor || "Belirtilmedi"} | Tip: {room.type}
-                  </Typography>
+  variant="body2"
+  color="text.secondary"
+  sx={{ mb: 1 }}
+>
+  {buildings.find((b) => b.id === room.building_id)?.name || "Bilinmeyen Bina"} •{" "}
+  Kat: {room.floor || "Belirtilmedi"} | Tip: {room.type}
+</Typography>
 
                   <Box
                     sx={{
@@ -499,7 +660,6 @@ export default function RoomsPage() {
                   </Stack>
                 </CardContent>
 
-                {/* AKSİYON BUTONLARI (DÜZENLE VE SİL) */}
                 <CardActions
                   sx={{
                     display: "flex",
@@ -575,7 +735,6 @@ export default function RoomsPage() {
         </Grid>
       )}
 
-      {/* MODAL FORM (EKLE / DÜZENLE) */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -602,7 +761,6 @@ export default function RoomsPage() {
               p: { xs: 2, sm: 3 },
             }}
           >
-            {/* Bina Seçimi */}
             <FormControl fullWidth required>
               <InputLabel id="building-label">Ait Olduğu Bina</InputLabel>
               <Select
@@ -701,7 +859,6 @@ export default function RoomsPage() {
               label="Bu oda için rezervasyon onay gerektirsin"
             />
 
-            {/* Özellik Ekleyici */}
             <Box>
               <Box
                 sx={{
@@ -745,7 +902,6 @@ export default function RoomsPage() {
               </Stack>
             </Box>
 
-            {/* Görsel Yükleyici */}
             <Box
               sx={{
                 border: "1px dashed #ccc",
@@ -849,7 +1005,6 @@ export default function RoomsPage() {
         </form>
       </Dialog>
 
-      {/* QR KODU MODALI */}
       <Dialog
         open={qrModalOpen}
         onClose={() => setQrModalOpen(false)}
@@ -894,6 +1049,109 @@ export default function RoomsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* BAKIMA ALMA MODALI */}
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Dialog
+          open={maintenanceDialogOpen}
+          onClose={handleCloseMaintenanceDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            {maintenanceRoom?.name} — Bakıma Al
+          </DialogTitle>
+          <DialogContent
+            dividers
+            sx={{ display: "flex", flexDirection: "column", gap: 2, py: 3 }}
+          >
+            <FormControl fullWidth>
+              <InputLabel id="maintenance-type-label">Bakım Türü</InputLabel>
+              <Select
+                labelId="maintenance-type-label"
+                value={maintenanceType}
+                label="Bakım Türü"
+                onChange={(e) =>
+                  handleMaintenanceTypeChange(e.target.value as "acil" | "planli")
+                }
+              >
+                <MenuItem value="acil">Acil</MenuItem>
+                <MenuItem value="planli">Planlı</MenuItem>
+              </Select>
+            </FormControl>
+
+            {maintenanceType === "acil" && (
+              <Typography variant="caption" color="text.secondary">
+                Acil bakım hemen başlar. Bitiş tarihi belirtilmez — odayı
+                tekrar aktif etmek için "Bakımdan Çıkar" butonunu
+                kullanmanız gerekir.
+              </Typography>
+            )}
+
+            {maintenanceType === "planli" && (
+              <>
+                <Typography variant="caption" color="text.secondary">
+                  Planlı bakım en az 1.5 hafta ({MIN_PLANNED_DAYS} gün)
+                  önceden girilmelidir.
+                </Typography>
+
+                <DateTimePicker
+                  label="Bakım Başlangıç"
+                  value={maintenanceStart}
+                  onChange={setMaintenanceStart}
+                  format="DD/MM/YYYY HH:mm"
+                  ampm={false}
+                  minDateTime={dayjs().add(MIN_PLANNED_DAYS, "day")}
+                  timeSteps={{ minutes: 1 }}
+                  sx={{ width: "100%" }}
+                />
+
+                <DateTimePicker
+                  label="Bakım Bitiş"
+                  value={maintenanceEnd}
+                  onChange={setMaintenanceEnd}
+                  format="DD/MM/YYYY HH:mm"
+                  ampm={false}
+                  minDateTime={maintenanceStart ?? undefined}
+                  timeSteps={{ minutes: 1 }}
+                  sx={{ width: "100%" }}
+                />
+              </>
+            )}
+
+            <TextField
+              fullWidth
+              multiline
+              rows={2}
+              label="Açıklama (opsiyonel)"
+              value={maintenanceReason}
+              onChange={(e) => setMaintenanceReason(e.target.value)}
+            />
+
+            <Typography variant="caption" color="warning.main">
+              Bu tarih aralığındaki mevcut rezervasyonlar otomatik iptal
+              edilip iade edilecektir.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button
+              onClick={handleCloseMaintenanceDialog}
+              color="inherit"
+              disabled={maintenanceSubmitting}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleConfirmMaintenance}
+              variant="contained"
+              color="warning"
+              disabled={maintenanceSubmitting}
+            >
+              {maintenanceSubmitting ? "İşleniyor..." : "Bakıma Al"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </LocalizationProvider>
     </Container>
   );
 }

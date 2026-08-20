@@ -15,7 +15,7 @@ import {
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
-
+import RoomLayoutViewer from "@/src/components/rooms/RoomLayoutViewer";
 import RoomGallery from "@/src/components/rooms/RoomGallery";
 import WeeklyCalendar from "@/src/components/rooms/WeeklyCalendar";
 import RoomsSection from "@/src/components/rooms/RoomSection";
@@ -299,10 +299,12 @@ export default function RoomPage() {
                 </Typography>
 
                 <WeeklyCalendar
-                  roomId={room.id!}
-                  roomCapacity={room.capacity}
-                  roomPrice={room.price ?? 0}
-                />
+  roomId={room.id!}
+  roomCapacity={room.capacity}
+  roomPrice={room.price ?? 0}
+  maintenanceStart={(room as any).maintenance_start ?? null}
+  maintenanceEnd={(room as any).maintenance_end ?? null}
+/>
               </Box>
             </>
           )}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -135,11 +135,11 @@ export default function Navbar() {
             <Link href="/contact" className={getLinkClass("/contact")}>
               İletişim
             </Link>
-            {!loading && role === "superadmin" && (
-              <Link href="/admin" className={getLinkClass("/admin")}>
-                Admin
-              </Link>
-            )}
+            {!loading && (role === "superadmin" || role === "manager") && (
+  <Link href="/admin" className={getLinkClass("/admin")}>
+    Admin
+  </Link>
+)}
           </Box>
 
           <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
@@ -178,13 +178,13 @@ export default function Navbar() {
                     <ListItemText primary="İletişim" />
                   </ListItemButton>
                 </ListItem>
-                {!loading && role === "superadmin" && (
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleMobileNavigation("/admin")}> 
-                      <ListItemText primary="Admin" />
-                    </ListItemButton>
-                  </ListItem>
-                )}
+                {!loading && (role === "superadmin" || role === "manager") && (
+  <ListItem disablePadding>
+    <ListItemButton onClick={() => handleMobileNavigation("/admin")}> 
+      <ListItemText primary="Admin" />
+    </ListItemButton>
+  </ListItem>
+)}
               </List>
               <Divider sx={{ my: 2 }} />
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
