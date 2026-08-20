@@ -134,6 +134,21 @@ export default function RoomPage() {
 
           {!loading && room && (
             <>
+              {room.needsApproval && (
+                <Alert
+                  severity="warning"
+                  variant="filled"
+                  sx={{
+                    mb: 3,
+                    fontSize: 16,
+                    fontWeight: 600,
+                    alignItems: "center",
+                  }}
+                >
+                  Oda rezervasyonu için yönetici onayı gereklidir.
+                </Alert>
+              )}
+
               <RoomGallery
                 images={(room.room_images ?? []).map(
                   (img) => img.image_url
