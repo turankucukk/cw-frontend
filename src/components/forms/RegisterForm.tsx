@@ -2,7 +2,12 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Box, TextField, Button, Typography, Alert, CircularProgress } from "@mui/material";
+import { Box, TextField, Button, Typography, Alert, CircularProgress,Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Checkbox,
+  FormControlLabel,} from "@mui/material";
 import { createClient } from "@/src/utils/supabase/client";
 
 export default function RegisterForm() {
@@ -14,57 +19,67 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false); 
 
   const supabase = createClient();
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  event.preventDefault();
 
-    if (password !== confirmPassword) {
-      setError("Şifreler eşleşmiyor.");
-      toast.error("Şifreler eşleşmiyor.");
+  if (password !== confirmPassword) {
+    setError("Şifreler eşleşmiyor.");
+    toast.error("Şifreler eşleşmiyor.");
+    return;
+  }
+
+  setError("");
+  setShowTerms(true);
+};
+ const handleRegister = async () => {
+  if (!termsAccepted) {
+    toast.error("Devam etmek için koşulları kabul etmelisiniz.");
+    return;
+  }
+
+  setShowTerms(false);
+  setLoading(true);
+
+  try {
+    const { data, error: supabaseError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          username: nickname,
+        },
+      },
+    });
+
+    if (supabaseError) {
+      setError("Kayıt başarısız: " + supabaseError.message);
+      toast.error("Kayıt başarısız.");
       return;
     }
 
-    setError("");
-    setLoading(true);
+    console.log("Kayıt başarılı", data);
 
-    try {
-      const { data, error: supabaseError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            username: nickname,
-          },
-        },
-      });
+    toast.success("Kayıt başarıyla oluşturuldu.");
 
-      if (supabaseError) {
-        setError("Kayıt başarısız: " + supabaseError.message);
-        toast.error("Kayıt başarısız.");
-        return;
-      }
+    setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, 700);
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Bir hata oluştu.";
 
-      console.log("Kayıt başarılı", data);
-
-      toast.success("Kayıt başarıyla oluşturuldu.");
-
-      setTimeout(() => {
-        router.push("/");
-        router.refresh();
-      }, 700);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Bir hata oluştu.";
-
-      setError(message);
-      toast.error("Kayıt sırasında bir hata oluştu.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    setError(message);
+    toast.error("Kayıt sırasında bir hata oluştu.");
+  } finally {
+    setLoading(false);
+  }
+};
 return (
   <Box
     sx={{
@@ -292,6 +307,126 @@ return (
         box-shadow: 0 0 0 1px #1976d2;
       }
     `}</style>
+
+    {/* KOŞULLAR POPUP */}
+    <Dialog
+      open={showTerms}
+      onClose={() => setShowTerms(false)}
+      fullWidth
+      maxWidth="sm"
+    >
+      <DialogTitle
+  sx={{
+    fontWeight: 700,
+    fontSize: "1.4rem",
+  }}
+>
+  Üyelik ve Kullanım Koşulları
+</DialogTitle>
+
+<DialogContent dividers>
+  <Typography
+    sx={{
+      fontSize: "0.95rem",
+      lineHeight: 1.7,
+      color: "#333",
+    }}
+  >
+    DeskHere platformuna kayıt olmadan önce aşağıdaki koşulları
+    lütfen okuyunuz.
+  </Typography>
+
+  <Typography sx={{ mt: 2, fontWeight: 700 }}>
+    1. Hesap Bilgileri
+  </Typography>
+
+  <Typography sx={{ mt: 0.5, fontSize: "0.9rem" }}>
+    Kayıt sırasında verilen ad, kullanıcı adı ve e-posta
+    bilgilerinin doğru ve güncel olması kullanıcının
+    sorumluluğundadır. Kullanıcı, hesap bilgilerinin
+    güvenliğinden sorumludur.
+  </Typography>
+
+  <Typography sx={{ mt: 2, fontWeight: 700 }}>
+    2. Hesap Kullanımı
+  </Typography>
+
+  <Typography sx={{ mt: 0.5, fontSize: "0.9rem" }}>
+    Kullanıcı, oluşturduğu hesabı platformun kullanım amacı
+    doğrultusunda kullanmayı kabul eder. Hesap bilgileri
+    başka kişilerle paylaşılmamalıdır.
+  </Typography>
+
+  <Typography sx={{ mt: 2, fontWeight: 700 }}>
+    3. Rezervasyon İşlemleri
+  </Typography>
+
+  <Typography sx={{ mt: 0.5, fontSize: "0.9rem" }}>
+  Kullanıcı, rezervasyon sırasında tarih, saat ve kişi sayısı gibi
+  bilgileri doğru girmeyi kabul eder. Rezervasyon sahibi, rezervasyon sırasında belirtilen kişi sayısına
+  uygun şekilde gelmelidir ve rezervasyon kapasitesini aşmamalıdır.   Kullanıcı, kullanamayacağı rezervasyonları mümkün olduğunca önceden
+  iptal etmeyi kabul eder.
+  </Typography>
+
+  <Typography sx={{ mt: 2, fontWeight: 700 }}>
+    4. Güvenlik
+  </Typography>
+
+  <Typography sx={{ mt: 0.5, fontSize: "0.9rem" }}>
+    Kullanıcı, şifresini ve hesap bilgilerini üçüncü kişilerle
+    paylaşmamalıdır. Hesabında şüpheli bir işlem fark edilmesi
+    durumunda gerekli güvenlik önlemlerini almak kullanıcının
+    sorumluluğundadır.
+  </Typography>
+
+  <FormControlLabel
+    sx={{ mt: 2 }}
+    control={
+      <Checkbox
+        checked={termsAccepted}
+        onChange={(event) =>
+          setTermsAccepted(event.target.checked)
+        }
+      />
+    }
+    label="Üyelik ve Kullanım Koşulları'nı okudum ve kabul ediyorum."
+  />
+</DialogContent>
+
+<DialogActions sx={{ px: 3, py: 2 }}>
+  <Button
+    onClick={() => setShowTerms(false)}
+    sx={{
+      color: "#666",
+      textTransform: "none",
+    }}
+  >
+    Vazgeç
+  </Button>
+
+  <Button
+    onClick={handleRegister}
+    variant="contained"
+    disabled={!termsAccepted || loading}
+    sx={{
+      backgroundColor: "#1976d2",
+      borderRadius: "12px",
+      px: 3,
+      textTransform: "none",
+
+      "&:hover": {
+        backgroundColor: "#1976d2",
+      },
+    }}
+  >
+    {loading ? (
+      <CircularProgress size={22} color="inherit" />
+    ) : (
+      "Kabul Et ve Kayıt Ol"
+    )}
+  </Button>
+   </DialogActions>
+    </Dialog>
 
   </Box>
 );
