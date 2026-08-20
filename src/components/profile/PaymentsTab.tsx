@@ -50,7 +50,9 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                 </TableCell>
               </TableRow>
             ) : (
-              payments.map((payment) => (
+              payments.map((payment) => {
+                const effectiveStatus = payment.reservation?.status === "cancelled" ? "cancelled" : payment.status;
+                return (
                 <TableRow
                   key={payment.id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -64,10 +66,10 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                     {(payment.amount || 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
                   </TableCell>
                   <TableCell align="center">
-                    {getStatusChip(payment.status)}
+                    {getStatusChip(effectiveStatus)}
                   </TableCell>
                   <TableCell align="center">
-                    {payment.status === "paid" ? (
+                    {effectiveStatus === "paid" ? (
                       <Button
                         href={`/invoice/${payment.reservation_id}`}
                         variant="outlined"
@@ -78,12 +80,12 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                       </Button>
                     ) : (
                       <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                        {payment.status === "cancelled" ? "Reddedildi" : "Onaylandığında görünecek"}
+                        {effectiveStatus === "cancelled" ? "Reddedildi" : "Onaylandığında görünecek"}
                       </Typography>
                     )}
                   </TableCell>
                 </TableRow>
-              ))
+              )})
             )}
           </TableBody>
         </Table>

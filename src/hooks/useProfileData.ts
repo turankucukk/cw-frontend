@@ -49,7 +49,7 @@ export function useProfileData() {
               // 4. Rezervasyonlara ait ödeme geçmişini çekiyoruz
               const { data: payData, error: payError } = await supabase
                 .from("payment")
-                .select(`*, reservation(space(name))`)
+                .select(`*, reservation(status, space(name))`)
                 .in("reservation_id", resIds)
                 .order("paid_at", { ascending: false });
               

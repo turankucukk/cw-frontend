@@ -20,30 +20,36 @@ export async function sendReservationEmail(
 ) {
   try {
     const isPending = status === "pending";
-    const statusText = isPending 
-      ? "Onay Bekliyor ⏳" 
-      : "Onaylandı 🎉";
+    const isCancelled = status === "cancelled";
+    
+    let statusText = "Onaylandı ✅";
+    if (isPending) statusText = "Onay Bekliyor ⏳";
+    if (isCancelled) statusText = "Reddedildi ❌";
       
-    const messageText = isPending
-      ? "DeskHere üzerinden yaptığınız rezervasyon isteği alınmıştır. Yöneticilerimiz tarafından onaylandığında bilgilendirileceksiniz."
-      : "DeskHere üzerinden yaptığınız rezervasyon başarıyla onaylanmıştır. Detayları aşağıda bulabilirsiniz:";
+    let messageText = "DeskHere üzerinden yaptığınız rezervasyon başarıyla onaylanmıştır. Detayları aşağıda bulabilirsiniz:";
+    if (isPending) messageText = "DeskHere üzerinden yaptığınız rezervasyon isteği alınmıştır. Yöneticilerimiz tarafından onaylandığında bilgilendirileceksiniz.";
+    if (isCancelled) messageText = "DeskHere üzerinden yaptığınız rezervasyon isteği yöneticilerimiz tarafından maalesef reddedilmiştir. Ödemeniz iade edilecektir.";
+
+    let subjectText = "Onayı";
+    if (isPending) subjectText = "Talebiniz Alındı";
+    if (isCancelled) subjectText = "Talebiniz Reddedildi";
 
     const mailOptions = {
       from: `"DeskHere" <${process.env.EMAIL_USER}>`,
       to,
-      subject: `DeskHere - Rezervasyon ${isPending ? "Talebiniz Alındı" : "Onayı"}`,
+      subject: `DeskHere - Rezervasyon ${subjectText}`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff;">
-          <h2 style="color: #0f172a; text-align: center; margin-bottom: 30px;">DeskHere Rezervasyon ${statusText}</h2>
+          <h2 style="color: ${isCancelled ? '#dc2626' : '#0f172a'}; text-align: center; margin-bottom: 30px;">DeskHere Rezervasyon ${statusText}</h2>
           
           <p style="color: #475569; font-size: 16px; line-height: 1.5;">Merhaba,</p>
           <p style="color: #475569; font-size: 16px; line-height: 1.5;">${messageText}</p>
           
-          <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #2563eb;">
+          <div style="background-color: ${isCancelled ? '#fef2f2' : '#f8fafc'}; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid ${isCancelled ? '#ef4444' : '#2563eb'};">
             <p style="margin: 10px 0; color: #1e293b;"><strong>🏢 Alan/Oda:</strong> ${roomName}</p>
             <p style="margin: 10px 0; color: #1e293b;"><strong>📅 Tarih:</strong> ${new Date(startTime).toLocaleDateString('tr-TR')}</p>
             <p style="margin: 10px 0; color: #1e293b;"><strong>⏰ Saat:</strong> ${new Date(startTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} - ${new Date(endTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
-            <p style="margin: 10px 0; color: #1e293b;"><strong>📌 Durum:</strong> ${isPending ? "Yönetici Onayı Bekliyor" : "Onaylandı (Ödendi)"}</p>
+            <p style="margin: 10px 0; color: #1e293b;"><strong>📌 Durum:</strong> ${statusText}</p>
           </div>
           
           <p style="color: #475569; font-size: 14px; text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
@@ -70,7 +76,7 @@ export async function sendComplaintEmail(
   message: string
 ) {
   try {
-    const adminEmail = process.env.EMAIL_USER; // Şikayetlerin yöneticinin kendisine (Gmail'e) gitmesi için.
+    const adminEmail = process.env.EMAIL_USER;
     
     const mailOptions = {
       from: `"DeskHere Sistem" <${process.env.EMAIL_USER}>`,
