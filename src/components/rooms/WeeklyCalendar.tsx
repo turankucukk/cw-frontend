@@ -412,26 +412,40 @@ export default function WeeklyCalendar({
   return (
     <>
       <Box
-        sx={{
-          backgroundColor: "#ffffff",
-          border: "1px solid #dfe5ed",
-          borderRadius: 3,
-          p: { xs: 1, md: 3 },
-          overflowX: "auto",
+  sx={{
+    backgroundColor: "#ffffff",
+    border: "1px solid #dfe5ed",
+    borderRadius: 3,
+    p: { xs: 1, md: 3 },
+    overflowX: "auto",
+    WebkitOverflowScrolling: "touch",
 
-          "& .fc-addReservation-button": {
-            backgroundColor: "#175bb8 !important",
-            borderColor: "#175bb8 !important",
-            color: "#ffffff !important",
-          },
+    "& .fc-header-toolbar": {
+      flexWrap: "wrap",
+      rowGap: 1,
+      justifyContent: "center",
+    },
 
-          "& .fc-addReservation-button:hover": {
-            backgroundColor: "#104a99 !important",
-            borderColor: "#104a99 !important",
-          },
-        }}
-      >
-        <Box sx={{ minWidth: { xs: 300, md: 500, xl: "100%" } }}>
+    "& .fc-toolbar-chunk": {
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: 1,
+    },
+
+    "& .fc-addReservation-button": {
+      backgroundColor: "#175bb8 !important",
+      borderColor: "#175bb8 !important",
+      color: "#ffffff !important",
+    },
+
+    "& .fc-addReservation-button:hover": {
+      backgroundColor: "#104a99 !important",
+      borderColor: "#104a99 !important",
+    },
+  }}
+>
+  <Box sx={{ minWidth: { xs: 720, md: 500, xl: "100%" } }}>
           <FullCalendar
             plugins={[timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
