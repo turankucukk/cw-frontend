@@ -47,7 +47,7 @@ export default function RoomDisplayPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://cw-frontend-git-development-turankucukks-projects.vercel.app";
 
   const qrAccessUrl =
     space?.qr && `${siteUrl}/access/${encodeURIComponent(space.qr)}`;
