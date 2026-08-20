@@ -47,7 +47,7 @@ export default function RoomDisplayPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
 
   const qrAccessUrl =
     space?.qr && `${siteUrl}/access/${encodeURIComponent(space.qr)}`;
