@@ -20,6 +20,7 @@ import {
   getRoomById,
   type RoomDetails,
 } from "@/src/lib/api/rooms";
+import { sendReservationEmail } from "@/src/actions/mail";
 
 function PaymentContent() {
   const router = useRouter();
@@ -388,10 +389,18 @@ function PaymentContent() {
         return;
       }
 
-      console.log(
-        "Rezervasyon oluşturuldu:",
-        reservation
-      );
+      console.log("Rezervasyon oluşturuldu:", reservation);
+
+      // Mail Gönderme İşlemi (Hata olsa bile akışı bozmamak için fire-and-forget yapıyoruz)
+      if (authUser?.email) {
+        sendReservationEmail(
+          authUser.email,
+          room.name,
+          start,
+          end,
+          reservationStatus
+        ).catch(err => console.error("Mail gönderim hatası:", err));
+      }
 
       if (needsApproval) {
         toast.success(
