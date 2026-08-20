@@ -18,6 +18,8 @@ import {
   DialogTitle,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 
 import { createClient } from "@/src/utils/supabase/client";
@@ -94,6 +96,10 @@ export default function WeeklyCalendar({
 }: WeeklyCalendarProps) {
   const router = useRouter();
 
+  // Mobil kontrolü
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const minParticipants = Math.ceil((roomCapacity * 2) / 3);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -135,14 +141,12 @@ export default function WeeklyCalendar({
   const duration = calculateDuration();
   const totalPrice = duration * roomPrice;
 
-  // ── Bakım aralığını kontrol eden yardımcı fonksiyon ──
   const isWithinMaintenance = (start: Date, end: Date): boolean => {
     if (!maintenanceStart) return false;
 
     const maintStart = new Date(maintenanceStart);
     const maintEnd = maintenanceEnd ? new Date(maintenanceEnd) : null;
 
-    // Süresiz (acil, bitiş yok) bakım: başlangıçtan sonrasının tamamı bloklu
     if (!maintEnd) {
       return end > maintStart;
     }
@@ -150,7 +154,6 @@ export default function WeeklyCalendar({
     return start < maintEnd && end > maintStart;
   };
 
-  // ── Takvimde turuncu arka plan olarak gösterilecek bakım bloğu ──
   const maintenanceBackgroundEvent: CalendarReservation[] = maintenanceStart
     ? [
         {
@@ -164,7 +167,9 @@ export default function WeeklyCalendar({
           backgroundColor: "#fb923c",
           borderColor: "#fb923c",
           textColor: "#ffffff",
-          extendedProps: { isMine: false },
+          extendedProps: {
+            isMine: false,
+          },
         },
       ]
     : [];
@@ -384,7 +389,9 @@ export default function WeeklyCalendar({
     }
 
     if (isWithinMaintenance(start, end)) {
-      alert("Seçtiğiniz saat aralığında oda bakımdadır. Lütfen başka bir saat seçin.");
+      alert(
+        "Seçtiğiniz saat aralığında oda bakımdadır. Lütfen başka bir saat seçin."
+      );
       return;
     }
 
@@ -412,43 +419,65 @@ export default function WeeklyCalendar({
   return (
     <>
       <Box
-  sx={{
-    backgroundColor: "#ffffff",
-    border: "1px solid #dfe5ed",
-    borderRadius: 3,
-    p: { xs: 1, md: 3 },
-    overflowX: "auto",
-    WebkitOverflowScrolling: "touch",
+        sx={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #dfe5ed",
+          borderRadius: 3,
+          p: { xs: 1, md: 3 },
+          overflowX: "auto",
 
-    "& .fc-header-toolbar": {
-      flexWrap: "wrap",
-      rowGap: 1,
-      justifyContent: "center",
-    },
+          "& .fc-addReservation-button": {
+            backgroundColor: "#175bb8 !important",
+            borderColor: "#175bb8 !important",
+            color: "#ffffff !important",
+          },
 
-    "& .fc-toolbar-chunk": {
-      display: "flex",
-      flexWrap: "wrap",
-      justifyContent: "center",
-      gap: 1,
-    },
+          "& .fc-addReservation-button:hover": {
+            backgroundColor: "#104a99 !important",
+            borderColor: "#104a99 !important",
+          },
 
-    "& .fc-addReservation-button": {
-      backgroundColor: "#175bb8 !important",
-      borderColor: "#175bb8 !important",
-      color: "#ffffff !important",
-    },
+          "& .fc-toolbar": {
+            flexDirection: {
+              xs: "column",
+              sm: "row",
+            },
+            gap: {
+              xs: 1,
+              sm: 0,
+            },
+          },
 
-    "& .fc-addReservation-button:hover": {
-      backgroundColor: "#104a99 !important",
-      borderColor: "#104a99 !important",
-    },
-  }}
->
-  <Box sx={{ minWidth: { xs: 720, md: 500, xl: "100%" } }}>
+          "& .fc-toolbar-chunk": {
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          },
+
+          "& .fc-toolbar-title": {
+            fontSize: {
+              xs: "18px !important",
+              sm: "1.75em !important",
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            minWidth: {
+              xs: 0,
+              md: 500,
+              xl: "100%",
+            },
+            width: "100%",
+          }}
+        >
           <FullCalendar
+            key={isMobile ? "mobile-calendar" : "desktop-calendar"}
             plugins={[timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
+
+            initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
+
             firstDay={1}
             allDaySlot={false}
             weekends={true}
@@ -464,11 +493,21 @@ export default function WeeklyCalendar({
                 click: handleAddReservation,
               },
             }}
-            headerToolbar={{
-              start: "prev,next today",
-              center: "title",
-              end: "addReservation timeGridWeek,timeGridDay",
-            }}
+
+            headerToolbar={
+              isMobile
+                ? {
+                    start: "prev,next today",
+                    center: "title",
+                    end: "addReservation",
+                  }
+                : {
+                    start: "prev,next today",
+                    center: "title",
+                    end: "addReservation timeGridWeek,timeGridDay",
+                  }
+            }
+
             slotLabelFormat={{
               hour: "2-digit",
               minute: "2-digit",
