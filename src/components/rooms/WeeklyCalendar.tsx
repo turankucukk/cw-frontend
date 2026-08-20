@@ -17,6 +17,9 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 
 import { createClient } from "@/src/utils/supabase/client";
@@ -24,6 +27,9 @@ import { createClient } from "@/src/utils/supabase/client";
 type WeeklyCalendarProps = {
   roomId: number;
   roomCapacity: number;
+  roomPrice: number;
+  maintenanceStart?: string | null;
+  maintenanceEnd?: string | null;
 };
 
 type CalendarReservation = {
@@ -34,6 +40,7 @@ type CalendarReservation = {
   backgroundColor: string;
   borderColor: string;
   textColor: string;
+  display?: "background";
   extendedProps: {
     isMine: boolean;
   };
@@ -83,8 +90,15 @@ function getNextHour() {
 export default function WeeklyCalendar({
   roomId,
   roomCapacity,
+  roomPrice,
+  maintenanceStart,
+  maintenanceEnd,
 }: WeeklyCalendarProps) {
   const router = useRouter();
+
+  // Mobil kontrolü
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const minParticipants = Math.ceil((roomCapacity * 2) / 3);
 
@@ -92,8 +106,74 @@ export default function WeeklyCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [participantCount, setParticipantCount] = useState(String(minParticipants));
+  const [participantCount, setParticipantCount] = useState(
+    String(minParticipants)
+  );
   const [reservations, setReservations] = useState<CalendarReservation[]>([]);
+
+  const calculateDuration = () => {
+    if (!startTime || !endTime) return 0;
+
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    if (
+      Number.isNaN(startHour) ||
+      Number.isNaN(startMinute) ||
+      Number.isNaN(endHour) ||
+      Number.isNaN(endMinute)
+    ) {
+      return 0;
+    }
+
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+
+    const difference = endTotalMinutes - startTotalMinutes;
+
+    if (difference <= 0) {
+      return 0;
+    }
+
+    return difference / 60;
+  };
+
+  const duration = calculateDuration();
+  const totalPrice = duration * roomPrice;
+
+  // ── Bakım aralığını kontrol eden yardımcı fonksiyon ──
+  const isWithinMaintenance = (start: Date, end: Date): boolean => {
+    if (!maintenanceStart) return false;
+
+    const maintStart = new Date(maintenanceStart);
+    const maintEnd = maintenanceEnd ? new Date(maintenanceEnd) : null;
+
+    // Süresiz (acil, bitiş yok) bakım: başlangıçtan sonrasının tamamı bloklu
+    if (!maintEnd) {
+      return end > maintStart;
+    }
+
+    return start < maintEnd && end > maintStart;
+  };
+
+  // ── Takvimde turuncu arka plan olarak gösterilecek bakım bloğu ──
+  const maintenanceBackgroundEvent: CalendarReservation[] = maintenanceStart
+    ? [
+        {
+          id: "maintenance-block",
+          title: "Bakımda",
+          start: maintenanceStart,
+          end:
+            maintenanceEnd ??
+            new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString(),
+          display: "background",
+          backgroundColor: "#fb923c",
+          borderColor: "#fb923c",
+          textColor: "#ffffff",
+          extendedProps: { isMine: false },
+        },
+      ]
+    : [];
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -147,11 +227,15 @@ export default function WeeklyCalendar({
 
       const calendarEvents: CalendarReservation[] = (data ?? [])
         .filter((reservation) => {
-          // Eğer rezervasyon onaylıysa ama 15 dk içinde check-in (qr okutma) yapılmadıysa
-          // takvimde dolu olarak GÖSTERME (başkasının alabilmesi için boşa düşür)
-          if ((reservation.status === "confirmed" || reservation.status === "approved" || reservation.status === "pending") && isReservationExpired(reservation.start_time)) {
+          if (
+            (reservation.status === "confirmed" ||
+              reservation.status === "approved" ||
+              reservation.status === "pending") &&
+            isReservationExpired(reservation.start_time)
+          ) {
             return false;
           }
+
           return true;
         })
         .map((reservation) => {
@@ -180,42 +264,48 @@ export default function WeeklyCalendar({
   }, [roomId]);
 
   const handleDateClick = async (clickedDate: Date) => {
-  if (clickedDate < new Date()) {
-    alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
-    return;
-  }
+    if (clickedDate < new Date()) {
+      alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+      return;
+    }
 
-  const supabase = createClient();
+    const finishDatePreview = new Date(clickedDate);
+    finishDatePreview.setHours(finishDatePreview.getHours() + 1);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    if (isWithinMaintenance(clickedDate, finishDatePreview)) {
+      alert("Bu tarih aralığında oda bakımdadır, rezervasyon yapılamaz.");
+      return;
+    }
 
-  // Giriş yapmamış kullanıcı → Register
-  if (!user) {
+    const supabase = createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      const finishDate = new Date(clickedDate);
+      finishDate.setHours(finishDate.getHours() + 1);
+
+      const registerUrl =
+        `/register?roomId=${roomId}` +
+        `&start=${encodeURIComponent(clickedDate.toISOString())}` +
+        `&end=${encodeURIComponent(finishDate.toISOString())}`;
+
+      router.push(registerUrl);
+      return;
+    }
+
     const finishDate = new Date(clickedDate);
     finishDate.setHours(finishDate.getHours() + 1);
 
-    const registerUrl =
-      `/register?roomId=${roomId}` +
-      `&start=${encodeURIComponent(clickedDate.toISOString())}` +
-      `&end=${encodeURIComponent(finishDate.toISOString())}`;
+    setSelectedDate(formatDateForInput(clickedDate));
+    setStartTime(formatTimeForInput(clickedDate));
+    setEndTime(formatTimeForInput(finishDate));
+    setParticipantCount(String(minParticipants));
 
-    router.push(registerUrl);
-    return;
-  }
-
-  // Giriş yapmış kullanıcı → Rezervasyon penceresi
-  const finishDate = new Date(clickedDate);
-  finishDate.setHours(finishDate.getHours() + 1);
-
-  setSelectedDate(formatDateForInput(clickedDate));
-  setStartTime(formatTimeForInput(clickedDate));
-  setEndTime(formatTimeForInput(finishDate));
-  setParticipantCount(String(minParticipants));
-
-  setDialogOpen(true);
-};
+    setDialogOpen(true);
+  };
 
   const handleAddReservation = () => {
     const nextHour = getNextHour();
@@ -281,7 +371,9 @@ export default function WeeklyCalendar({
       participantNumber < minParticipants ||
       participantNumber > roomCapacity
     ) {
-      alert(`Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`);
+      alert(
+        `Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`
+      );
       return;
     }
 
@@ -296,25 +388,33 @@ export default function WeeklyCalendar({
       alert("Seçtiğiniz saat aralığı dolu. Lütfen başka bir saat seçin.");
       return;
     }
-const supabase = createClient();
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+    if (isWithinMaintenance(start, end)) {
+      alert(
+        "Seçtiğiniz saat aralığında oda bakımdadır. Lütfen başka bir saat seçin."
+      );
+      return;
+    }
 
-const targetUrl = user
-  ? `/payment?roomId=${roomId}` +
-    `&start=${encodeURIComponent(start.toISOString())}` +
-    `&end=${encodeURIComponent(end.toISOString())}` +
-    `&participants=${participantNumber}`
-  : `/register?roomId=${roomId}` +
-    `&start=${encodeURIComponent(start.toISOString())}` +
-    `&end=${encodeURIComponent(end.toISOString())}` +
-    `&participants=${participantNumber}`;
+    const supabase = createClient();
 
-setDialogOpen(false);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-router.push(targetUrl);
+    const targetUrl = user
+      ? `/payment?roomId=${roomId}` +
+        `&start=${encodeURIComponent(start.toISOString())}` +
+        `&end=${encodeURIComponent(end.toISOString())}` +
+        `&participants=${participantNumber}`
+      : `/register?roomId=${roomId}` +
+        `&start=${encodeURIComponent(start.toISOString())}` +
+        `&end=${encodeURIComponent(end.toISOString())}` +
+        `&participants=${participantNumber}`;
+
+    setDialogOpen(false);
+
+    router.push(targetUrl);
   };
 
   return (
@@ -326,21 +426,67 @@ router.push(targetUrl);
           borderRadius: 3,
           p: { xs: 1, md: 3 },
           overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+
           "& .fc-addReservation-button": {
             backgroundColor: "#175bb8 !important",
             borderColor: "#175bb8 !important",
             color: "#ffffff !important",
           },
+
           "& .fc-addReservation-button:hover": {
             backgroundColor: "#104a99 !important",
             borderColor: "#104a99 !important",
           },
+
+          "& .fc-toolbar": {
+            flexDirection: {
+              xs: "column",
+              sm: "row",
+            },
+            gap: {
+              xs: 1,
+              sm: 0,
+            },
+          },
+
+          "& .fc-header-toolbar": {
+            flexWrap: "wrap",
+            rowGap: 1,
+            columnGap: 2,
+            justifyContent: "center",
+          },
+
+          "& .fc-toolbar-chunk": {
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 1,
+          },
+
+          "& .fc-toolbar-title": {
+            fontSize: {
+              xs: "18px !important",
+              sm: "1.75em !important",
+            },
+          },
         }}
       >
-        <Box sx={{ minWidth: { xs: 300, md: 500, xl: "100%" } }}>
+        <Box
+          sx={{
+            minWidth: {
+              xs: 0,
+              md: 500,
+              xl: "100%",
+            },
+            width: "100%",
+          }}
+        >
           <FullCalendar
+            key={isMobile ? "mobile-calendar" : "desktop-calendar"}
             plugins={[timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
+            initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
             firstDay={1}
             allDaySlot={false}
             weekends={true}
@@ -356,11 +502,19 @@ router.push(targetUrl);
                 click: handleAddReservation,
               },
             }}
-            headerToolbar={{
-              start: "prev,next today",
-              center: "title",
-              end: "addReservation timeGridWeek,timeGridDay",
-            }}
+            headerToolbar={
+              isMobile
+                ? {
+                    start: "prev,next today",
+                    center: "title",
+                    end: "addReservation",
+                  }
+                : {
+                    start: "prev,next today",
+                    center: "title",
+                    end: "addReservation timeGridWeek,timeGridDay",
+                  }
+            }
             slotLabelFormat={{
               hour: "2-digit",
               minute: "2-digit",
@@ -390,7 +544,7 @@ router.push(targetUrl);
 
               info.el.style.cursor = isMine ? "pointer" : "default";
             }}
-            events={reservations}
+            events={[...reservations, ...maintenanceBackgroundEvent]}
           />
         </Box>
       </Box>
@@ -414,12 +568,20 @@ router.push(targetUrl);
               fullWidth
             />
 
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2,
+              }}
+            >
               <TextField
                 label="Başlangıç"
                 type="time"
                 value={startTime}
-                onChange={(event) => handleStartTimeChange(event.target.value)}
+                onChange={(event) =>
+                  handleStartTimeChange(event.target.value)
+                }
                 slotProps={{
                   inputLabel: { shrink: true },
                   htmlInput: { step: 300 },
@@ -444,7 +606,9 @@ router.push(targetUrl);
               label="Katılımcı sayısı"
               type="number"
               value={participantCount}
-              onChange={(event) => setParticipantCount(event.target.value)}
+              onChange={(event) =>
+                setParticipantCount(event.target.value)
+              }
               slotProps={{
                 htmlInput: {
                   min: minParticipants,
@@ -454,6 +618,69 @@ router.push(targetUrl);
               helperText={`Min: ${minParticipants} | Max: ${roomCapacity}`}
               fullWidth
             />
+
+            <Box
+              sx={{
+                mt: 1,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: "#f5f7fa",
+                border: "1px solid #e1e5eb",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#666666" }}>
+                  Saatlik ücret
+                </Typography>
+
+                <Typography sx={{ fontWeight: 600 }}>
+                  {roomPrice.toLocaleString("tr-TR")} ₺
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#666666" }}>Süre</Typography>
+
+                <Typography sx={{ fontWeight: 600 }}>
+                  {duration} saat
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  borderTop: "1px solid #d9dee5",
+                  mt: 1.5,
+                  pt: 1.5,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography sx={{ fontSize: 18, fontWeight: 700 }}>
+                  Toplam
+                </Typography>
+
+                <Typography
+                  sx={{ fontSize: 20, fontWeight: 700, color: "#175bb8" }}
+                >
+                  {totalPrice.toLocaleString("tr-TR")} ₺
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
 

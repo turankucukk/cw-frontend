@@ -5,8 +5,11 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import CloseIcon from "@mui/icons-material/Close";
+import ShareIcon from "@mui/icons-material/Share";
 import { Html5Qrcode } from "html5-qrcode";
 import { cancelExpiredReservations } from "@/src/utils/reservationUtils";
+import { generateInviteToken } from "@/src/actions/invite";
+import toast from "react-hot-toast";
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
@@ -49,17 +52,28 @@ export default function ReservationsTab({ reservations = [] }: { reservations?: 
   };
 
   const handleCloseScanner = () => {
-  if (scannerRef.current) {
-    scannerRef.current
-      .stop()
-      .then(() => scannerRef.current?.clear())
-      .catch(() => {});
-    scannerRef.current = null;
-  }
-  setScannerOpen(false);
-};
+    if (scannerRef.current) {
+      scannerRef.current
+        .stop()
+        .then(() => scannerRef.current?.clear())
+        .catch(() => {});
+      scannerRef.current = null;
+    }
+    setScannerOpen(false);
+  };
 
-useEffect(() => {
+  const handleCopyInvite = async (reservationId: number) => {
+    try {
+      const token = await generateInviteToken(reservationId);
+      const url = `${window.location.origin}/invite/${token}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Davet linki kopyalandı!");
+    } catch (e) {
+      toast.error("Link oluşturulamadı.");
+    }
+  };
+
+  useEffect(() => {
   if (!scannerOpen) return;
 
   const timer = setTimeout(() => {
@@ -135,6 +149,14 @@ useEffect(() => {
                       Check-in (QR)
                     </Button>
                   )}
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<ShareIcon />}
+                    onClick={() => handleCopyInvite(res.id)}
+                  >
+                    Paylaş
+                  </Button>
                 </Box>
               </Box>
             </Card>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -28,8 +28,6 @@ import type { Session } from "@supabase/supabase-js";
 import { translatePage } from "../../services/translateService";
 import { useUserRole } from "@/src/hooks/useUserRole";
 import FeedbackOutlinedIcon from "@mui/icons-material/FeedbackOutlined";
-
-
 
 export default function Navbar() {
   const router = useRouter();
@@ -105,20 +103,29 @@ export default function Navbar() {
           px: 2,
         }}
       >
-        <Box className="flex items-center justify-between w-full max-w-7xl mx-auto px-4">
+        <Box className="flex items-center justify-between w-full px-4 md:px-8">
           {/* LOGO */}
-          <Link
-            href="/"
-            style={{ textDecoration: "none", color: "#111827" }}
+          <Box
+            component="span"
+            style={{ color: "#111827" }}
             className="text-xl font-bold tracking-tight"
           >
             Desk<span style={{ color: "#2563eb" }}>Here</span>
-          </Link>
+          </Box>
 
-          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", ml: 6, gap: 4 }}>
+          {/* MERKEZ MENÜ (Sayfalar) */}
+          <Box 
+            sx={{ 
+              position: { md: "absolute" },
+              left: { md: "50%" },
+              transform: { md: "translateX(-50%)" },
+              display: { xs: "none", md: "flex" }, 
+              alignItems: "center", 
+              gap: 4 
+            }}
+          >
+            <Link href="/" className={getLinkClass("/")}>Anasayfa</Link>
             <Link href="/buildings" className={getLinkClass("/buildings")}>Binalar</Link>
-            <Link href="/rooms" className={getLinkClass("/rooms")}>Odalar</Link>
-
             <Link href="/services" className={getLinkClass("/services")}>
               Servislerimiz
             </Link>
@@ -135,7 +142,6 @@ export default function Navbar() {
 )}
           </Box>
 
-          {/* SAĞ TARAF (DİL SEÇİCİ + GİRİŞ/PROFİL) */}
           <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
             <Box sx={{ width: 280, p: 2 }} role="presentation">
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
@@ -148,13 +154,13 @@ export default function Navbar() {
               </Box>
               <List>
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
-                    <ListItemText primary="Binalar" />
+                  <ListItemButton onClick={() => handleMobileNavigation("/")}> 
+                    <ListItemText primary="Anasayfa" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleMobileNavigation("/rooms")}> 
-                    <ListItemText primary="Odalar" />
+                  <ListItemButton onClick={() => handleMobileNavigation("/buildings")}> 
+                    <ListItemText primary="Binalar" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
@@ -173,12 +179,12 @@ export default function Navbar() {
                   </ListItemButton>
                 </ListItem>
                 {!loading && (role === "superadmin" || role === "manager") && (
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleMobileNavigation("/admin")}>
-                      <ListItemText primary="Admin" />
-                    </ListItemButton>
-                  </ListItem>
-                )}
+  <ListItem disablePadding>
+    <ListItemButton onClick={() => handleMobileNavigation("/admin")}> 
+      <ListItemText primary="Admin" />
+    </ListItemButton>
+  </ListItem>
+)}
               </List>
               <Divider sx={{ my: 2 }} />
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
@@ -372,7 +378,7 @@ export default function Navbar() {
                         marginTop: "2px",
                       }}
                     >
-                      {role === "superadmin" ? "Süper Yönetici" : role === "manager" ? "Yönetici" : "Kullanıcı"}
+                      {role === "superadmin" ? "Süper Yönetici" : "Kullanıcı"}
                     </div>
                   </Box>
 
@@ -481,6 +487,8 @@ export default function Navbar() {
           </Box>
         </Box>
       </AppBar>
+
+
     </>
   );
 }

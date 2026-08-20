@@ -1,26 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
-import { Alert, Box, Button, CircularProgress, Container, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, CircularProgress, Container, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ListAltIcon from "@mui/icons-material/ListAlt";
 
-import BuildingLayoutViewer from "@/src/components/rooms/BuildingLayoutViewer";
+import RoomList from "@/src/components/rooms/RoomList";
 import { getBuildingById, type Building } from "@/src/lib/api/building";
 import { getRooms, type Room } from "@/src/lib/api/rooms";
+import { formatFloor } from "@/src/lib/formatFloor";
 
-export default function BuildingLayoutPage() {
+export default function BuildingRoomsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const buildingId = Number(params.id);
 
   const [building, setBuilding] = useState<Building | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Seçili kat artık URL'den okunuyor (?floor=2 gibi)
+  const selectedFloor = searchParams.get("floor");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,7 +53,25 @@ export default function BuildingLayoutPage() {
     fetchData();
   }, [buildingId]);
 
-  const hasLayout = !!building?.layout_data?.floors?.some((f) => f.items.length > 0);
+  const floors = useMemo(() => {
+    const unique = Array.from(new Set(rooms.map((r) => r.floor).filter(Boolean))) as string[];
+    return unique.sort((a, b) => Number(a) - Number(b));
+  }, [rooms]);
+
+  const displayedRooms = selectedFloor
+    ? rooms.filter((r) => r.floor === selectedFloor)
+    : rooms;
+
+  const handleFloorSelect = (floor: string | null) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    if (floor === null) {
+      newParams.delete("floor");
+    } else {
+      newParams.set("floor", floor);
+    }
+    const query = newParams.toString();
+    router.push(`/buildings/${buildingId}${query ? `?${query}` : ""}`);
+  };
 
   return (
     <>
@@ -76,37 +98,29 @@ export default function BuildingLayoutPage() {
                   {building.name}
                 </Typography>
                 <Typography color="text.secondary">
-                  {hasLayout
-                    ? "Görmek istediğiniz odaya tıklayın."
-                    : "Bu bina için henüz kroki eklenmedi."}
+                  Görmek istediğiniz odayı aşağıdan seçin.
                 </Typography>
               </Box>
 
-              {hasLayout ? (
-                <BuildingLayoutViewer layout={building.layout_data} rooms={rooms} />
-              ) : (
-                <Box sx={{ textAlign: "center", py: 6 }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<ListAltIcon />}
-                    onClick={() => router.push(`/rooms?buildingId=${building.id}`)}
-                  >
-                    Oda Listesini Görüntüle
-                  </Button>
-                </Box>
+              {floors.length > 1 && (
+                <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: "wrap" }} useFlexGap>
+                  <Chip
+                    label="Tüm Katlar"
+                    color={selectedFloor === null ? "primary" : "default"}
+                    onClick={() => handleFloorSelect(null)}
+                  />
+                  {floors.map((floor) => (
+                    <Chip
+                      key={floor}
+                      label={formatFloor(floor)}
+                      color={selectedFloor === floor ? "primary" : "default"}
+                      onClick={() => handleFloorSelect(floor)}
+                    />
+                  ))}
+                </Stack>
               )}
 
-              {hasLayout && (
-                <Box sx={{ textAlign: "center", mt: 4 }}>
-                  <Button
-                    variant="text"
-                    startIcon={<ListAltIcon />}
-                    onClick={() => router.push(`/rooms?buildingId=${building.id}`)}
-                  >
-                    Bunun yerine liste olarak göster
-                  </Button>
-                </Box>
-              )}
+              <RoomList rooms={displayedRooms} selectedBuildingId={buildingId} />
             </>
           )}
         </Container>
