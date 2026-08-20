@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  Typography,
 } from "@mui/material";
 
 import { createClient } from "@/src/utils/supabase/client";
@@ -24,6 +25,7 @@ import { createClient } from "@/src/utils/supabase/client";
 type WeeklyCalendarProps = {
   roomId: number;
   roomCapacity: number;
+  roomPrice: number;
 };
 
 type CalendarReservation = {
@@ -83,6 +85,7 @@ function getNextHour() {
 export default function WeeklyCalendar({
   roomId,
   roomCapacity,
+  roomPrice,
 }: WeeklyCalendarProps) {
   const router = useRouter();
 
@@ -92,8 +95,40 @@ export default function WeeklyCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [participantCount, setParticipantCount] = useState(String(minParticipants));
+  const [participantCount, setParticipantCount] = useState(
+    String(minParticipants)
+  );
   const [reservations, setReservations] = useState<CalendarReservation[]>([]);
+
+  const calculateDuration = () => {
+    if (!startTime || !endTime) return 0;
+
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    if (
+      Number.isNaN(startHour) ||
+      Number.isNaN(startMinute) ||
+      Number.isNaN(endHour) ||
+      Number.isNaN(endMinute)
+    ) {
+      return 0;
+    }
+
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+
+    const difference = endTotalMinutes - startTotalMinutes;
+
+    if (difference <= 0) {
+      return 0;
+    }
+
+    return difference / 60;
+  };
+
+  const duration = calculateDuration();
+  const totalPrice = duration * roomPrice;
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -147,11 +182,15 @@ export default function WeeklyCalendar({
 
       const calendarEvents: CalendarReservation[] = (data ?? [])
         .filter((reservation) => {
-          // Eğer rezervasyon onaylıysa ama 15 dk içinde check-in (qr okutma) yapılmadıysa
-          // takvimde dolu olarak GÖSTERME (başkasının alabilmesi için boşa düşür)
-          if ((reservation.status === "confirmed" || reservation.status === "approved" || reservation.status === "pending") && isReservationExpired(reservation.start_time)) {
+          if (
+            (reservation.status === "confirmed" ||
+              reservation.status === "approved" ||
+              reservation.status === "pending") &&
+            isReservationExpired(reservation.start_time)
+          ) {
             return false;
           }
+
           return true;
         })
         .map((reservation) => {
@@ -180,42 +219,40 @@ export default function WeeklyCalendar({
   }, [roomId]);
 
   const handleDateClick = async (clickedDate: Date) => {
-  if (clickedDate < new Date()) {
-    alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
-    return;
-  }
+    if (clickedDate < new Date()) {
+      alert("Geçmiş bir tarihe veya saate rezervasyon yapamazsınız.");
+      return;
+    }
 
-  const supabase = createClient();
+    const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  // Giriş yapmamış kullanıcı → Register
-  if (!user) {
+    if (!user) {
+      const finishDate = new Date(clickedDate);
+      finishDate.setHours(finishDate.getHours() + 1);
+
+      const registerUrl =
+        `/register?roomId=${roomId}` +
+        `&start=${encodeURIComponent(clickedDate.toISOString())}` +
+        `&end=${encodeURIComponent(finishDate.toISOString())}`;
+
+      router.push(registerUrl);
+      return;
+    }
+
     const finishDate = new Date(clickedDate);
     finishDate.setHours(finishDate.getHours() + 1);
 
-    const registerUrl =
-      `/register?roomId=${roomId}` +
-      `&start=${encodeURIComponent(clickedDate.toISOString())}` +
-      `&end=${encodeURIComponent(finishDate.toISOString())}`;
+    setSelectedDate(formatDateForInput(clickedDate));
+    setStartTime(formatTimeForInput(clickedDate));
+    setEndTime(formatTimeForInput(finishDate));
+    setParticipantCount(String(minParticipants));
 
-    router.push(registerUrl);
-    return;
-  }
-
-  // Giriş yapmış kullanıcı → Rezervasyon penceresi
-  const finishDate = new Date(clickedDate);
-  finishDate.setHours(finishDate.getHours() + 1);
-
-  setSelectedDate(formatDateForInput(clickedDate));
-  setStartTime(formatTimeForInput(clickedDate));
-  setEndTime(formatTimeForInput(finishDate));
-  setParticipantCount(String(minParticipants));
-
-  setDialogOpen(true);
-};
+    setDialogOpen(true);
+  };
 
   const handleAddReservation = () => {
     const nextHour = getNextHour();
@@ -281,7 +318,9 @@ export default function WeeklyCalendar({
       participantNumber < minParticipants ||
       participantNumber > roomCapacity
     ) {
-      alert(`Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`);
+      alert(
+        `Katılımcı sayısı ${minParticipants} ile ${roomCapacity} arasında olmalıdır.`
+      );
       return;
     }
 
@@ -296,25 +335,26 @@ export default function WeeklyCalendar({
       alert("Seçtiğiniz saat aralığı dolu. Lütfen başka bir saat seçin.");
       return;
     }
-const supabase = createClient();
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+    const supabase = createClient();
 
-const targetUrl = user
-  ? `/payment?roomId=${roomId}` +
-    `&start=${encodeURIComponent(start.toISOString())}` +
-    `&end=${encodeURIComponent(end.toISOString())}` +
-    `&participants=${participantNumber}`
-  : `/register?roomId=${roomId}` +
-    `&start=${encodeURIComponent(start.toISOString())}` +
-    `&end=${encodeURIComponent(end.toISOString())}` +
-    `&participants=${participantNumber}`;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-setDialogOpen(false);
+    const targetUrl = user
+      ? `/payment?roomId=${roomId}` +
+        `&start=${encodeURIComponent(start.toISOString())}` +
+        `&end=${encodeURIComponent(end.toISOString())}` +
+        `&participants=${participantNumber}`
+      : `/register?roomId=${roomId}` +
+        `&start=${encodeURIComponent(start.toISOString())}` +
+        `&end=${encodeURIComponent(end.toISOString())}` +
+        `&participants=${participantNumber}`;
 
-router.push(targetUrl);
+    setDialogOpen(false);
+
+    router.push(targetUrl);
   };
 
   return (
@@ -326,11 +366,13 @@ router.push(targetUrl);
           borderRadius: 3,
           p: { xs: 1, md: 3 },
           overflowX: "auto",
+
           "& .fc-addReservation-button": {
             backgroundColor: "#175bb8 !important",
             borderColor: "#175bb8 !important",
             color: "#ffffff !important",
           },
+
           "& .fc-addReservation-button:hover": {
             backgroundColor: "#104a99 !important",
             borderColor: "#104a99 !important",
@@ -395,7 +437,12 @@ router.push(targetUrl);
         </Box>
       </Box>
 
-      <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>
           Rezervasyon Oluştur
         </DialogTitle>
@@ -408,21 +455,40 @@ router.push(targetUrl);
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
               slotProps={{
-                inputLabel: { shrink: true },
-                htmlInput: { min: formatDateForInput(new Date()) },
+                inputLabel: {
+                  shrink: true,
+                },
+                htmlInput: {
+                  min: formatDateForInput(new Date()),
+                },
               }}
               fullWidth
             />
 
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                },
+                gap: 2,
+              }}
+            >
               <TextField
                 label="Başlangıç"
                 type="time"
                 value={startTime}
-                onChange={(event) => handleStartTimeChange(event.target.value)}
+                onChange={(event) =>
+                  handleStartTimeChange(event.target.value)
+                }
                 slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { step: 300 },
+                  inputLabel: {
+                    shrink: true,
+                  },
+                  htmlInput: {
+                    step: 300,
+                  },
                 }}
                 fullWidth
               />
@@ -433,8 +499,12 @@ router.push(targetUrl);
                 value={endTime}
                 onChange={(event) => setEndTime(event.target.value)}
                 slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { step: 300 },
+                  inputLabel: {
+                    shrink: true,
+                  },
+                  htmlInput: {
+                    step: 300,
+                  },
                 }}
                 fullWidth
               />
@@ -444,7 +514,9 @@ router.push(targetUrl);
               label="Katılımcı sayısı"
               type="number"
               value={participantCount}
-              onChange={(event) => setParticipantCount(event.target.value)}
+              onChange={(event) =>
+                setParticipantCount(event.target.value)
+              }
               slotProps={{
                 htmlInput: {
                   min: minParticipants,
@@ -454,11 +526,90 @@ router.push(targetUrl);
               helperText={`Min: ${minParticipants} | Max: ${roomCapacity}`}
               fullWidth
             />
+
+            <Box
+              sx={{
+                mt: 1,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: "#f5f7fa",
+                border: "1px solid #e1e5eb",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#666666" }}>
+                  Saatlik ücret
+                </Typography>
+
+                <Typography sx={{ fontWeight: 600 }}>
+                  {roomPrice.toLocaleString("tr-TR")} ₺
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#666666" }}>
+                  Süre
+                </Typography>
+
+                <Typography sx={{ fontWeight: 600 }}>
+                  {duration} saat
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  borderTop: "1px solid #d9dee5",
+                  mt: 1.5,
+                  pt: 1.5,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                  }}
+                >
+                  Toplam
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "#175bb8",
+                  }}
+                >
+                  {totalPrice.toLocaleString("tr-TR")} ₺
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={handleClose} sx={{ textTransform: "none" }}>
+          <Button
+            onClick={handleClose}
+            sx={{
+              textTransform: "none",
+            }}
+          >
             İptal
           </Button>
 
@@ -468,6 +619,7 @@ router.push(targetUrl);
             sx={{
               textTransform: "none",
               backgroundColor: "#175bb8",
+
               "&:hover": {
                 backgroundColor: "#104a99",
               },

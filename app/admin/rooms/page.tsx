@@ -351,7 +351,7 @@ export default function RoomsPage() {
             fontSize: { xs: "1.5rem", sm: "2.125rem" },
           }}
         >
-          Mekan Yönetimi ({rooms.length})
+          Oda Yönetimi ({rooms.length})
         </Typography>
         <Button
           variant="contained"
@@ -394,7 +394,7 @@ export default function RoomsPage() {
             sx={{ mt: 1 }}
           >
             İlk Mekanı Ekle
-          </Button> 
+          </Button>
         </Box>
       ) : (
         <Grid container spacing={{ xs: 2, sm: 3 }}>

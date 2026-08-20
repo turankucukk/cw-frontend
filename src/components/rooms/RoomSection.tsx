@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import RoomList from './RoomList';
 import BuildingFloorPlan from '@/src/components/rooms/BuildingFloorPlan';
-import BuildingLayoutViewer from '@/src/components/rooms/BuildingLayoutViewer';
 import GlassCard from '@/src/components/layout/GlassCard';
 import Navbar from '../layout/Navbar';
 import FilterBar from './FilterBar';
@@ -28,7 +27,7 @@ export default function RoomsSection() {
   }, []);
 
   useEffect(() => {
-    getRooms().then((data) => setRooms(data.filter((r) => r.isActive)));
+    getRooms().then(setRooms);
   }, []);
 
   useEffect(() => {
@@ -38,32 +37,14 @@ export default function RoomsSection() {
     }
   }, [searchParams]);
 
-  const selectedBuilding = buildings.find((b) => b.id === selectedBuildingId) ?? null;
-  const hasBuildingLayout = !!selectedBuilding?.layout_data?.floors?.some((f) => f.items.length > 0);
-  const selectedBuildingRooms = selectedBuildingId
-    ? rooms.filter((room) => room.building_id === selectedBuildingId)
-    : rooms;
-
   return (
     <>
       <Navbar />
       <Box sx={{ px: { xs: 3, md: 8 }, mt: { xs: 2, md: 10 } }}>
-        <GlassCard sx={{mt:{xs:10 , md:3}}}>
-          <FilterBar
-            search={search}
-            onSearchChange={setSearch}
-            buildings={buildings}
-            selectedBuildingId={selectedBuildingId}
-            onBuildingChange={setSelectedBuildingId}
-            minCapacity={minCapacity}
-            onCapacityChange={setMinCapacity}
-            selectedFeatures={selectedFeatures}
-            onFeaturesChange={setSelectedFeatures}
-          />
-        </GlassCard>
 
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, py: 2 }}>
-          <Box sx={{ flex: { md: '0 0 55%' } }}>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, py: 2 }}>
+          <Box sx={{ flex: 1 }}>
             <GlassCard>
               <RoomList
                 rooms={rooms}
@@ -72,18 +53,6 @@ export default function RoomsSection() {
                 minCapacity={minCapacity}
                 selectedFeatures={selectedFeatures}
               />
-            </GlassCard>
-          </Box>
-          <Box sx={{ flex: { md: '0 0 40%' }, display: 'flex', justifyContent: 'center' }}>
-            <GlassCard>
-              {hasBuildingLayout ? (
-                <BuildingLayoutViewer
-                  layout={selectedBuilding!.layout_data}
-                  rooms={selectedBuildingRooms}
-                />
-              ) : (
-                <BuildingFloorPlan />
-              )}
             </GlassCard>
           </Box>
         </Box>
