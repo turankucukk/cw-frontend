@@ -39,8 +39,10 @@ import GridOnIcon from "@mui/icons-material/GridOn";
 import { useToast } from "@/src/contexts/toastcontext";
 import BuildIcon from "@mui/icons-material/Build";
 import { createClient } from "@/src/utils/supabase/client";
+import { updateRoomImageOrder, uploadRoomImage, deleteRoomImage } from "@/src/lib/api/rooms";
 import { useUserRole } from "@/src/hooks/useUserRole";
 import { can } from "@/src/lib/permissions";
+import { sendMaintenanceCancellationEmail } from "@/src/actions/mail";
 import QRCodeIcon from "@mui/icons-material/QrCode2";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -359,7 +361,14 @@ const handleConfirmMaintenance = async () => {
 
   let overlapQuery = supabase
     .from("reservation")
-    .select("id, total_price")
+    .select(`
+      id,
+      total_price,
+      start_time,
+      end_time,
+      user_id,
+      user:user_id (email, name, surname)
+    `)
     .eq("space_id", maintenanceRoom.id)
     .neq("status", "cancelled")
     .gt("end_time", effectiveStart.toISOString());
@@ -404,9 +413,24 @@ const handleConfirmMaintenance = async () => {
       console.error("Ödeme kayıtları güncellenirken hata oluştu:", paymentUpdateError.message);
     }
 
-    // TODO (Faz 7): Bu rezervasyonların sahiplerine "iptal edildi, iade edildi" maili gönderilecek
+    // Faz 7: İptal edilen rezervasyonların sahiplerine mail gönder
+    for (const res of overlappingReservations) {
+      const userObj = Array.isArray(res.user) ? res.user[0] : res.user;
+      if (userObj?.email) {
+        const userName = `${userObj.name || ''} ${userObj.surname || ''}`.trim() || "Değerli Müşterimiz";
+        sendMaintenanceCancellationEmail(
+          userObj.email,
+          userName,
+          maintenanceRoom.name,
+          res.start_time,
+          res.end_time,
+          res.total_price
+        ).catch((err) => console.error("Bakım iptal maili hatası:", err));
+      }
+    }
+
     showToast(
-      `Oda bakıma alındı. ${idsToCancel.length} rezervasyon iptal edilip iade edildi.`,
+      `Oda bakıma alındı. ${idsToCancel.length} rezervasyon iptal edilip iade edildi ve kullanıcılara mail gönderildi.`,
       "warning"
     );
   } else {

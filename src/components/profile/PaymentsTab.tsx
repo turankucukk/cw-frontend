@@ -5,7 +5,7 @@ import { Box, Typography, Card, Table, TableBody, TableCell, TableContainer, Tab
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
-  return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
 };
 
 const getStatusChip = (status: string) => {
@@ -16,6 +16,8 @@ const getStatusChip = (status: string) => {
       return <Chip label="İade Edildi" color="default" size="small" />;
     case "pending":
       return <Chip label="Bekliyor" color="warning" size="small" />;
+    case "cancelled":
+      return <Chip label="Reddedildi" color="default" size="small" />;
     default:
       return <Chip label={status} size="small" />;
   }
@@ -48,7 +50,9 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                 </TableCell>
               </TableRow>
             ) : (
-              payments.map((payment) => (
+              payments.map((payment) => {
+                const effectiveStatus = payment.reservation?.status === "cancelled" ? "cancelled" : payment.status;
+                return (
                 <TableRow
                   key={payment.id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -62,20 +66,26 @@ export default function PaymentsTab({ payments = [] }: { payments?: any[] }) {
                     {(payment.amount || 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
                   </TableCell>
                   <TableCell align="center">
-                    {getStatusChip(payment.status)}
+                    {getStatusChip(effectiveStatus)}
                   </TableCell>
                   <TableCell align="center">
-                    <Button 
-                      href={`/invoice/${payment.reservation_id}`}
-                      variant="outlined" 
-                      size="small" 
-                      sx={{ textTransform: "none", borderRadius: 2 }}
-                    >
-                      Faturayı Gör
-                    </Button>
+                    {effectiveStatus === "paid" ? (
+                      <Button
+                        href={`/invoice/${payment.reservation_id}`}
+                        variant="outlined"
+                        size="small"
+                        sx={{ textTransform: "none", borderRadius: 2 }}
+                      >
+                        Faturayı Gör
+                      </Button>
+                    ) : (
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        {effectiveStatus === "cancelled" ? "Reddedildi" : "Onaylandığında görünecek"}
+                      </Typography>
+                    )}
                   </TableCell>
                 </TableRow>
-              ))
+              )})
             )}
           </TableBody>
         </Table>

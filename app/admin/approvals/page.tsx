@@ -19,18 +19,24 @@ import { useUserRole } from "@/src/hooks/useUserRole";
 import { can } from "@/src/lib/permissions";
 import { createClient } from "@/src/utils/supabase/client";
 import dayjs from "dayjs";
+import { toAppTz } from "@/src/lib/date";
 import { useToast } from "@/src/contexts/toastcontext";
 import { useMediaQuery, useTheme, Stack } from "@mui/material";
+import { sendReservationEmail } from "@/src/actions/mail";
 
 type PendingReservation = {
   id: number;
   start_time: string;
+  raw_start_time: string;
   end_time: string;
+  raw_end_time: string;
   total_price: number;
   participant_count: number;
   room: string;
   building: string;
   user_name: string;
+  user_email: string;
+  user_id: number;
 };
 
 export default function ApprovalsPage() {
@@ -62,7 +68,8 @@ export default function ApprovalsPage() {
         end_time,
         total_price,
         participant_count,
-        user:user_id ( name, surname ),
+        user_id,
+        user:user_id ( name, surname, email ),
         space:space_id (
           name,
           building:building_id ( name )
@@ -78,16 +85,23 @@ export default function ApprovalsPage() {
       return;
     }
 
-    const formatted: PendingReservation[] = (data ?? []).map((r: any) => ({
-      id: r.id,
-      start_time: dayjs(r.start_time).format("DD.MM.YYYY HH:mm"),
-      end_time: dayjs(r.end_time).format("DD.MM.YYYY HH:mm"),
-      total_price: r.total_price ?? 0,
-      participant_count: r.participant_count ?? 0,
-      room: r.space?.name ?? "-",
-      building: r.space?.building?.name ?? "-",
-      user_name: r.user ? `${r.user.name ?? ""} ${r.user.surname ?? ""}`.trim() : "-",
-    }));
+    const formatted: PendingReservation[] = (data ?? []).map((r: any) => {
+      const u = Array.isArray(r.user) ? r.user[0] : r.user;
+      return {
+        id: r.id,
+        start_time: toAppTz(r.start_time).format("DD.MM.YYYY HH:mm"),
+        raw_start_time: r.start_time,
+        end_time: toAppTz(r.end_time).format("DD.MM.YYYY HH:mm"),
+        raw_end_time: r.end_time,
+        total_price: r.total_price ?? 0,
+        participant_count: r.participant_count ?? 0,
+        room: r.space?.name ?? "-",
+        building: r.space?.building?.name ?? "-",
+        user_name: u ? `${u.name ?? ""} ${u.surname ?? ""}`.trim() : "-",
+        user_email: u?.email ?? "",
+        user_id: r.user_id,
+      };
+    });
 
     setRows(formatted);
     setDataLoading(false);
@@ -114,10 +128,50 @@ export default function ApprovalsPage() {
     return;
   }
 
-  showToast(
-    decision === "confirmed" ? "Rezervasyon onaylandı!" : "Rezervasyon reddedildi!",
-    decision === "confirmed" ? "success" : "error"
-  );
+  const { error: paymentError } = await supabase
+    .from("payment")
+    .update(
+      decision === "confirmed"
+        ? { status: "paid", paid_at: new Date().toISOString() }
+        : { status: "cancelled" }
+    )
+    .eq("reservation_id", id);
+
+  if (paymentError) {
+    console.error(paymentError);
+  }
+
+  const targetRow = rows.find((r) => r.id === id);
+  if (targetRow) {
+    const { error: notificationError } = await supabase.from("notifications").insert({
+      user_id: targetRow.user_id,
+      message:
+        decision === "confirmed"
+          ? `${targetRow.room} rezervasyonunuz onaylandı, ödemeniz tamamlandı. Faturanızı görüntülemek için tıklayın.`
+          : `${targetRow.room} rezervasyonunuz reddedildi.`,
+      link: decision === "confirmed" ? `/invoice/${id}` : `/user/profile?tab=payments`,
+    });
+
+    if (notificationError) {
+      console.error(notificationError);
+    }
+      
+      // KULLANICIYA MAİL GÖNDERİMİ EKLENDİ
+      if (targetRow.user_email) {
+        sendReservationEmail(
+          targetRow.user_email,
+          targetRow.room,
+          targetRow.raw_start_time,
+          targetRow.raw_end_time,
+          decision
+        ).catch((err) => console.error("Onay/Ret maili gönderilemedi:", err));
+      }
+    }
+
+    showToast(
+      decision === "confirmed" ? "Rezervasyon onaylandı!" : "Rezervasyon reddedildi!",
+      decision === "confirmed" ? "success" : "error"
+    );
 
   setRows((prev) => prev.filter((r) => r.id !== id));
   setProcessingId(null);

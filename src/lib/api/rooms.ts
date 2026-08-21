@@ -311,3 +311,120 @@ export async function deleteRoom(id: number) {
     return { success: false, error: error.message };
   }
 }
+
+// Bir odaya tek bir görsel yükler (mevcut görsellerin sonuna ekler)
+export async function uploadRoomImage(spaceId: number, file: File) {
+  const supabase = createClient();
+  const BUCKET_NAME = "room_images";
+
+  try {
+    const { count } = await supabase
+      .from("room_images")
+      .select("id", { count: "exact", head: true })
+      .eq("space_id", spaceId);
+
+    const nextSortOrder = (count ?? 0) + 1;
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+    const filePath = `spaces/${spaceId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(filePath, file);
+
+    if (uploadError) {
+      return { success: false, error: `Storage Hatası: ${uploadError.message}` };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(filePath);
+
+    const { data, error: insertError } = await supabase
+      .from("room_images")
+      .insert({
+        space_id: spaceId,
+        image_url: publicUrlData.publicUrl,
+        sort_order: nextSortOrder,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      return { success: false, error: `Tablo Kayıt Hatası: ${insertError.message}` };
+    }
+
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Görsel yüklenirken hata oluştu:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+// Bir oda görselini siler (hem tablo kaydını hem storage dosyasını)
+export async function deleteRoomImage(imageId: number) {
+  const supabase = createClient();
+
+  try {
+    const { data: image, error: fetchError } = await supabase
+      .from("room_images")
+      .select("image_url")
+      .eq("id", imageId)
+      .single();
+
+    if (fetchError) {
+      return { success: false, error: fetchError.message };
+    }
+
+    const { error: deleteError } = await supabase
+      .from("room_images")
+      .delete()
+      .eq("id", imageId);
+
+    if (deleteError) {
+      return { success: false, error: deleteError.message };
+    }
+
+    // Storage'daki dosyayı da silmeye çalış (URL'den path'i çıkarıp)
+    if (image?.image_url) {
+      const url = new URL(image.image_url);
+      const pathParts = url.pathname.split("/room_images/");
+      if (pathParts[1]) {
+        await supabase.storage.from("room_images").remove([pathParts[1]]);
+      }
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Görsel silinirken hata oluştu:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+// Bir odanın görsellerinin sırasını günceller
+// orderedImageIds: yeni sıraya göre dizilmiş görsel id'leri
+export async function updateRoomImageOrder(orderedImageIds: number[]) {
+  const supabase = createClient();
+
+  try {
+    const updates = orderedImageIds.map((imageId, index) =>
+      supabase
+        .from("room_images")
+        .update({ sort_order: index + 1 })
+        .eq("id", imageId)
+    );
+
+    const results = await Promise.all(updates);
+    const failed = results.find((r) => r.error);
+
+    if (failed?.error) {
+      return { success: false, error: failed.error.message };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Görsel sırası güncellenirken hata oluştu:", error.message);
+    return { success: false, error: error.message };
+  }
+}
